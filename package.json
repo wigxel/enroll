@@ -1,0 +1,102 @@
+{
+  "name": "wigxel-nextjs-typescript-boilerplate",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "svg:convert": "npx @svgr/cli --icon --typescript --ignore-existing --memo --out-dir ./components/Icons -- public/assets/icons",
+    "watch": "watch 'clear && npm run -s lint' pages components",
+    "lint": "next lint && biome lint . && tsc --noEmit && echo 'Lint complete.'",
+    "lint:fix": "eslint --fix . && biome lint --write .",
+    "format": "npm run format:prettier && npm run format:biome",
+    "format:prettier": "prettier --write .",
+    "format:biome": "biome format --no-errors-on-unmatched --write .",
+    "test": "vitest --watch=false",
+    "test:watch": "vitest",
+    "round-check": "npm run lint && npm run format && npm run test && npm run build",
+    "test:coverage": "vitest run --coverage --watch=false",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tanstack/react-query": "^5.90.12",
+    "@tanstack/react-query-devtools": "^5.91.1",
+    "@wigxel/react-components": "^1.2.7",
+    "@wigxel/utils": "^1.0.10",
+    "clsx": "^2.1.1",
+    "consola": "^3.4.2",
+    "date-fns": "^4.1.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "lodash-es": "^4.17.21",
+    "motion": "^12.9.2",
+    "next": "16.0.10",
+    "ramda": "^0.27.2",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-hook-form": "^7.56.1",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.8.3",
+    "zod": "^4.2.1",
+    "zustand": "^5.0.9"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.10",
+    "@eslint/eslintrc": "^3.3.1",
+    "@svgr/cli": "^6.5.1",
+    "@tailwindcss/postcss": "^4.1.4",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^17.0.45",
+    "@types/react": "19.1.2",
+    "@vitejs/plugin-react-swc": "^3.9.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "autoprefixer": "^10.4.21",
+    "dotenv": "^16.5.0",
+    "eslint": "^9.25.1",
+    "eslint-config-next": "15.3.1",
+    "eslint-config-prettier": "^10.1.2",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prefer-arrow": "^1.2.3",
+    "eslint-plugin-prettier": "^5.2.6",
+    "eslint-plugin-security": "^1.7.1",
+    "eslint-plugin-sort-destructure-keys": "^1.6.0",
+    "eslint-plugin-sort-keys-fix": "^1.1.2",
+    "husky": "^9.1.7",
+    "jsdom": "^26.1.0",
+    "lint-staged": "^15.5.1",
+    "postcss": "^8.5.3",
+    "postcss-import": "^16.1.0",
+    "postcss-preset-env": "^8.5.1",
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.0.16",
+    "watch": "^1.0.2"
+  },
+  "keywords": [
+    "wigxel",
+    "boilerplate",
+    "nextjs"
+  ],
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write",
+      "biome lint --write --staged"
+    ],
+    "*.{css,html,md,mdx,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "packageManager": "pnpm@10.8.1+sha512.c50088ba998c67b8ca8c99df8a5e02fd2ae2e2b29aaf238feaa9e124248d3f48f9fb6db2424949ff901cffbb5e0f0cc1ad6aedb602cd29450751d11c35023677",
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.1.2"
+    }
+  }
+}
