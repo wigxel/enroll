@@ -8,7 +8,7 @@
     "start": "next start",
     "svg:convert": "npx @svgr/cli --icon --typescript --ignore-existing --memo --out-dir ./components/Icons -- public/assets/icons",
     "watch": "watch 'clear && npm run -s lint' pages components",
-    "lint": "next lint && biome lint . && tsc --noEmit && echo 'Lint complete.'",
+    "lint": "biome lint . && tsc --noEmit && echo 'Lint complete.'",
     "lint:fix": "eslint --fix . && biome lint --write .",
     "format": "npm run format:prettier && npm run format:biome",
     "format:prettier": "prettier --write .",

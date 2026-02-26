@@ -1,0 +1,31 @@
+Important! Always read this file before proceeding with a task
+
+# Guideline
+
+prd.md is the source of all truths. If they are decrepancies in the other .md files that differ from prd.md warn me of them before taking action.
+
+## Build a context from the following feels before proceeding with the prompt:
+
+1. prd.md
+2. privileges.md
+3. roles.md
+4. interfaces.md
+5. typescript.md
+6. convex.md
+
+## Change propagation flow:
+
+When a file changes, the system should propagate the changes to all relevant files in the project. This ensures that the system remains consistent and up-to-date.
+The root file is prd.md
+prd.md -> interfaces.md -> convex.md -> forms/\*.md -> .
+
+make updates to the codebase source files faster the `.md` files are updated.
+
+## Coding Rules
+
+Adhere to code-style rules in `ai/rules` folder
+
+## Prompt
+
+- Do no generate/print a summary after completing a task.
+- Do not create a summary file after completing a task.

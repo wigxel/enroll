@@ -1,0 +1,83 @@
+# Product Requirement Document (PRD): Student Enrollment System
+
+## 1. Introduction
+
+The Student Enrollment System is a comprehensive web application designed to manage the lifecycle of a prospective student from initial signup to full enrollment. It facilitates a structured workflow where applicants apply, pay an application fee, undergo administrative review, and upon approval, complete a series of required steps (such as tuition payment and quizzes) to officially become students.
+
+## 2. Goals & Objectives
+
+- **Structured Workflow:** Enforce a clear, step-by-step path from applicant to student.
+- **Financial Security:** Securely collect application and tuition fees.
+- **Admin Oversight:** Provide administrators with tools to review, approve, or decline applications efficiently.
+- **Progress Tracking:** Give applicants clear visibility into their current status and remaining requirements.
+
+## 3. Target Audience / Personas
+
+- **Applicants:** Prospective students seeking to enroll.
+- **Students:** Users who have successfully completed the enrollment process.
+- **Admins:** Staff members responsible for reviewing applications and managing student records.
+
+## 4. Functional Requirements
+
+### 4.1 User Registration & Authentication
+
+- **Sign Up:** Email/Password registration or SSO (Google/Apple).
+- **Role Management:** Distinct roles for 'Applicant', 'Student', and 'Admin'.
+- **Profile Management:** Basic profile setup (Contact info, etc.).
+
+### 4.2 Application Phase
+
+- **Application Form:** detailed form collecting personal, educational, and background information.
+- **Application Fee:** Mandatory payment step to submit the application.
+  - Integration with a payment provider (e.g., Stripe).
+  - Application is locked/submitted only after successful payment.
+- **Submission Status:** Applicants see their status as "Under Review" after submission.
+
+### 4.3 Admin Review & Management
+
+- **Admin Dashboard:** List of pending applications.
+- **Student List:** View a comprehensive list of all fully enrolled students.
+  - **Filtering/Sorting:** Filter by enrollment date, name, or email.
+- **Review Actions:**
+  - **View Details:** See all applicant data and payment status.
+  - **Approve:** Prompts the system to unlock the "Enrollment Checklist" for the user.
+  - **Decline:** Sends a notification to the applicant; process ends.
+
+### 4.4 Enrollment Checklist (Post-Approval)
+
+- **Conditional Access:** Only accessible to users with "Approved" application status.
+- **Step-by-Step List:**
+  - **Tuition Payment:** Secure payment gateway for full or partial tuition.
+  - **Quiz/Assessment:** Embedded quiz to test prerequisite knowledge or orientation material.
+  - **Document Signing:** Digital signature for student codes of conduct (optional).
+- **Completion:** Once all steps are finished, the user role transitions from 'Applicant' to 'Student'.
+
+### 4.5 Student Dashboard
+
+- **Status View:** Visible tracking of the entire journey.
+- **Access:** Access to student-only resources (after full enrollment).
+
+## 5. Non-Functional Requirements
+
+- **Security:** Role-Based Access Control (RBAC) to ensure applicants cannot access student areas or admin functions.
+- **Data Integrity:** Reliable state management for application statuses (Draft -> Submitted -> Approved -> Enrolled).
+- **Performance:** Real-time updates for application status changes.
+
+## 6. Technical Stack
+
+- **Frontend:** Next.js (React), Tailwind CSS.
+- **Backend & Database:** Convex (Real-time backend, reactive database, serverless functions).
+- **Authentication:** Clerk or Auth0 (integrated with Convex).
+- **Payments:** Stripe (for Application Fee and Tuition).
+
+## 7. UX/UI Guidelines
+
+- **Progress Indicators:** Clear visual steppers showing the user's journey (e.g., Application -> Review -> Enrollment Steps -> Complete).
+- **Notification Feedback:** Immediate feedback for payments and form submissions.
+- **Mobile Responsiveness:** Fully functional on mobile devices for applicants on the go.
+
+## 8. Success Metrics (KPIs)
+
+- **Application Completion Rate:** % of signups that pay the fee and submit.
+- **Review Turnaround Time:** Average time for admins to review an application.
+- **Enrollment Conversion:** % of approved applicants who complete all enrollment steps.

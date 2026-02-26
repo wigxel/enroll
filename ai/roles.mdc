@@ -1,0 +1,70 @@
+# Role Privileges
+
+This document outlines the roles and their associated privileges within the Student Enrollment System. These roles govern access to the application process, enrollment steps, and administrative functions.
+
+## 1. Administrator
+
+Administrators have full oversight of the system, managing applications, users, and system configuration.
+
+- **User Management:**
+  - `user:read`
+  - `user:update`
+  - `user:assign:role`
+  - `student:read:list` (View all enrolled students)
+- **Application Management:**
+  - `application:read:all`
+  - `application:update:status` (Approve/Decline)
+  - `application:delete`
+  - `application:view:details`
+- **Enrollment Management:**
+  - `enrollment:read:all`
+  - `enrollment:update`
+  - `enrollment:view:details`
+- **Payment Management:**
+  - `payment:read:all`
+  - `payment:refund`
+- **Reporting & Auditing:**
+  - `report:view:dashboard`
+  - `report:generate`
+
+## 2. Applicant
+
+Applicants are prospective students who have signed up and are in the process of submitting their application.
+
+- **Application Management:**
+  - `application:create`
+  - `application:read:own`
+  - `application:update:own` (Draft status only)
+  - `application:submit`
+- **Payment Management:**
+  - `payment:create` (Application Fee)
+- **Profile Management:**
+  - `profile:read:own`
+  - `profile:update:own`
+
+## 3. Student
+
+Students are users who have successfully completed the application and enrollment process. They have access to student-specific resources.
+
+- **Enrollment Management:**
+  - `enrollment:read:own`
+  - `enrollment:step:complete` (e.g., Tuition, Quiz)
+- **Student Resources:**
+  - `resource:access:student_portal`
+  - `resource:read:materials`
+- **Profile Management:**
+  - `profile:read:own`
+  - `profile:update:own`
+
+---
+
+## Role Related Queries
+
+Here are the role-related queries expected in the codebase:
+
+- **`convex/auth.ts`**:
+  - `listRoles()`: Lists all available roles ("Admin", "Applicant", "Student").
+  - `getRole(roleId: Id<"roles">)`: Retrieves a specific role.
+  - `hasPrivilege(privilegeKey: string)`: Checks if the current user has a specific privilege.
+  - `getUserWithRole(userId: Id<"users">)`: Fetches user details with role info.
+  - `getCurrentUserWithRole()`: Fetches current user with role info.

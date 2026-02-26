@@ -1,0 +1,79 @@
+struct UserStruct {
+\_id: String
+email: String
+name: String
+role: Role.\_id
+clerkId: String // The clerkUser Id
+profileImage: O.Option<String> // a profile image url
+createdAt: Timestamp(ISO)
+updatedAt: Timestamp(ISO)
+}
+
+struct RoleStruct {
+\_id: String
+name: String
+description: String
+privileges: Array<String>
+}
+
+struct ApplicationStruct {
+\_id: String
+userId: User.\_id
+status: "draft" | "submitted" | "under_review" | "approved" | "declined"
+paymentStatus: "unpaid" | "paid"
+data: {
+firstName: String
+lastName: String
+dateOfBirth: String
+address: String
+phoneNumber: String
+educationalBackground: String
+// Add other relevant fields as needed
+}
+submittedAt: O.Option<Timestamp(ISO)>
+reviewedAt: O.Option<Timestamp(ISO)>
+reviewedBy: O.Option<User.\_id>
+rejectionReason: O.Option<String>
+createdAt: Timestamp(ISO)
+updatedAt: Timestamp(ISO)
+}
+
+struct PaymentStruct {
+\_id: String
+userId: User.\_id
+referenceId: String // ID of the related entity (Application.\_id or Enrollment.\_id)
+referenceType: "application" | "tuition"
+amount: Number
+currency: String
+stripePaymentIntentId: String
+status: "pending" | "succeeded" | "failed"
+createdAt: Timestamp(ISO)
+}
+
+struct EnrollmentStruct {
+\_id: String
+userId: User.\_id
+applicationId: Application.\_id
+steps: {
+tuitionPaid: Boolean
+quizPassed: Boolean
+documentsSigned: Boolean
+}
+status: "pending" | "completed"
+completedAt: O.Option<Timestamp(ISO)>
+createdAt: Timestamp(ISO)
+updatedAt: Timestamp(ISO)
+}
+
+struct NotificationStruct {
+\_id: String
+userId: User.\_id // Recipient's User.\_id
+type: String // e.g., "application_status_change", "payment_received"
+title: String
+body: String
+relatedEntityId: O.Option<String>
+relatedEntityType: O.Option<String>
+isRead: Boolean
+isArchived: Boolean
+createdAt: Timestamp(ISO)
+}

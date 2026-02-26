@@ -1,0 +1,62 @@
+### Frontend Access Control with `AccessControl` Component
+
+These detailed privileges are directly leveraged by the `AccessControl` React component (`src/components/access-control/AccessControl.tsx`) to enable or disable UI elements and features on the frontend based on the user's assigned role and privileges. This ensures that users only see and interact with functionalities they are authorized to use.
+
+### Detailed Privileges List
+
+This list outlines the specific actions users can perform within the Student Enrollment System. These privileges are grouped by domain and assigned to the roles defined in `roles.md`.
+
+#### **User & Role Management**
+
+- `user:read`: Ability to view user profiles.
+- `user:update`: Ability to modify user details.
+- `user:assign:role`: Ability to assign or change a user's role (Admin only).
+- `student:read:list`: Ability to view a paginated list of all enrolled students (Admin only).
+- `profile:read:own`: Ability to view one's own profile.
+- `profile:update:own`: Ability to update one's own profile.
+
+#### **Application Management**
+
+- `application:create`: Ability to start a new application.
+- `application:read:all`: Ability to view all applications (Admin).
+- `application:read:own`: Ability to view only one's own application.
+- `application:update:own`: Ability to edit a draft application.
+- `application:update:status`: Ability to approve or decline applications (Admin).
+- `application:submit`: Ability to submit a completed application.
+- `application:delete`: Ability to delete an application (Admin).
+- `application:view:details`: Ability to view full application details.
+
+#### **Enrollment Management**
+
+- `enrollment:read:all`: Ability to view all enrollment records (Admin).
+- `enrollment:read:own`: Ability to view one's own enrollment progress.
+- `enrollment:update`: Ability to manually update enrollment status (Admin).
+- `enrollment:step:complete`: Ability to complete enrollment steps (e.g., pay tuition, take quiz).
+- `enrollment:view:details`: Ability to view detailed enrollment information.
+
+#### **Payment Management**
+
+- `payment:read:all`: Ability to view all payment transactions (Admin).
+- `payment:create`: Ability to initiate a payment (Application Fee or Tuition).
+- `payment:refund`: Ability to process refunds (Admin).
+
+#### **Student Resources**
+
+- `resource:access:student_portal`: Ability to access the main student dashboard.
+- `resource:read:materials`: Ability to view educational materials and resources.
+
+#### **Reporting & Auditing**
+
+- `report:view:dashboard`: Ability to access the main system dashboard (Admin).
+- `report:generate`: Ability to generate and export reports on applications and enrollments.
+
+---
+
+## Privilege Related Queries
+
+Here are the privilege-related queries found in the codebase:
+
+- **`convex/auth.ts`**:
+  - `hasPrivilege(privilegeKey: string)`: Checks if the current authenticated user possesses a specific privilege.
+
+These queries are primarily located in `convex/auth.ts` and are designed to check for the presence of specific privileges.

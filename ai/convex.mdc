@@ -1,0 +1,153 @@
+# Convex Integration Plan for Student Enrollment System
+
+This document outlines the plan for setting up the database schema and business logic in Convex to support the Student Enrollment System, focusing on the applicant-to-student lifecycle, application review, and enrollment steps.
+
+## 1. Goal
+
+To establish a robust backend in Convex with a database schema and server-side functions that manage the enrollment process, from application submission and fee payment to admin review and student onboarding.
+
+## 2. Database Schema Design
+
+The following tables will be created in Convex to store the application's data:
+
+### `users` Table
+
+Stores information about each user (Applicant, Student, Admin).
+
+- `_id`: Convex ID (Primary Key)
+- `clerkId`: String (Unique, for authentication via Clerk)
+- `email`: String (Unique)
+- `name`: String
+- `role`: Reference to `roles._id`
+- `createdAt`: DateTime
+- `updatedAt`: DateTime
+
+### `roles` Table
+
+Defines the roles: "Applicant", "Student", "Admin".
+
+- `_id`: Convex ID (Primary Key)
+- `name`: String (Unique)
+- `description`: String
+- `privileges`: Array of Strings (e.g., `application:create`, `application:review`)
+
+### `applications` Table
+
+Stores detailed application data submitted by applicants.
+
+- `_id`: Convex ID (Primary Key)
+- `userId`: Reference to `users._id`
+- `status`: String ("draft", "submitted", "under_review", "approved", "declined")
+- `paymentStatus`: String ("unpaid", "paid")
+- `data`: Object (Personal info, educational background, etc.)
+- `submittedAt`: DateTime (Optional)
+- `reviewedAt`: DateTime (Optional)
+- `reviewedBy`: Reference to `users._id` (Admin ID, Optional)
+- `rejectionReason`: String (Optional)
+- `createdAt`: DateTime
+- `updatedAt`: DateTime
+
+### `payments` Table
+
+Tracks payments for application fees and tuition.
+
+- `_id`: Convex ID (Primary Key)
+- `userId`: Reference to `users._id`
+- `referenceId`: String (ID of Application or Enrollment)
+- `referenceType`: String ("application", "tuition")
+- `amount`: Number
+- `currency`: String
+- `stripePaymentIntentId`: String
+- `status`: String ("pending", "succeeded", "failed")
+- `createdAt`: DateTime
+
+### `enrollments` Table
+
+Tracks the post-approval enrollment checklist progress.
+
+- `_id`: Convex ID (Primary Key)
+- `userId`: Reference to `users._id`
+- `applicationId`: Reference to `applications._id`
+- `steps`: Object
+  - `tuitionPaid`: Boolean
+  - `quizPassed`: Boolean
+  - `documentsSigned`: Boolean
+- `status`: String ("pending", "completed")
+- `completedAt`: DateTime (Optional)
+- `createdAt`: DateTime
+- `updatedAt`: DateTime
+
+### `notifications` Table
+
+Manages user notifications.
+
+- `_id`: Convex ID (Primary Key)
+- `userId`: Reference to `users._id`
+- `type`: String (e.g., "application_status_change")
+- `title`: String
+- `body`: String
+- `relatedEntityId`: String (Optional)
+- `relatedEntityType`: String (Optional)
+- `isRead`: Boolean
+- `isArchived`: Boolean
+- `createdAt`: DateTime
+
+## 3. Convex Functions (Business Logic)
+
+Functions will handle data manipulation and enforce business rules.
+
+### Authentication & User Management
+
+- `auth.login`: Handles user authentication via Clerk.
+- `auth.signup`: Registers a new user and assigns the default "Applicant" role.
+- `auth.getCurrentUser`: Retrieves current user details, role, and privileges.
+- `users.updateProfile`: Updates user profile information.
+- `users.assignRole(userId, roleId)`: Assigns a specific role to a user (Admin role).
+- `users.listStudents(filterOptions)`: Lists all users with the "Student" role, supporting search and pagination (Admin only).
+
+### Application Management
+
+- `applications.create`: Creates a new application draft for the current user.
+- `applications.update`: Updates application data (only if status is "draft").
+- `applications.submit`: Submits the application (requires payment confirmation).
+- `applications.getMyApplication`: Retrieves the current user's application.
+- `applications.getById`: Retrieves any application's full details (Admin only).
+- `applications.listPending`: Lists all applications with status "submitted" or "under_review" (Admin only).
+- `applications.review`: Updates application status to "approved" or "declined" (Admin only).
+
+### Payment Processing
+
+- `payments.createIntent`: Creates a Stripe Payment Intent for application fee or tuition.
+- `payments.confirm`: Webhook handler or client confirmation to update payment status in DB.
+- `payments.list`: Retrieves a list of all payment logs with filtering by user or status (Admin only).
+
+### Enrollment Workflow
+
+- `enrollments.get`: Retrieves the current user's enrollment checklist.
+- `enrollments.getById`: Retrieves any student's enrollment progress and status (Admin only).
+- `enrollments.updateStep`: Updates the status of a specific step (e.g., quiz passed, document signed).
+- `enrollments.complete`: Finalizes enrollment if all steps are done.
+  - Updates user role from "Applicant" to "Student".
+
+### Notifications
+
+- `notifications.list`: Retrieves notifications for the current user.
+- `notifications.markAsRead`: Marks a notification as read.
+- `internal.sendNotification`: Internal helper to create notifications on events (e.g., application approved).
+
+## 4. Authentication and Authorization Flow
+
+1.  **Login:** Users authenticate via Clerk.
+2.  **Role Assignment:** New users start as "Applicant".
+3.  **Privilege Check:** Convex functions check `roles.privileges` before executing sensitive actions (e.g., `application:review` requires Admin role).
+4.  **State Transitions:**
+    - Applicant -> (Submit App + Pay Fee) -> Pending Review
+    - Pending Review -> (Admin Approve) -> Approved (Enrollment Starts)
+    - Enrollment (Tuition + Quiz + Sign) -> (Complete) -> Student Role Assigned.
+
+## 5. Next Steps
+
+- Implement schema in `convex/schema.ts`.
+- Develop `auth`, `users`, `applications`, `payments`, and `enrollments` modules.
+- Integrate Stripe for payments.
+- Build frontend forms and dashboards corresponding to these backend functions.
