@@ -22,7 +22,7 @@ The Student Enrollment System is a comprehensive web application designed to man
 ### 4.1 User Registration & Authentication
 
 - **Sign Up:** Email/Password registration or SSO (Google/Apple).
-- **Role Management:** Distinct roles for 'Applicant', 'Student', and 'Admin'.
+- **Role Management:** Distinct roles for 'Applicant', 'Student', 'Admin', 'Staff', and 'Auditor'.
 - **Profile Management:** Basic profile setup (Contact info, etc.).
 
 ### 4.2 Application Phase

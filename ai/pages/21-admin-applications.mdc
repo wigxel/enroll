@@ -1,0 +1,36 @@
+# Page Plan: Admin — Applications List
+
+## Route
+`/admin/applications`
+
+## Purpose
+A dedicated page for viewing and managing all submitted applications. Provides admins with a centralised overview of every application across all statuses, with filtering and search. This is the primary gateway to application review.
+
+## Roles Permitted
+- `Admin` with `application:read:all` privilege.
+
+## UI Layout
+
+1. **Admin sidebar nav** — Logo, "Dashboard", "Applications" (active), "Students", etc.
+2. **Page header** — "Applications" title + total count and pending count.
+3. **Status filter tabs** — pill-style toggles:
+   - All | Submitted | Under Review | Approved | Declined | Draft
+   - Each shows a count badge.
+4. **Search bar** — text search by applicant name or email.
+5. **Applications table**:
+   - Columns: Applicant (avatar + name + email), Course, Status (badge), Payment, Submitted Date, Actions.
+   - **Status badge** — colour-coded: Draft (gray), Submitted (blue), Under Review (yellow), Approved (green), Declined (red).
+   - **Payment indicator** — Paid (green), Unpaid (yellow), Refunded (gray).
+   - **"Review →" action** per row → links to `/admin/applications/[applicationId]`.
+   - Hover highlight on rows.
+   - Pagination *(future scope)*.
+6. **Empty state** — Filter icon + "No applications found" when no results match.
+
+## Data Requirements
+- `applications.list({ search, statusFilter, page })` — paginated, filtered list of all applications.
+- Dashboard stats can link "Pending" count directly to this page pre-filtered.
+
+## Navigation
+- "Review →" per row → `/admin/applications/[applicationId]`.
+- Dashboard "View All" → `/admin/applications`.
+- Sidebar links to other admin pages.

@@ -1,0 +1,36 @@
+# Page Plan: Root / Landing
+
+## Route
+`/`
+
+## Purpose
+The entry point of the application. Unauthenticated users see a marketing landing page. Authenticated users are immediately redirected to the appropriate area based on their role and current state.
+
+## Roles & Redirect Logic
+
+| User State                                   | Redirect To                  |
+|----------------------------------------------|------------------------------|
+| Unauthenticated                              | Render landing page (below)  |
+| Applicant — no application yet               | `/application`               |
+| Applicant — draft / under review             | `/application/status`        |
+| Applicant — approved (enrollment pending)    | `/enrollment`                |
+| Student — fully enrolled                     | `/student/dashboard`         |
+| Admin                                        | `/admin/dashboard`           |
+
+Redirect logic runs server-side via Next.js middleware using the Clerk session and a Convex query for role + application state.
+
+## UI Layout (unauthenticated only)
+A minimal marketing/hero page:
+
+1. **Navbar** — Logo + "Sign In" and "Apply Now" CTAs.
+2. **Hero section** — Headline, sub-headline, and a prominent "Apply Now" button linking to `/auth/sign-up`.
+3. **How it works** — 3-step visual: Apply → Get Reviewed → Enroll.
+4. **Footer** — basic links.
+
+## Data Requirements
+- Clerk session (middleware) — to determine auth state.
+- `users.getCurrentUserWithRole()` + `applications.getOwnApplication()` — to determine redirect target for authenticated users.
+
+## Notes
+- The marketing content is static; no Convex calls are needed for unauthenticated visitors.
+- Middleware handles the redirect before the page renders to avoid flash of wrong content.

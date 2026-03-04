@@ -1,0 +1,27 @@
+# Page Plan: Application Form
+
+## Route
+`/application`
+
+## Purpose
+The primary page where an Applicant fills out and submits their enrollment application. Hosts the multi-step Application Form in a full-page layout with a visual stepper.
+
+## Roles Permitted
+- `Applicant` with `application:create` or `application:update:own` privilege.
+- Redirect away if `ApplicationStruct.status` is `"submitted"` or later (send to `/application/status`).
+
+## UI Layout
+
+1. **Top stepper bar** — shows the 3 steps: Personal Info → Education → Review & Submit. Highlights the current step.
+2. **Form area** — renders the active step's fields (see `ai/forms/03-application-form.mdc`).
+3. **Navigation bar** — "Back" / "Continue" / "Submit Application" buttons at the bottom.
+4. **Auto-save indicator** — subtle "Saving…" / "Saved" status in the top-right corner.
+
+## Data Requirements
+- `applications.getOwnApplication()` — on load, fetches any existing draft to pre-populate fields.
+- `applications.saveDraft(data)` — called on debounced field changes.
+- `applications.submit(applicationId)` — called on final step submission.
+
+## Navigation
+- On final submit → `/application/pay` (Application Fee Payment page).
+- If application already exists in `submitted+` state on load → redirect to `/application/status`.

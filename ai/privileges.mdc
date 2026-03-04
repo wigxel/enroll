@@ -34,11 +34,26 @@ This list outlines the specific actions users can perform within the Student Enr
 - `enrollment:step:complete`: Ability to complete enrollment steps (e.g., pay tuition, take quiz).
 - `enrollment:view:details`: Ability to view detailed enrollment information.
 
+#### **Cohort Management**
+
+- `cohort:manage`: Ability to create, edit, and assign students to cohorts (Admin/Staff).
+- `cohort:read:all`: Ability to view all cohorts and their enrolled students.
+
+#### **Course Management**
+
+- `course:manage`: Ability to create, update, and delete courses (Admin).
+- `course:read:all`: Ability to view all courses.
+
 #### **Payment Management**
 
 - `payment:read:all`: Ability to view all payment transactions (Admin).
 - `payment:create`: Ability to initiate a payment (Application Fee or Tuition).
 - `payment:refund`: Ability to process refunds (Admin).
+
+#### **Notification Management**
+
+- `notification:read:admin`: Ability to view administrative notifications and alerts.
+- `notification:read:own`: Ability to view personal notifications.
 
 #### **Student Resources**
 
@@ -49,6 +64,10 @@ This list outlines the specific actions users can perform within the Student Enr
 
 - `report:view:dashboard`: Ability to access the main system dashboard (Admin).
 - `report:generate`: Ability to generate and export reports on applications and enrollments.
+
+#### **System Settings**
+
+- `settings:update`: Ability to configure global application settings such as open/close dates and fee amounts (Admin).
 
 ---
 

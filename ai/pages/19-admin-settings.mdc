@@ -1,0 +1,68 @@
+# Page Plan: Admin — Settings
+
+## Route
+`/admin/settings` (with nested sub-pages)
+
+## Purpose
+System configuration for the admin panel. Each settings category lives on its own nested page, connected by a tabbed navigation bar.
+
+## Roles Permitted
+- `Admin` with `settings:manage` privilege.
+
+## Structure
+
+### Layout (`/admin/settings/layout.tsx`)
+- **Page header** — "Settings" title.
+- **Tab navigation** — pill-style tabs:
+  - **Team** → `/admin/settings/team`
+  - **Application Window** → `/admin/settings/application-window`
+  - **Fees** → `/admin/settings/fees`
+- Active tab highlighted with white background and shadow.
+- `/admin/settings` root redirects to `/admin/settings/team`.
+
+---
+
+### Tab 1: Team (`/admin/settings/team`)
+Manage Super Admins, Staff, and Auditors who can access the admin panel.
+
+**UI:**
+- Admin users table: User (name + email), Role (badge), Joined Date, Remove action.
+- Role badges: Super Admin (purple), Staff (indigo), Auditor (orange).
+- Remove button hidden for Super Admin.
+- "Invite" button → opens modal with Email + Role fields.
+
+**Data:**
+- `admin.list()` — list administrative users.
+- `admin.invite({ email, role })` — invite new admin user.
+- `admin.remove({ userId })` — remove admin user access.
+
+---
+
+### Tab 2: Application Window (`/admin/settings/application-window`)
+Control when prospective students can submit new applications.
+
+**UI:**
+- Toggle: "Accepting Applications" with status message.
+- Open Date / Close Date datetime pickers.
+- "Close applications immediately" destructive link.
+- Save Changes button with success toast.
+
+**Data:**
+- `config.updateSettings({ isAcceptingApplications, openDate, closeDate })`.
+
+---
+
+### Tab 3: Fees (`/admin/settings/fees`)
+Set the application fee amount.
+
+**UI:**
+- Application Fee (₦) number input.
+- Helper text noting tuition fees are per-course (links to Courses page).
+- Save Changes button with success toast.
+
+**Data:**
+- `config.updateFees({ applicationFee })`.
+
+## Navigation
+- Sidebar "Settings" → `/admin/settings` → redirects to `/admin/settings/team`.
+- Tabs switch between sub-pages without full page reload.

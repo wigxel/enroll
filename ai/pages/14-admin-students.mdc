@@ -1,0 +1,31 @@
+# Page Plan: Admin — Students List
+
+## Route
+`/admin/users` (labelled "Students" in sidebar)
+
+## Purpose
+A searchable, sortable list of all fully enrolled students. Shows students who have completed the application and enrollment process. This page is exclusively for viewing enrolled students — applicants are managed separately on the Applications page.
+
+## Roles Permitted
+- `Admin` with `student:read:list` privilege.
+
+## UI Layout
+
+1. **Admin sidebar nav** — Logo, "Dashboard", "Applications", "Students" (active), etc.
+2. **Page header** — "Students" title + total enrolled count.
+3. **Search & sort bar**:
+   - Text search by name or email.
+   - Sort by: Enrolled Date (newest first default), Name A–Z.
+4. **Students table**:
+   - Columns: Student (avatar + name + email), Course, Cohort, Enrolled Date.
+   - Rows show green-tinted avatars.
+   - Hover highlight on rows.
+   - Pagination *(future scope)*.
+5. **Empty state** — "No students enrolled yet." or "No students found." (when searching).
+
+## Data Requirements
+- `users.listStudents({ search, sort, page })` — paginated, filtered list of users with completed enrollment.
+
+## Navigation
+- Sidebar links to other admin pages.
+- *(Future)* Row click → `/admin/students/[userId]` student detail page.

@@ -1,0 +1,25 @@
+# Page Plan: Sign In
+
+## Route
+`/auth/sign-in`
+
+## Purpose
+Allows returning users to log in. Wraps the Sign In form in the same centred auth layout.
+
+## Roles Permitted
+- Public only. Authenticated users are redirected away (middleware).
+
+## UI Layout
+Centred card layout on a branded background:
+
+1. **Logo** at the top.
+2. **Heading** — "Welcome back"
+3. **Sign In Form** — see `ai/forms/02-sign-in.mdc` for full field/schema plan.
+4. **Footer link** — "Don't have an account? Apply Now" → `/auth/sign-up`
+
+## Data Requirements
+- No Convex queries. All auth is handled by Clerk.
+
+## Navigation
+- On success → role-based redirect (see `ai/forms/02-sign-in.mdc` → Behaviour).
+- "Apply Now" link → `/auth/sign-up`.

@@ -1,0 +1,41 @@
+# Page Plan: Admin — User & Role Management (Administrative Users)
+
+## Route
+`/admin/settings` (within the "Administrative Users" section)
+
+## Purpose
+Manages administrative users (Super Admin, Staff, Auditor) who have access to the admin panel. This is NOT for app users (Students/Applicants) — those are managed on the Students and Applications pages respectively.
+
+## Roles Permitted
+- `Admin` with `user:read` and `user:assign:role` privileges.
+
+## UI Layout
+
+Located as the **first section** on the Settings page (`/admin/settings`):
+
+1. **Section header** — "Administrative Users" + "Invite" button.
+2. **Admin users table** (inline in Settings, not a separate page):
+   - Columns: User (name + email), Role (badge), Joined Date, Actions.
+   - **Role badge** — colour-coded: Super Admin (purple), Staff (indigo), Auditor (orange).
+   - **Remove action** — Trash icon per row (hidden for Super Admin).
+3. **Invite Modal**:
+   - Email Address input.
+   - Role dropdown: Staff | Auditor | Super Admin.
+   - "Send Invite" / "Cancel" buttons.
+
+## User Types
+
+| Category | Roles | Managed On |
+|----------|-------|------------|
+| App Users — Students | Enrolled users | `/admin/users` (Students page) |
+| App Users — Applicants | Pending signups | `/admin/applications` |
+| Administrative Users | Super Admin, Staff, Auditor | `/admin/settings` |
+
+## Data Requirements
+- `admin.list()` — list of all administrative users.
+- `admin.invite({ email, role })` — sends an invite to a new admin user.
+- `admin.remove({ userId })` — removes an admin user's access.
+
+## Navigation
+- Part of the Settings page — no separate route.
+- Invite opens an inline modal (no page navigation).

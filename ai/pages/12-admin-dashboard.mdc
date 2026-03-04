@@ -1,0 +1,34 @@
+# Page Plan: Admin — Dashboard
+
+## Route
+`/admin/dashboard`
+
+## Purpose
+The admin home screen. Shows a prioritised list of applications pending review and key summary statistics.
+
+## Roles Permitted
+- `Admin` with `application:read:all` and `report:view:dashboard` privileges.
+
+## UI Layout
+
+1. **Admin sidebar nav** — Logo, "Dashboard" (active), "Applications", "Students", etc.
+2. **Stats row** — summary cards:
+   - Total applications
+   - Pending review count
+   - Approved this month
+   - Declined this month
+3. **Pending Applications table** — sortable/filterable list:
+   - Columns: Applicant Name, Email, Submitted At, Payment Status, Action.
+   - "Review →" button per row → links to `/admin/applications/[applicationId]`.
+   - Filter: All | Pending | Under Review.
+   - Pagination or infinite scroll for large datasets.
+4. **Empty state** — "No pending applications. You're all caught up!" when list is empty.
+
+## Data Requirements
+- `applications.listPending()` — reactive list of `submitted` / `under_review` applications.
+- `applications.getDashboardStats()` — aggregate counts for the stats row.
+
+## Navigation
+- "Review →" per row → `/admin/applications/[id]`.
+- "View All Applications" → `/admin/applications`.
+- Sidebar "Students" → `/admin/users`.

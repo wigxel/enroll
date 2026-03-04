@@ -1,0 +1,51 @@
+# Form Plan: Admin — Decline Application
+
+## Purpose
+Allows an admin to decline an application with a mandatory rejection reason. The reason is stored on the `ApplicationStruct` and sent to the applicant via a notification.
+
+## Route
+Rendered as a **modal dialog** on `/admin/applications/[applicationId]`
+
+## Roles Permitted
+- `Admin` with `application:update:status` privilege
+
+## UI Layout
+A confirmation modal dialog triggered by clicking the "Decline" button on the application detail view:
+
+1. Warning icon + heading: "Decline Application"
+2. Short description: "This action is permanent. The applicant will be notified."
+3. `rejectionReason` textarea
+4. Action buttons: "Cancel" (closes modal) | "Confirm Decline" (destructive, red)
+
+## Fields
+
+| Field             | Type     | Validation                      |
+|-------------------|----------|---------------------------------|
+| `rejectionReason` | textarea | Required, min 20 chars          |
+
+## Schema (Zod)
+```ts
+z.object({
+  rejectionReason: z.string().min(20, "Please provide a detailed reason (min 20 characters)"),
+})
+```
+
+## Behaviour
+1. Admin clicks "Decline" on the application detail page.
+2. Modal opens with the form.
+3. On submit:
+   - Calls `applications.decline({ applicationId, rejectionReason })`.
+   - Convex mutation sets `ApplicationStruct.status` to `"declined"` and `rejectionReason` to the provided value.
+   - **Automatic Refund:** If the applicant has a `succeeded` application fee payment, the mutation automatically calls `payments.refund({ paymentId, reason: rejectionReason })` to refund the application fee via the Paystack Refunds API. The `PaymentStruct.status` is updated to `"refunded"`.
+   - Creates a `NotificationStruct` for the applicant with `type: "application_status_change"`.
+   - Creates an additional `NotificationStruct` with `type: "payment_refunded"` informing the applicant their application fee has been refunded.
+4. On success: modal closes, application list refreshes, success toast shown ("Application declined and fee refunded").
+
+## Error Handling
+- Inline validation on `rejectionReason`.
+- Convex mutation errors caught and shown as an error toast.
+- If refund fails (e.g., Paystack API error), the decline still proceeds but a warning notification is created for admins to manually process the refund from the Payments page.
+
+## Related Convex Functions
+- `applications.decline({ applicationId, rejectionReason })` — updates status, triggers automatic refund, and creates notifications.
+- `payments.refund({ paymentId, reason })` — called internally to process the refund via Paystack.

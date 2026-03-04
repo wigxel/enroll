@@ -1,0 +1,65 @@
+# Form Plan: Tuition Payment
+
+## Purpose
+Allows an approved applicant to pay their tuition fee as part of the Enrollment Checklist. Successful payment marks the `tuitionPaid` step as complete on the `EnrollmentStruct`.
+
+## Route
+`/enrollment/tuition`
+
+## Roles Permitted
+- `Applicant` with an `approved` application status and an active `EnrollmentStruct`.
+- Redirects away if `enrollment.steps.tuitionPaid === true` (already completed).
+
+## UI Layout
+A focused checklist step page:
+
+1. **Step header** — "Step 1 of 3: Tuition Payment" with a progress indicator.
+2. **Fee breakdown card** — shows tuition amount, a short description, and due date (if any).
+3. **"Pay Tuition" button** — triggers the Paystack inline popup.
+4. **Security note** — "Payments are secured by Paystack."
+
+> No custom input fields — Paystack's modal handles payment details.
+
+## Fields
+No custom HTML form fields. Paystack handles card/bank details internally.
+
+## Paystack Integration
+```ts
+// Note: Fetch the tuition amount dynamically from the selected Course
+const handler = PaystackPop.setup({
+  key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+  email: currentUser.email,
+  amount: course.tuitionFee * 100, // Dynamic fee based on the chosen course (in kobo)
+  currency: "NGN",
+  ref: generateReference(),
+  metadata: {
+    enrollmentId: enrollment._id,
+    userId: currentUser._id,
+    type: "tuition",
+  },
+  callback: (response) => {
+    verifyTuitionPayment({ reference: response.reference });
+  },
+  onClose: () => {
+    // Show "Payment cancelled" toast
+  },
+});
+handler.openIframe();
+```
+
+## Behaviour
+1. On page load: verify the user has an approved application and an active enrollment with `tuitionPaid: false`.
+2. On "Pay Tuition": open Paystack inline popup.
+3. On Paystack `callback` (success): call Convex action `payments.verifyTuitionFee({ reference })`.
+   - Verifies payment server-side via Paystack API.
+   - Sets `EnrollmentStruct.steps.tuitionPaid` to `true`.
+   - Creates a `PaymentStruct` with `referenceType: "tuition"`.
+4. On success: redirect to the next enrollment step (`/enrollment/quiz`) with a success toast.
+
+## Error Handling
+- Paystack popup closed without payment: dismissible banner — "Payment not completed."
+- Server-side verification failure: error toast with support reference number.
+
+## Related Convex Actions / Mutations
+- `payments.verifyTuitionFee({ reference })` — verifies and updates enrollment step.
+- `enrollments.getOwnEnrollment()` — fetches enrollment state on load.

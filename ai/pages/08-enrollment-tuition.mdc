@@ -1,0 +1,25 @@
+# Page Plan: Enrollment — Tuition Payment
+
+## Route
+`/enrollment/tuition`
+
+## Purpose
+Hosts the tuition fee payment step (Step 1 of 3) of the Enrollment Checklist.
+
+## Roles Permitted
+- `Applicant` with approved application and active enrollment where `tuitionPaid === false`.
+- Redirect to `/enrollment` if already paid.
+
+## UI Layout
+
+1. **Enrollment step header** — "Step 1 of 3: Tuition Payment" + back link to `/enrollment`.
+2. **Step progress bar** — spans across all enrollment step pages.
+3. **Payment confirmation UI** — see `ai/forms/06-tuition-payment.mdc` for full Paystack integration details.
+
+## Data Requirements
+- `enrollments.getOwnEnrollment()` — verifies step state on load.
+- `payments.verifyTuitionFee({ reference })` — Convex action after Paystack callback.
+
+## Navigation
+- On successful payment → `/enrollment/quiz`.
+- Back link → `/enrollment` checklist overview.

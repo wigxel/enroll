@@ -58,7 +58,9 @@ Tracks payments for application fees and tuition.
 - `amount`: Number
 - `currency`: String
 - `stripePaymentIntentId`: String
-- `status`: String ("pending", "succeeded", "failed")
+- `status`: String ("pending", "succeeded", "failed", "refunded")
+- `refundReason`: String (Optional)
+- `refundedAt`: DateTime (Optional)
 - `createdAt`: DateTime
 
 ### `enrollments` Table
@@ -113,12 +115,14 @@ Functions will handle data manipulation and enforce business rules.
 - `applications.getMyApplication`: Retrieves the current user's application.
 - `applications.getById`: Retrieves any application's full details (Admin only).
 - `applications.listPending`: Lists all applications with status "submitted" or "under_review" (Admin only).
-- `applications.review`: Updates application status to "approved" or "declined" (Admin only).
+- `applications.approve(applicationId)`: Updates application status to `"approved"`, creates `EnrollmentStruct`, sends notification (Admin only).
+- `applications.decline({ applicationId, rejectionReason })`: Updates application status to `"declined"`, **automatically refunds the application fee** (if paid) via `payments.refund`, and sends notifications (Admin only).
 
 ### Payment Processing
 
-- `payments.createIntent`: Creates a Stripe Payment Intent for application fee or tuition.
+- `payments.createIntent`: Creates a Paystack payment intent for application fee or tuition.
 - `payments.confirm`: Webhook handler or client confirmation to update payment status in DB.
+- `payments.refund({ paymentId, reason })`: Processes a refund via the Paystack Refunds API. Updates `PaymentStruct.status` to `"refunded"`. Called automatically by `applications.decline`, or manually from the Payments page.
 - `payments.list`: Retrieves a list of all payment logs with filtering by user or status (Admin only).
 
 ### Enrollment Workflow
@@ -131,8 +135,12 @@ Functions will handle data manipulation and enforce business rules.
 
 ### Notifications
 
+- `notifications.listOwn({ filter, cursor })`: Paginated list of notifications for the current user (Applicant/Student).
+- `notifications.listAdmin({ filter, page })`: Paginated list of admin-targeted notifications (Admin only).
+- `notifications.getUnreadCount()`: Reactive query returning unread notification count for the current user.
 - `notifications.list`: Retrieves notifications for the current user.
 - `notifications.markAsRead`: Marks a notification as read.
+- `notifications.markAllAsRead`: Bulk marks all notifications for the current user as read.
 - `internal.sendNotification`: Internal helper to create notifications on events (e.g., application approved).
 
 ## 4. Authentication and Authorization Flow
@@ -143,6 +151,7 @@ Functions will handle data manipulation and enforce business rules.
 4.  **State Transitions:**
     - Applicant -> (Submit App + Pay Fee) -> Pending Review
     - Pending Review -> (Admin Approve) -> Approved (Enrollment Starts)
+    - Pending Review -> (Admin Decline) -> Declined + **Automatic Application Fee Refund**
     - Enrollment (Tuition + Quiz + Sign) -> (Complete) -> Student Role Assigned.
 
 ## 5. Next Steps

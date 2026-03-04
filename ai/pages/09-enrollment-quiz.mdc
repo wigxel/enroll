@@ -1,0 +1,28 @@
+# Page Plan: Enrollment — Quiz / Assessment
+
+## Route
+`/enrollment/quiz`
+
+## Purpose
+Hosts the orientation quiz (Step 2 of 3) of the Enrollment Checklist.
+
+## Roles Permitted
+- `Applicant` with approved application, active enrollment, and `tuitionPaid === true`.
+- Redirect to `/enrollment` if `quizPassed === true` (already completed).
+- Redirect to `/enrollment/tuition` if `tuitionPaid === false` (step locked).
+
+## UI Layout
+
+1. **Enrollment step header** — "Step 2 of 3: Orientation Quiz" + back link to `/enrollment`.
+2. **Step progress bar** — consistent across all enrollment step pages.
+3. **Quiz interface** — see `ai/forms/07-quiz-assessment.mdc` for full paginated question UI and schema details.
+
+## Data Requirements
+- `enrollments.getOwnEnrollment()` — verifies step preconditions on load.
+- `quiz.getQuestions()` — fetches question list (no correct-answer keys exposed).
+- `quiz.submit({ answers })` — server-side evaluation.
+
+## Navigation
+- On passing the quiz → `/enrollment/documents`.
+- On failing → stays on page, shows retry option.
+- Back link → `/enrollment` checklist overview.

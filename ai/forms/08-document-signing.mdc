@@ -1,0 +1,67 @@
+# Form Plan: Document Signing (Optional)
+
+## Document Storage
+The Student Code of Conduct is stored as a static Markdown file at:
+```
+public/documents/code-of-conduct.md
+```
+It is imported and rendered directly in the signing page component using a Markdown renderer (e.g., `react-markdown` with `@tailwindcss/typography`). The file is version-controlled — updates require a code change and redeployment.
+
+## Purpose
+Allows an approved applicant to digitally sign the student code of conduct as the final step of the Enrollment Checklist. Completion marks `documentsSigned` as `true` on the `EnrollmentStruct` and, if all other steps are complete, transitions the user's role from `Applicant` to `Student`.
+
+## Route
+`/enrollment/documents`
+
+## Roles Permitted
+- `Applicant` with an `approved` application status, active enrollment, `tuitionPaid: true`, and `quizPassed: true`.
+- Redirects away if `enrollment.steps.documentsSigned === true`.
+
+## UI Layout
+
+1. **Step header** — "Step 3 of 3: Sign Documents" with a progress indicator.
+2. **Document viewer** — scrollable read-only panel displaying the full Student Code of Conduct text.
+3. **Signature section:**
+   - Full name text field (typed signature).
+   - Checkbox: "I have read and agree to the Student Code of Conduct."
+4. **"Sign & Complete Enrollment" button** — disabled until checkbox is ticked and name is entered.
+
+## Fields
+
+| Field          | Type     | Validation                                              |
+|----------------|----------|---------------------------------------------------------|
+| `typedName`    | text     | Required, must match the user's `fullName` on record    |
+| `hasAgreed`    | checkbox | Required, must be `true`                                |
+
+## Schema (Zod)
+```ts
+z.object({
+  typedName: z.string().min(2, "Please type your full name as your signature"),
+  hasAgreed: z.literal(true, {
+    errorMap: () => ({ message: "You must agree to the terms to proceed" }),
+  }),
+})
+```
+
+## Behaviour
+1. On page load: the code of conduct is statically imported from `public/documents/code-of-conduct.md` and rendered via `react-markdown`. Verify enrollment state via Convex.
+2. User scrolls through the document and fills in their typed name + checks the agreement box.
+3. On "Sign & Complete Enrollment":
+   - Calls Convex mutation `enrollments.signDocuments({ typedName })`.
+   - Sets `EnrollmentStruct.steps.documentsSigned` to `true`.
+   - Checks if all three steps are complete (`tuitionPaid`, `quizPassed`, `documentsSigned`).
+   - If all complete: sets `EnrollmentStruct.status` to `"completed"`, transitions user role to `Student` via `users.promoteToStudent(userId)`.
+   - Creates a `NotificationStruct` of type `"enrollment_complete"` for the user.
+4. On success: redirect to `/student/dashboard` with a congratulations message.
+
+## Error Handling
+- Inline validation: name field and checkbox must be satisfied before submission is allowed.
+- Typed name mismatch against stored name: inline error — "Name must match the name on your profile."
+- Convex mutation errors: error toast with retry option.
+
+## Related Convex Mutations / Queries
+- `enrollments.signDocuments({ typedName })` — marks step complete, checks for full completion.
+- `users.promoteToStudent(userId)` — updates user role to `Student` upon full enrollment.
+
+## Static Asset
+- `public/documents/code-of-conduct.md` — the code of conduct content, rendered client-side via `react-markdown`.

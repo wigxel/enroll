@@ -1,0 +1,51 @@
+# Form Plan: Sign Up
+
+## Purpose
+Allows a new prospective student to create an account in the system. Upon successful registration, the user is assigned the `Applicant` role and redirected to begin their application.
+
+## Route
+`/auth/sign-up`
+
+## Roles Permitted
+- Public (unauthenticated users only)
+
+## UI Layout
+Multi-step or single-page form with two clear sections:
+1. Social sign-up options (Google / Apple) via Clerk
+2. Divider: "or continue with email"
+3. Email + Password fields with a confirm-password field
+
+## Fields
+
+| Field             | Type       | Validation                                              |
+|-------------------|------------|---------------------------------------------------------|
+| `fullName`        | text       | Required, min 2 chars                                   |
+| `email`           | email      | Required, valid email format, unique                    |
+| `password`        | password   | Required, min 8 chars, at least one number              |
+| `confirmPassword` | password   | Required, must match `password`                         |
+
+## Schema (Zod)
+```ts
+z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+}).refine((d) => d.password === d.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+})
+```
+
+## Behaviour
+- On submit: calls Clerk `signUp()` with `emailAddress` + `password`.
+- On SSO (Google/Apple): calls Clerk `authenticateWithRedirect()`.
+- After a successful sign-up, Clerk webhook triggers a Convex mutation to create a `UserStruct` record with `role` set to the default `Applicant` role ID.
+- Redirect to `/application` (start application) after sign-up.
+
+## Error Handling
+- Inline field validation via React Hook Form.
+- Clerk errors (e.g., email already exists) are caught and displayed as a form-level error banner.
+
+## Related Convex Mutations
+- `users.createFromClerkWebhook` — creates the user record after Clerk sign-up event.

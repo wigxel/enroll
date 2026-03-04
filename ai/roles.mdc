@@ -20,14 +20,62 @@ Administrators have full oversight of the system, managing applications, users, 
   - `enrollment:read:all`
   - `enrollment:update`
   - `enrollment:view:details`
+- **Cohort Management:**
+  - `cohort:manage`
+  - `cohort:read:all`
+- **Course Management:**
+  - `course:manage`
+  - `course:read:all`
 - **Payment Management:**
   - `payment:read:all`
   - `payment:refund`
+- **Notification Management:**
+  - `notification:read:admin`
 - **Reporting & Auditing:**
   - `report:view:dashboard`
   - `report:generate`
 
-## 2. Applicant
+## 2. Staff
+
+Staff members manage day-to-day operations like reviewing applications and handling enrollments, but cannot manage users, alter permissions, or issue refunds.
+
+- **User Management:**
+  - `student:read:list`
+- **Application Management:**
+  - `application:read:all`
+  - `application:update:status` (Approve/Decline)
+  - `application:view:details`
+- **Enrollment Management:**
+  - `enrollment:read:all`
+  - `enrollment:update`
+  - `enrollment:view:details`
+- **Cohort Management:**
+  - `cohort:manage`
+  - `cohort:read:all`
+- **Notification Management:**
+  - `notification:read:admin`
+
+## 3. Auditor
+
+Auditors have read-only access to system records for compliance and reporting purposes. They cannot modify data, approve applications, or manage users.
+
+- **Application Management:**
+  - `application:read:all`
+  - `application:view:details`
+- **Enrollment Management:**
+  - `enrollment:read:all`
+  - `enrollment:view:details`
+- **Cohort Management:**
+  - `cohort:read:all`
+- **Payment Management:**
+  - `payment:read:all`
+- **Notification Management:**
+  - `notification:read:admin`
+- **Reporting & Auditing:**
+  - `report:view:dashboard`
+  - `report:generate`
+
+## 4. Applicant
 
 Applicants are prospective students who have signed up and are in the process of submitting their application.
 
@@ -41,8 +89,10 @@ Applicants are prospective students who have signed up and are in the process of
 - **Profile Management:**
   - `profile:read:own`
   - `profile:update:own`
+- **Notification Management:**
+  - `notification:read:own`
 
-## 3. Student
+## 5. Student
 
 Students are users who have successfully completed the application and enrollment process. They have access to student-specific resources.
 
@@ -55,6 +105,8 @@ Students are users who have successfully completed the application and enrollmen
 - **Profile Management:**
   - `profile:read:own`
   - `profile:update:own`
+- **Notification Management:**
+  - `notification:read:own`
 
 ---
 
@@ -63,7 +115,7 @@ Students are users who have successfully completed the application and enrollmen
 Here are the role-related queries expected in the codebase:
 
 - **`convex/auth.ts`**:
-  - `listRoles()`: Lists all available roles ("Admin", "Applicant", "Student").
+  - `listRoles()`: Lists all available roles ("Admin", "Staff", "Auditor", "Applicant", "Student").
   - `getRole(roleId: Id<"roles">)`: Retrieves a specific role.
   - `hasPrivilege(privilegeKey: string)`: Checks if the current user has a specific privilege.
   - `getUserWithRole(userId: Id<"users">)`: Fetches user details with role info.

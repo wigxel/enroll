@@ -1,0 +1,46 @@
+# Form Plan: Sign In
+
+## Purpose
+Allows existing users (Applicants, Students, Admins) to log into their account.
+
+## Route
+`/auth/sign-in`
+
+## Roles Permitted
+- Public (unauthenticated users only)
+
+## UI Layout
+1. Social sign-in options (Google / Apple) via Clerk
+2. Divider: "or continue with email"
+3. Email + Password fields
+4. "Forgot password?" link beneath the password field
+
+## Fields
+
+| Field      | Type     | Validation                      |
+|------------|----------|---------------------------------|
+| `email`    | email    | Required, valid email format    |
+| `password` | password | Required                        |
+
+## Schema (Zod)
+```ts
+z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+})
+```
+
+## Behaviour
+- On submit: calls Clerk `signIn.create()` with `identifier` + `password`.
+- On SSO: calls Clerk `authenticateWithRedirect()`.
+- After successful sign-in, redirect based on role:
+  - `Admin` → `/admin/dashboard`
+  - `Applicant` → `/application` (or `/enrollment` if approved)
+  - `Student` → `/student/dashboard`
+
+## Error Handling
+- Inline field validation via React Hook Form.
+- Clerk authentication errors (e.g., invalid credentials) displayed as a form-level error alert.
+
+## Related Convex Queries
+- `users.getCurrentUserWithRole` — used post-login to determine redirect path.

@@ -1,0 +1,30 @@
+# Page Plan: Enrollment — Document Signing
+
+## Route
+`/enrollment/documents`
+
+## Purpose
+Hosts the document signing step (Step 3 of 3 — optional) of the Enrollment Checklist. Completing this step finalises enrollment and transitions the user to `Student`.
+
+## Roles Permitted
+- `Applicant` with approved application, `tuitionPaid === true`, and `quizPassed === true`.
+- Redirect to `/enrollment` if `documentsSigned === true`.
+- Redirect to `/enrollment/quiz` if `quizPassed === false`.
+
+## UI Layout
+
+1. **Enrollment step header** — "Step 3 of 3: Sign Documents" + back link to `/enrollment`.
+2. **Step progress bar** — consistent across all enrollment step pages.
+3. **Document signing UI** — see `ai/forms/08-document-signing.mdc`:
+   - Scrollable `react-markdown` render of `public/documents/code-of-conduct.md`.
+   - Typed name field + agreement checkbox.
+   - "Sign & Complete Enrollment" button.
+
+## Data Requirements
+- `enrollments.getOwnEnrollment()` — verifies step preconditions on load.
+- `enrollments.signDocuments({ typedName })` — marks step complete, triggers role promotion.
+- `users.promoteToStudent(userId)` — called internally within the mutation on full completion.
+
+## Navigation
+- On successful signing → `/student/dashboard` (with a congratulations message).
+- Back link → `/enrollment` checklist overview.

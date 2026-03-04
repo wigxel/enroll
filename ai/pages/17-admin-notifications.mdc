@@ -1,0 +1,83 @@
+# Page Plan: Admin — Notifications
+
+## Route
+`/admin/notifications`
+*(Accessible via a notification bell icon in the Admin navbar)*
+
+## Purpose
+A centralized inbox where administrative roles can view systemic alerts, such as new application submissions, failed payments, or system errors.
+
+## Roles Permitted
+- `Admin`, `Staff`, or `Auditor` with `notification:read:admin` privilege.
+
+## UI Layout
+
+1. **Top Navbar Integration**:
+   - A Bell icon in the admin sidebar/navbar with an unread badge counter.
+   - Clicking it opens a quick-view dropdown or links to the full `/admin/notifications` page.
+2. **Page Header** — "Notifications" + "Mark all as read" button.
+3. **Filter Bar**:
+   - Unread | All | Archived
+4. **Notifications List**:
+   - Each item shows:
+     - Icon (based on type: info, warning, success, alert).
+     - Title (e.g., "New Application Submitted").
+     - Body (e.g., "Jane Doe has paid the application fee and is awaiting review").
+     - Timestamp (e.g., "10 mins ago").
+     - "View →" link (directs to the relevant page, like `/admin/applications/[id]`).
+   - Unread items have a prominent styling (e.g., a blue dot or bolder text).
+   - "Archive" / "Mark as Read" quick actions per item.
+
+## Notification Triggers & Handlers
+To prevent alert fatigue, the system only generates admin notifications for key milestones and exceptions:
+
+### Key Pipeline Milestones
+- **Application Submitted**: Triggered when step 2 (fee) is paid.
+  - *Title*: New Application Submitted
+  - *Body*: "[Name] has paid the application fee and is awaiting review."
+- **Enrollment Completed**: Triggered when step 3 of checklist is done.
+  - *Title*: Enrollment Completed
+  - *Body*: "[Name] has completed all enrollment steps and is now a Student."
+
+### Exceptions & Alerts
+- **Failed Payment**: Triggered by Paystack webhook on failed charge.
+  - *Title*: Payment Failed
+  - *Body*: "[Name]'s payment attempt for [Application/Tuition] failed."
+- **Disputed Charge**: Triggered by Paystack webhook on dispute.
+  - *Title*: Payment Disputed
+  - *Body*: "A chargeback/dispute was raised by [Name]."
+- **Application Stalled**: Triggered by daily Convex cron job if an application has been `under_review` for > 7 days.
+  - *Title*: Application Stalled
+  - *Body*: "[Name]'s application has been awaiting review for over 7 days."
+- **Quiz Failed Max Attempts**: Triggered when a user fails the orientation quiz 3 times.
+  - *Title*: Quiz Failed Max Attempts
+  - *Body*: "[Name] has failed the orientation assessment 3 times and may need assistance."
+
+## Fields/Model (Reference `NotificationStruct`)
+```ts
+{
+  type: "application_submitted" | "enrollment_completed" | "payment_failed" | "payment_disputed" | "application_stalled" | "quiz_failed" | "system_alert",
+  title: string,
+  body: string,
+  relatedEntityId?: string,
+  relatedEntityType?: "application" | "user" | "payment",
+  isRead: boolean,
+  isArchived: boolean,
+}
+```
+
+## Behaviour
+1. The list uses a reactive Convex query to update the unread count and list in real-time.
+2. Clicking a notification's "View" link automatically marks it as read and redirects the admin.
+3. System mutations (like `applications.submit`) automatically trigger the creation of these admin notifications in the background via internal mutations.
+
+## Data Requirements
+- `notifications.listAdmin({ filter, page })` — paginated list of notifications targeting admin roles.
+- `notifications.getUnreadCount()` — reactive query for the navbar badge.
+- `notifications.markAsRead({ notificationId })` — marks a single item as read.
+- `notifications.markAllAsRead()` — bulk marks all as read.
+- `notifications.archive({ notificationId })` — moves the notification to the archive state.
+
+## Navigation
+- Bell icon triggers navigation or dropdown.
+- Individual notification items link to contextual pages (e.g., a specific application or payment).

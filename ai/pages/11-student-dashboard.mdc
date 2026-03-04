@@ -1,0 +1,32 @@
+# Page Plan: Student Dashboard
+
+## Route
+`/student/dashboard`
+
+## Purpose
+The home screen for fully enrolled students. Displays their enrollment summary and provides access to student-only resources.
+
+## Roles Permitted
+- `Student` with `resource:access:student_portal` privilege.
+- Redirect to `/enrollment` if user is an Applicant with an active enrollment (not yet complete).
+- Redirect to `/application/status` if user is still an Applicant awaiting review.
+
+## UI Layout
+
+1. **Sidebar / top nav** — Logo, "Dashboard" link, "Profile" link, 🔔 Notification bell (with unread badge), Sign Out.
+2. **Welcome banner** — "Welcome, [Name]! 🎉 You are now enrolled."
+3. **Enrollment summary card** — Shows key dates and completion status (all 3 steps ticked).
+4. **Student resources section** — Cards/links to available materials (e.g., course content, schedule).
+   - Placeholder cards if no resources are yet configured in the system.
+5. **Profile preview** — name, email, profile image (from `UserStruct.profileImage`).
+
+## Data Requirements
+- `users.getCurrentUserWithRole()` — to confirm Student role and fetch name/image.
+- `enrollments.getOwnEnrollment()` — to display enrollment completion details.
+- `notifications.getUnreadCount()` — reactive query for the notification bell badge.
+- `resources.listStudentMaterials()` *(future)* — to populate resource cards.
+
+## Navigation
+- 🔔 Bell icon → dropdown with latest 5 notifications, "View all →" links to `/notifications`.
+- "Profile" → `/student/profile` *(future page, out of current scope)*.
+- Sign Out → Clerk `signOut()` → redirects to `/`.

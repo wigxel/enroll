@@ -1,0 +1,25 @@
+# Page Plan: Sign Up
+
+## Route
+`/auth/sign-up`
+
+## Purpose
+Allows a new prospective student to create an account. Wraps the Sign Up form in a centred auth layout.
+
+## Roles Permitted
+- Public only. Authenticated users are redirected away (middleware).
+
+## UI Layout
+Centred card layout on a branded background:
+
+1. **Logo** at the top.
+2. **Heading** — "Create your account"
+3. **Sign Up Form** — see `ai/forms/01-sign-up.mdc` for full field/schema plan.
+4. **Footer link** — "Already have an account? Sign In" → `/auth/sign-in`
+
+## Data Requirements
+- No Convex queries. All auth is handled by Clerk.
+
+## Navigation
+- On success → `/application` (Clerk post-sign-up redirect).
+- "Sign In" link → `/auth/sign-in`.

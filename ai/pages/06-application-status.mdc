@@ -1,0 +1,31 @@
+# Page Plan: Application Status
+
+## Route
+`/application/status`
+
+## Purpose
+A read-only holding page that shows the applicant the current status of their submitted application. The page updates in real-time (via Convex's reactive queries) when an admin approves or declines.
+
+## Roles Permitted
+- `Applicant` whose `ApplicationStruct.status` is `"submitted"`, `"under_review"`, `"approved"`, or `"declined"`.
+
+## UI Layout
+A centred status card:
+
+1. **Status badge** — large icon + label reflecting current state:
+   - 🕐 `under_review` — "Your application is under review."
+   - ✅ `approved` — "Congratulations! Your application has been approved."
+   - ❌ `declined` — "Your application was not successful."
+2. **Details panel**:
+   - For `under_review`: estimated review time note.
+   - For `approved`: CTA button — "Begin Enrollment →" links to `/enrollment`.
+   - For `declined`: shows the `rejectionReason` from `ApplicationStruct`. If the application fee was paid, shows a refund notice: "Your application fee has been refunded. Please allow 5–10 business days for processing."
+3. **Application summary** — collapsible section showing the submitted form data for reference.
+
+## Data Requirements
+- `applications.getOwnApplication()` — reactive subscription to get real-time status updates.
+
+## Navigation
+- `approved` → CTA links to `/enrollment`.
+- `declined` → no further navigation (end state). Optionally a "Contact Us" link.
+- Unauthenticated or wrong state → redirect via middleware.

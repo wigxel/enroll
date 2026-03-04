@@ -1,0 +1,53 @@
+# Page Plan: Admin — Cohort Management
+
+## Route
+`/admin/cohorts`
+
+## Purpose
+Allows admins to create, manage, and view distinct groups of students (Cohorts) like "Fall 2026" or "Batch 42". Students are automatically or manually assigned to these cohorts during/after enrollment.
+
+## Roles Permitted
+- `Admin` or `Staff` (with `cohort:manage` and `cohort:read:all` privileges).
+
+## UI Layout
+
+1. **Admin sidebar nav** — Logo, "Dashboard", "Students", "Users", "Cohorts" (active), Sign Out.
+2. **Page header** — "Cohorts" + "Create New Cohort" button.
+3. **Cohorts Table**:
+   - Columns: Cohort Name, Start Date, End Date, Enrolled Students (count), Status (Active/Upcoming/Completed), Actions.
+   - Rows are clickable -> `/admin/cohorts/[cohortId]`.
+4. **Create Cohort Modal**:
+   - `name` (e.g., "Spring 2027 Software Engineering").
+   - `startDate` (date picker).
+   - `endDate` (date picker).
+   - `capacity` (optional number).
+5. **Cohort Detail Page (`/admin/cohorts/[cohortId]`)**:
+   - Shows the cohort metadata.
+   - An embedded "Students Table" (reused from `/admin/students`) automatically filtered to show only students in this specific cohort.
+   - Ability to "Add Student to Cohort" (re-assign an existing student).
+
+## Schema (Zod) for Create Cohort
+```ts
+z.object({
+  name: z.string().min(2, "Cohort name is required"),
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime(),
+  capacity: z.number().int().positive().optional(),
+})
+```
+
+## Behaviour
+1. **Creation**: Admin submits the modal form -> calls `cohorts.create({ name, startDate, endDate, capacity })`.
+2. **Assignment**: During the final `enrollments.signDocuments()` step, the system can automatically assign the student to the "currently active" cohort, or leave it blank for an Admin to assign manually via `cohorts.assignStudent({ enrollmentId, cohortId })`.
+
+## Data Requirements
+- `cohorts.list({ status, search, page })` — paginated list of cohorts with student counts.
+- `cohorts.getById(cohortId)` — details for a specific cohort.
+- `cohorts.create(data)` — creates a new cohort.
+- `cohorts.update(data)` — edits an existing cohort.
+- `cohorts.assignStudent({ enrollmentId, cohortId })` — moves an enrolled student into a cohort.
+
+## Navigation
+- Sidebar nav link.
+- "Create New" -> opens modal.
+- Row click -> navigates to `/admin/cohorts/[id]`.

@@ -1,0 +1,94 @@
+# Form Plan: Application Form
+
+## Purpose
+The primary multi-section form that a prospective student (Applicant) fills out to submit their application. Data auto-saves as a draft to Convex. On final submission, the applicant is directed to pay the application fee before the application is locked.
+
+## Route
+`/application`
+
+## Roles Permitted
+- `Applicant` (with `application:create` and `application:update:own` privileges)
+- Access is blocked if the applicant already has a `submitted` or later status.
+
+## UI Layout
+A multi-step stepper form with 3 steps:
+
+1. **Personal Information**
+2. **Educational Background**
+3. **Course Selection**
+4. **Review & Submit**
+
+Progress is shown via a top stepper component. Each step has "Back" and "Continue" (or "Submit") navigation buttons.
+
+## Fields
+
+### Step 1 — Personal Information
+
+| Field          | Type   | Validation                               |
+|----------------|--------|------------------------------------------|
+| `firstName`    | text   | Required, min 2 chars                    |
+| `lastName`     | text   | Required, min 2 chars                    |
+| `dateOfBirth`  | date   | Required, must be in the past, age ≥ 16  |
+| `phoneNumber`  | tel    | Required, valid international format     |
+| `address`      | textarea | Required, min 10 chars                 |
+
+### Step 2 — Educational Background
+
+| Field                    | Type     | Validation              |
+|--------------------------|----------|-------------------------|
+| `educationalBackground`  | textarea | Required, min 20 chars  |
+
+> Additional fields can be added here as requirements grow (e.g., last school attended, year of graduation, qualifications).
+
+### Step 3 — Course Selection
+
+| Field      | Type   | Validation                          |
+|------------|--------|-------------------------------------|
+| `courseId` | select | Required, exactly 1 course selected |
+
+> Note: The list of available courses is fetched from the backend (`courses.listActive()`), which also includes the `tuitionFee` for display context.
+
+### Step 4 — Review & Submit
+- Read-only summary of all entered data.
+- Checkbox: "I confirm that the information provided is accurate."
+- "Submit Application" button — disabled until checkbox is ticked.
+
+## Schema (Zod)
+```ts
+const step1Schema = z.object({
+  firstName: z.string().min(2),
+  lastName: z.string().min(2),
+  dateOfBirth: z.string().refine((d) => {
+    const age = differenceInYears(new Date(), new Date(d));
+    return age >= 16;
+  }, "You must be at least 16 years old"),
+  phoneNumber: z.string().min(7),
+  address: z.string().min(10),
+});
+
+const step2Schema = z.object({
+  educationalBackground: z.string().min(20),
+});
+
+const step3Schema = z.object({
+  courseId: z.string().min(1, "Please select a course to enroll in"),
+});
+
+const applicationSchema = step1Schema.merge(step2Schema).merge(step3Schema);
+```
+
+## Behaviour
+- **Auto-save (draft):** Every form change is debounced (1.5s) and persists to Convex via `applications.saveDraft`. Creates a new `ApplicationStruct` with `status: "draft"` on first save.
+- **Step navigation:** Each step validates only its own fields before proceeding.
+- **Final submit:** Sets `status` to `"submitted"` and `paymentStatus` to `"unpaid"`, then redirects to the **Application Fee Payment** form (`/application/pay`).
+- If the applicant already has a draft, the form is pre-populated on load.
+
+## Error Handling
+- Per-step inline validation via React Hook Form + Zod resolver.
+- Convex mutation errors (e.g., network failure during save) shown as a toast notification.
+
+## Related Convex Mutations / Queries
+- `applications.saveDraft(data)` — upserts draft application.
+- `applications.submit(applicationId)` — transitions status to `"submitted"`.
+- `applications.getOwnApplication()` — fetches existing draft to pre-populate form.
+- `courses.listActive()` — fetches the list of courses to display in Step 3.

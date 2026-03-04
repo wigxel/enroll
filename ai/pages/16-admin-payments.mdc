@@ -1,0 +1,56 @@
+# Page Plan: Admin — Payments
+
+## Route
+`/admin/payments`
+
+## Purpose
+A centralized dashboard for tracking and managing all financial transactions (Application Fees and Tuition). Allows admins to view payment statuses, transaction references, and initiate refunds.
+
+## Roles Permitted
+- `Admin` (and `Auditor`) with `payment:read:all` privilege.
+- Only users with `payment:refund` can initiate refunds.
+
+## UI Layout
+
+1. **Admin sidebar nav** — Logo, "Dashboard", "Students", "Users", "Payments" (active), Sign Out.
+2. **Page header** — "Payments & Transactions" + total revenue summary cards:
+   - Total Collected (All Time)
+   - Application Fees Collected
+   - Tuition Collected
+3. **Search & Filter bar**:
+   - Status Filter: All | Succeeded | Pending | Failed | Refunded
+   - Type Filter: All | Application Fee | Tuition
+   - Search by: Name, Email, or Paystack Reference ID
+4. **Transactions Table**:
+   - Columns: Date, User (Name/Email), Type (badge), Reference ID, Amount, Status (badge), Actions.
+   - Rows are clickable to open a quick-view modal with full Paystack response metadata.
+5. **Actions (Context Menu per row)**:
+   - "View Details" (opens modal)
+   - "Issue Refund" (only visible if the payment is `succeeded` and user has `payment:refund` privilege).
+
+## Issued Refund Modal (Zod Schema)
+```ts
+z.object({
+  paymentId: z.string(),
+  reason: z.string().min(10, "Please provide a reason for the refund"),
+})
+```
+
+## Behaviour
+1. The table streams in real-time updates from Convex (vital for watching pending payments resolve).
+2. **Issuing a Refund**:
+   - Admin clicks "Issue Refund" and provides a reason.
+   - Calls `payments.refund({ paymentId, reason })`.
+   - Convex communicates with the Paystack Refunds API.
+   - On success, `PaymentStruct.status` is updated to `"refunded"`, and a notification is sent to the user.
+3. **Automatic Refunds on Decline**:
+   - When an admin declines an application (see `ai/forms/05-admin-decline.mdc`), the application fee is **automatically refunded**. The refund appears in this table with status `"refunded"` and the rejection reason as the refund reason.
+
+## Data Requirements
+- `payments.list({ status, type, search, page })` — paginated, filterable query for `PaymentStruct` records joined with `UserStruct`.
+- `payments.getStats()` — calculates the revenue totals.
+- `payments.refund({ paymentId, reason })` — action to process refunds.
+
+## Navigation
+- Sidebar nav links.
+- Quick-view modal for transaction details.

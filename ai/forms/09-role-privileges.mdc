@@ -1,0 +1,56 @@
+# Form Plan: Admin — Role Privileges Form
+
+## Purpose
+Allows an Admin to create a new role or edit an existing one, specifically assigning which privileges (from the predefined system privileges list) belong to that role.
+
+## Route
+Rendered within `/admin/roles/[roleId]` (edit) or `/admin/roles/new` (create).
+
+## Roles Permitted
+- `Admin` with `user:assign:role` (and implicitly `role:create` / `role:update` which falls under system management).
+
+## UI Layout
+
+1. **Header** — "Create Role" or "Edit Role: [Role Name]"
+2. **Basic Info Section**:
+   - `name` text input.
+   - `description` textarea.
+3. **Privileges Configuration Section**:
+   - A grouped list of checkboxes representing all system privileges (e.g., grouped by "Application Management", "User Management", etc.).
+   - "Select All" / "Deselect All" options per group.
+4. **Action bar** — "Cancel" and "Save Role" buttons.
+
+## Fields
+
+| Field         | Type              | Validation                         |
+|---------------|-------------------|------------------------------------|
+| `name`        | text              | Required, min 2 chars              |
+| `description` | textarea          | Optional                           |
+| `privileges`  | array of strings  | Optional (can be an empty array)   |
+
+## Schema (Zod)
+```ts
+z.object({
+  name: z.string().min(2, "Role name must be at least 2 characters"),
+  description: z.string().optional(),
+  privileges: z.array(z.string()), // array of privilege keys e.g., ['application:read:all', 'user:update']
+})
+```
+
+## Behaviour
+1. On load (if editing): fetches the `RoleStruct` via `roles.getById(roleId)` to populate the form.
+2. The available privileges list is powered by a static or database-backed list of all valid privilege keys in the system.
+3. On Submit:
+   - For a new role: calls `roles.create({ name, description, privileges })`.
+   - For an existing role: calls `roles.update({ roleId, name, description, privileges })`.
+4. On success: redirects back to the main `/admin/roles` list page with a success toast.
+
+## Error Handling
+- Inline validation for the role name.
+- Convex mutation errors (e.g., trying to duplicate a role name) are caught and shown as a toast notification.
+
+## Related Convex Mutations / Queries
+- `roles.getById(roleId)` — fetches data to pre-populate for editing.
+- `roles.create(data)` — creates a new role.
+- `roles.update(data)` — updates an existing role.
+- `config.getAvailablePrivileges()` *(optional/recommended)* — fetches the master list of all mappable privileges (like `application:create`, `payment:refund`, etc.) to render the checkboxes.

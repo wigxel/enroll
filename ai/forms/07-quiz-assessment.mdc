@@ -1,0 +1,57 @@
+# Form Plan: Quiz / Assessment
+
+## Purpose
+An orientation quiz that approved applicants must pass as part of the Enrollment Checklist. Successful completion marks the `quizPassed` step as complete on the `EnrollmentStruct`.
+
+## Route
+`/enrollment/quiz`
+
+## Roles Permitted
+- `Applicant` with an `approved` application status, active enrollment, and `tuitionPaid: true`.
+- Redirects away if `enrollment.steps.quizPassed === true` (already completed).
+
+## UI Layout
+A paginated quiz interface:
+
+1. **Step header** — "Step 2 of 3: Orientation Quiz" with a progress indicator.
+2. **Question card** — shows one question at a time with multiple-choice options (radio buttons).
+3. **Question progress** — e.g., "Question 3 of 10".
+4. **Navigation buttons** — "Previous" / "Next", and "Submit Quiz" on the last question.
+5. **Results screen** — shown after submission: pass/fail message and score.
+
+## Fields (per question)
+
+| Field      | Type   | Validation                     |
+|------------|--------|--------------------------------|
+| `answer_N` | radio  | Required — one option selected |
+
+> Questions and answer options are fetched from Convex (stored in a `quizQuestions` table or hardcoded in a Convex query). Each question has a set of options and a correct answer key (not exposed to the client).
+
+## Schema (Zod)
+```ts
+// Dynamic — built from the fetched questions list
+const buildQuizSchema = (questions: Question[]) =>
+  z.object(
+    Object.fromEntries(
+      questions.map((q) => [`answer_${q._id}`, z.string().min(1, "Please select an answer")])
+    )
+  );
+```
+
+## Behaviour
+1. On page load: fetch quiz questions via `quiz.getQuestions()`. If already passed, redirect.
+2. User navigates through questions one by one.
+3. On "Submit Quiz": validate all answers are selected.
+4. Call Convex action `quiz.submit({ answers })`:
+   - Server-side evaluation of answers against correct keys.
+   - Returns `{ passed: boolean, score: number, passMark: number }`.
+5. **If passed:** sets `EnrollmentStruct.steps.quizPassed` to `true`, shows success screen, redirects to `/enrollment/documents`.
+6. **If failed:** shows failure screen with the score and a "Retry" button (allows re-attempt after a cooldown, if configured).
+
+## Error Handling
+- All questions must be answered before submission (validated client-side).
+- Network errors during submission show an error toast with a retry option.
+
+## Related Convex Actions / Queries
+- `quiz.getQuestions()` — fetches the list of quiz questions (options only, no answers).
+- `quiz.submit({ answers })` — evaluates answers server-side and updates enrollment step.

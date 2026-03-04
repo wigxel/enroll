@@ -1,0 +1,34 @@
+# Page Plan: Enrollment Checklist Overview
+
+## Route
+`/enrollment`
+
+## Purpose
+Hub/overview page for the enrollment process. Shows the 3-step checklist and the applicant's current progress. Acts as the landing page after admin approval, and the return-to point if the applicant leaves mid-enrollment.
+
+## Roles Permitted
+- `Applicant` whose `ApplicationStruct.status === "approved"` and has an active `EnrollmentStruct`.
+- Redirect to `/application/status` if not yet approved.
+- Redirect to `/student/dashboard` if enrollment is already `"completed"`.
+
+## UI Layout
+
+1. **Page header** — "Complete Your Enrollment" with a congratulations note.
+2. **Progress bar** — shows overall completion (e.g., "1 of 3 steps complete").
+3. **Step checklist** — three step cards in order:
+   - **Step 1: Pay Tuition** — Status icon (✅ done / ▶ next / 🔒 locked). CTA: "Pay Now →" if current step.
+   - **Step 2: Complete Quiz** — Same pattern, locked until Step 1 done.
+   - **Step 3: Sign Documents** — Same pattern, locked until Step 2 done.
+4. Each step card shows:
+   - Step number, title, short description.
+   - Status label: "Completed", "Start Now", or "Locked".
+   - "Continue →" button (only on the active next step).
+
+## Data Requirements
+- `enrollments.getOwnEnrollment()` — reactive subscription to `EnrollmentStruct.steps` to reflect real-time state.
+
+## Navigation
+- Step 1 CTA → `/enrollment/tuition`
+- Step 2 CTA → `/enrollment/quiz`
+- Step 3 CTA → `/enrollment/documents`
+- All step links are disabled (`pointer-events-none`) if the step is locked.

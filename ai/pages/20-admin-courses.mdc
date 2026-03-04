@@ -1,0 +1,65 @@
+# Page Plan: Admin — Courses
+
+## Route
+`/admin/courses`
+
+## Purpose
+Allows Admins to manage the available courses that prospective students can enroll in. The courses listed here power the course selection step in the student application form.
+
+## Roles Permitted
+- `Admin` with `course:manage` and `course:read:all` privileges.
+
+## UI Layout
+1. **Admin sidebar nav** — Logo, "Dashboard", "Students", "Users", "Courses" (active), "Cohorts", "Payments", "Settings", Sign Out.
+2. **Page header** — "Manage Courses" + "Add New Course" button.
+3. **Courses List/Table**:
+   - Each row/card displays:
+     - `Cover Photo` (Thumbnail)
+     - `Name`
+     - `Duration`
+     - `Tuition Fee`
+     - `Status` (Active / Inactive)
+     - `Order`
+   - Data can be dragged-and-dropped to update the `order`, or manually sorted.
+   - Action buttons per row: "Edit", "Toggle Active/Inactive".
+4. **Create / Edit Course Modal or Page**:
+   - Form fields:
+     - `name` (text, required)
+     - `description` (textarea, required)
+     - `duration` (text, e.g. "12 Weeks", required)
+     - `certification` (text, required)
+     - `tuitionFee` (number, required)
+     - `coverPhoto` (file upload component utilizing Convex storage)
+     - `isActive` (boolean toggle)
+   - "Save Course" and "Cancel" buttons.
+
+## Data Model (Reference `CourseStruct`)
+```ts
+{
+  name: string,
+  description: string,
+  duration: string,
+  certification: string,
+  coverPhoto?: string,
+  tuitionFee: number,
+  order: number,
+  isActive: boolean,
+}
+```
+
+## Behaviour
+1. Admin lands on `/admin/courses` and sees all courses ordered by the `order` field.
+2. Clicking "Add New Course" opens a form.
+3. When uploading a cover photo, it uploads to convex via `generateUploadUrl` and saves the resulting storage ID (which can be resolved to a URL).
+4. Newly created courses appear at the bottom of the list (highest `order` value) by default.
+5. `isActive` toggle allows an admin to hide a course from the student-facing application without deleting existing student data tied to that course.
+
+## Convex Data Requirements
+- `courses.listAll()` — admin query fetching active and inactive courses, sorted by `order`.
+- `courses.create({ ... })` — creates a new course.
+- `courses.update({ id, ... })` — updates an existing course.
+- `courses.updateOrder([{ id, order }, ...])` — bulk updates the order of courses for UI sorting.
+- `courses.generateUploadUrl()` — backend point to get upload url for `coverPhoto`.
+
+## Navigation
+- Added "Courses" link to Admin Sidebar.

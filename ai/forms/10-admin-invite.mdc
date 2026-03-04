@@ -1,0 +1,55 @@
+# Form Plan: Admin — Invite User / Admin
+
+## Purpose
+Allows an Admin to invite a new user to the system directly by email, pre-assigning them a specific role (like Admin or Staff). This is the standard way to onboard other administrators without them having to go through the public Applicant sign-up flow.
+
+## Route
+Rendered as a **modal dialog** on `/admin/users`
+
+## Roles Permitted
+- `Admin` with `user:assign:role` privilege.
+
+## UI Layout
+A modal triggered by an "Invite User" button on the User Management page:
+
+1. **Header** — "Invite New User"
+2. **Body**:
+   - `firstName` text input.
+   - `lastName` text input.
+   - `email` text input.
+   - `roleId` select dropdown (listing available administrative roles: Admin, Staff, Auditor).
+3. **Action bar** — "Cancel" and "Send Invitation" buttons.
+
+## Fields
+
+| Field       | Type   | Validation                          |
+|-------------|--------|-------------------------------------|
+| `firstName` | text   | Required, min 2 chars               |
+| `lastName`  | text   | Required, min 2 chars               |
+| `email`     | email  | Required, valid email format        |
+| `roleId`    | select | Required, must be a valid role ID   |
+
+## Schema (Zod)
+```ts
+z.object({
+  email: z.string().email("Please enter a valid email address"),
+  roleId: z.string().min(1, "Please select an administrative role for the invited user"),
+})
+```
+
+## Behaviour
+1. Admin clicks "Invite User" -> modal opens.
+2. Select drop down is populated using `roles.listRoles()` filtered to **administrative roles only** (Admin, Staff, Auditor). We do not invite public Applicants or Students this way.
+3. On Submit:
+   - Call Convex action `users.invite({ firstName, lastName, email, roleId })`.
+   - The action communicates with **Clerk's Backend API** (`clerkClient.invitations.createInvitation`) to send an email invite. Clerk supports attaching `publicMetadata` to an invitation where we can pass the name and role.
+   - Convex stores a temporary record or handles the webhook when the user accepts the Clerk invite. When the `user.created` webhook fires, the system pulls the name out of the metadata and automatically maps them to the assigned `roleId`.
+4. On success: modal closes, success toast "Invitation sent to [email]".
+
+## Error Handling
+- Inline validation on email format.
+- If Clerk returns an error (e.g. user already exists or email is invalid), show a form-level error alert.
+
+## Related Convex Actions / Queries
+- `roles.listRoles()` — to fetch the list of administrative roles for the dropdown.
+- `users.invite({ firstName, lastName, email, roleId })` — creates the invitation via Clerk's Backend API.

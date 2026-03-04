@@ -1,0 +1,57 @@
+# Page Plan: Student/Applicant — Notifications
+
+## Route
+`/notifications`
+*(Accessible via a notification bell icon in the student/applicant navbar)*
+
+## Purpose
+A lightweight notification inbox for applicants and students to stay informed about key updates in their application and enrollment journey. Notifications are delivered in real-time via Convex reactive queries.
+
+## Roles Permitted
+- `Applicant` — receives notifications about application status changes, payment confirmations, and refunds.
+- `Student` — receives all of the above plus enrollment-related notifications.
+
+## UI Layout
+
+1. **Navbar Integration (all applicant/student pages)**:
+   - A Bell icon in the top nav bar with an unread count badge.
+   - Clicking opens a **dropdown panel** showing the 5 most recent notifications with a "View all →" link.
+2. **Full Notifications Page** (`/notifications`):
+   - **Page Header** — "Notifications" + "Mark all as read" button.
+   - **Filter Tabs** — Unread | All
+   - **Notification List** — chronologically ordered:
+     - Icon (based on type: ✅ success, ❌ declined, 💰 payment, 📋 enrollment).
+     - Title (e.g., "Application Approved").
+     - Body (e.g., "Congratulations! Your application has been approved. Begin your enrollment now.").
+     - Timestamp (relative, e.g., "2 hours ago").
+     - Clickable — navigates to the relevant page.
+     - Unread items have a blue dot indicator.
+   - **Empty state** — "You're all caught up! No new notifications." with a friendly illustration.
+
+## Notification Types (Student/Applicant-facing)
+
+| Type | Trigger | Title | Body | Links to |
+|------|---------|-------|------|----------|
+| `application_status_change` | Admin approves application | Application Approved | "Congratulations! Your application has been approved. Begin your enrollment now." | `/enrollment` |
+| `application_status_change` | Admin declines application | Application Declined | "Unfortunately, your application was not successful. [Reason excerpt]" | `/application/status` |
+| `payment_received` | Application fee payment succeeds | Payment Confirmed | "Your application fee of [amount] has been received." | `/application/status` |
+| `payment_refunded` | Auto-refund on decline | Application Fee Refunded | "Your application fee of [amount] has been refunded. Please allow 5–10 business days." | `/application/status` |
+| `tuition_payment_received` | Tuition payment succeeds | Tuition Payment Confirmed | "Your tuition payment of [amount] has been received." | `/enrollment` |
+| `enrollment_step_complete` | A checklist step is verified | Enrollment Step Completed | "You've completed [Step Name]. Keep going!" | `/enrollment` |
+| `enrollment_completed` | All 3 enrollment steps done | Enrollment Complete 🎉 | "Congratulations! You are now fully enrolled as a student." | `/student/dashboard` |
+
+## Behaviour
+1. Notification list uses a **reactive Convex query** — updates appear instantly without page refresh.
+2. Clicking a notification marks it as read and navigates to the linked page.
+3. The unread badge count updates reactively across all pages via a shared query.
+4. Notifications older than 90 days are auto-archived (handled by a Convex cron job).
+
+## Data Requirements
+- `notifications.listOwn({ filter, cursor })` — paginated list of notifications for the current user.
+- `notifications.getUnreadCount()` — reactive query powering the badge across all pages.
+- `notifications.markAsRead({ notificationId })` — marks a single notification as read.
+- `notifications.markAllAsRead()` — bulk marks all of the current user's notifications as read.
+
+## Navigation
+- Bell icon in navbar → dropdown showing latest 5, "View all →" links to `/notifications`.
+- Each notification item → linked page based on `relatedEntityType` and `relatedEntityId`.
