@@ -1,115 +1,119 @@
-import React from "react";
-import { Users, FileText, CheckCircle, XCircle } from "lucide-react";
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
+import { useQuery } from "convex/react";
+import { api } from "~/convex/_generated/api";
+import { Users, FileText, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { StatCard } from "@/components/admin/StatCard";
-import { ApplicationsTable, DashboardApplication } from "@/components/admin/ApplicationsTable";
-
-// Mock data hooks
-// TODO: Replace with Convex hooks e.g. useQuery(api.applications.getDashboardStats)
-function useDashboardStats() {
-    return {
-        totalApplications: 124,
-        pendingReview: 12,
-        approvedThisMonth: 48,
-        declinedThisMonth: 8,
-    };
-}
-
-// TODO: Replace with Convex hooks e.g. useQuery(api.applications.listPending)
-function usePendingApplications(): DashboardApplication[] {
-    return [
-        {
-            id: "app_1",
-            applicantName: "Jane Doe",
-            email: "jane.doe@example.com",
-            submittedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-            paymentStatus: "paid",
-            status: "submitted",
-        },
-        {
-            id: "app_2",
-            applicantName: "John Smith",
-            email: "john.smith@example.com",
-            submittedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
-            paymentStatus: "pending",
-            status: "under_review",
-        },
-        {
-            id: "app_3",
-            applicantName: "Alice Johnson",
-            email: "alice.j@example.com",
-            submittedAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
-            paymentStatus: "paid",
-            status: "submitted",
-        },
-        {
-            id: "app_4",
-            applicantName: "Bob Williams",
-            email: "bwills@example.com",
-            submittedAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(), // 3 days ago
-            paymentStatus: "failed",
-            status: "submitted",
-        },
-    ];
-}
+import { ApplicationsTable } from "@/components/admin/ApplicationsTable";
+import {
+  DateRangePicker,
+  type DateRange,
+} from "~/components/tremor/date-range-filter";
+import { startOfMonth } from "date-fns";
 
 export default function AdminDashboardPage() {
-    const stats = useDashboardStats();
-    const pendingApplications = usePendingApplications();
+  // Default to 'This Month'
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: startOfMonth(new Date()),
+    to: new Date(),
+  });
 
-    const statCards = [
-        {
-            name: "Total Applications",
-            value: stats.totalApplications,
-            icon: Users,
-        },
-        {
-            name: "Pending Review",
-            value: stats.pendingReview,
-            icon: FileText,
-            trend: { value: "3", isPositive: false }, // example: 3 more pending than usual
-        },
-        {
-            name: "Approved (This Month)",
-            value: stats.approvedThisMonth,
-            icon: CheckCircle,
-            trend: { value: "12%", isPositive: true },
-        },
-        {
-            name: "Declined (This Month)",
-            value: stats.declinedThisMonth,
-            icon: XCircle,
-        },
-    ];
+  const stats = useQuery(api.applications.getDashboardStats, {
+    from: dateRange?.from?.toISOString(),
+    to: dateRange?.to?.toISOString(),
+  });
 
-    return (
-        <div className="py-8">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-            </div>
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-6">
-                {/* Stats Row */}
-                <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    {statCards.map((item) => (
-                        <StatCard key={item.name} {...item} />
-                    ))}
-                </dl>
+  // Pending applications table remains unfiltered by date, representing the current backlog
+  const pendingResult = useQuery(api.applications.listPending, {});
 
-                {/* Pending Applications Section */}
-                <div className="mt-10">
-                    <div className="sm:flex sm:items-center">
-                        <div className="sm:flex-auto">
-                            <h2 className="text-xl font-semibold text-gray-900">
-                                Pending Applications
-                            </h2>
-                            <p className="mt-2 text-sm text-gray-700">
-                                A prioritized list of submitted and under-review applications
-                                awaiting your action.
-                            </p>
-                        </div>
-                    </div>
-                    <ApplicationsTable applications={pendingApplications} />
-                </div>
-            </div>
+  const isLoading = stats === undefined || pendingResult === undefined;
+
+  const statCards = [
+    {
+      name: "Total Applications",
+      value: stats?.total ?? "—",
+      icon: Users,
+    },
+    {
+      name: "Pending Review",
+      value: stats?.pendingReview ?? "—",
+      icon: FileText,
+    },
+    {
+      name: "Approved",
+      value: stats?.approved ?? "—",
+      icon: CheckCircle,
+    },
+    {
+      name: "Declined",
+      value: stats?.declined ?? "—",
+      icon: XCircle,
+    },
+  ];
+
+  return (
+    <div className="py-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+      </div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-6">
+        {/* Date Filter */}
+        <div className="flex justify-end mb-4">
+          <DateRangePicker
+            value={dateRange}
+            onValueChange={setDateRange}
+            className="w-full sm:w-72"
+          />
         </div>
-    );
+
+        {/* Stats Row */}
+        <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {statCards.map((item) => (
+            <StatCard key={item.name} {...item} />
+          ))}
+        </dl>
+
+        {/* Pending Applications Section */}
+        <div className="mt-10">
+          <div className="sm:flex sm:items-center sm:justify-between">
+            <div className="sm:flex-auto">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Pending Applications
+              </h2>
+              <p className="mt-2 text-sm text-gray-700">
+                A prioritized list of submitted and under-review applications
+                awaiting your action.
+              </p>
+            </div>
+            <Link
+              href="/admin/applications"
+              className="mt-3 inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 sm:mt-0"
+            >
+              View All Applications →
+            </Link>
+          </div>
+
+          {isLoading ? (
+            <div className="mt-8 flex justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            </div>
+          ) : (
+            <ApplicationsTable
+              applications={pendingResult.applications.map((app) => ({
+                id: app._id,
+                applicantName: app.applicantName,
+                email: app.applicantEmail,
+                submittedAt: app.submittedAt ?? null,
+                paymentStatus:
+                  app.paymentStatus === "paid" ? "paid" : "pending",
+                status: app.status,
+              }))}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

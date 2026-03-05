@@ -12,12 +12,13 @@ The admin home screen. Shows a prioritised list of applications pending review a
 ## UI Layout
 
 1. **Admin sidebar nav** — Logo, "Dashboard" (active), "Applications", "Students", etc.
-2. **Stats row** — summary cards:
+2. **Date Range Filter** — Allows filtering dashboard stats by date.
+3. **Stats row** (updates based on date range) — summary cards:
    - Total applications
    - Pending review count
-   - Approved this month
-   - Declined this month
-3. **Pending Applications table** — sortable/filterable list:
+   - Approved
+   - Declined
+4. **Pending Applications table** — sortable/filterable list:
    - Columns: Applicant Name, Email, Submitted At, Payment Status, Action.
    - "Review →" button per row → links to `/admin/applications/[applicationId]`.
    - Filter: All | Pending | Under Review.

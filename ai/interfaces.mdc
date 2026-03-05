@@ -19,6 +19,7 @@ privileges: Array<String>
 struct CourseStruct {
 \_id: String
 name: String
+slug: String // URL-friendly identifier, e.g. "software-engineering"
 description: String
 duration: String
 certification: String
@@ -33,6 +34,7 @@ updatedAt: Timestamp(ISO)
 struct ApplicationStruct {
 \_id: String
 userId: User.\_id
+courseId: Course.\_id // Linked to a specific course (derived from URL slug)
 status: "draft" | "submitted" | "under_review" | "approved" | "declined"
 paymentStatus: "unpaid" | "paid"
 data: {
@@ -42,7 +44,6 @@ dateOfBirth: String
 address: String
 phoneNumber: String
 educationalBackground: String
-courseId: Course.\_id // The specific course the applicant wants to enroll in
 // Add other relevant fields as needed
 }
 submittedAt: O.Option<Timestamp(ISO)>

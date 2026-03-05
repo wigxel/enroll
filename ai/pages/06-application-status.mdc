@@ -1,7 +1,7 @@
 # Page Plan: Application Status
 
 ## Route
-`/application/status`
+`/applications/[slug]/status`
 
 ## Purpose
 A read-only holding page that shows the applicant the current status of their submitted application. The page updates in real-time (via Convex's reactive queries) when an admin approves or declines.

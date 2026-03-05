@@ -1,0 +1,51 @@
+# Page Plan: Student — Certifications
+
+## Route
+`/student/certifications`
+
+## Purpose
+Allows fully enrolled students to view all certifications associated with their completed courses. Each certification card shows the course name, certification title, and completion date. This page gives students a single place to track and reference their earned certifications.
+
+## Roles Permitted
+- `Student` with `resource:access:student_portal` privilege.
+- Redirect to `/enrollment` if user is an Applicant with an active enrollment (not yet complete).
+- Redirect to `/application/status` if user is still an Applicant awaiting review.
+
+## UI Layout
+
+1. **Top nav** — Shared `TopNav` component (logo, Dashboard, Certifications (active), 🔔 notification bell, user menu).
+2. **Page header** — "My Certifications" heading with a short subtitle: "View your earned certifications."
+3. **Certifications grid** — Responsive card grid (1 col mobile, 2 cols `sm`, 3 cols `lg`).
+   - Each card displays:
+     - **Course cover photo** (top, rounded corners, fallback gradient if no image).
+     - **Certification title** — from `CourseStruct.certification`.
+     - **Course name** — from `CourseStruct.name`.
+     - **Completion date** — from `EnrollmentStruct.completedAt`, formatted as "Mar 2, 2026".
+     - **Status badge** — "Earned ✓" in green.
+4. **Empty state** — If the student has no completed enrollments:
+   - Illustration or icon placeholder.
+   - "No certifications yet" heading.
+   - "Complete your enrollment to earn your first certification." subtitle.
+   - CTA link to `/enrollment` or `/student/dashboard`.
+
+## Data Requirements
+- `enrollments.getOwnCompletedEnrollments()` — reactive query returning all enrollments with `status === "completed"` for the current user, joined with the related `ApplicationStruct` and `CourseStruct` to surface course name, certification title, cover photo, and completion date.
+- `users.getCurrentUserWithRole()` — to confirm Student role.
+
+## Convex Query Shape (Expected Return)
+```ts
+{
+  _id: Id<"enrollments">;
+  completedAt: string; // ISO timestamp
+  course: {
+    _id: Id<"courses">;
+    name: string;
+    certification: string;
+    coverPhoto: string | null;
+  };
+}[]
+```
+
+## Navigation
+- Add "Certifications" link to the student `TopNav` component (between "Dashboard" and the notification bell).
+- Each certification card is non-interactive for now (no detail page), but could link to a future `/student/certifications/[id]` page.

@@ -1,27 +1,31 @@
 # Page Plan: Application Form
 
 ## Route
-`/application`
+`/applications/[slug]`
 
 ## Purpose
-The primary page where an Applicant fills out and submits their enrollment application. Hosts the multi-step Application Form in a full-page layout with a visual stepper.
+The primary page where an Applicant fills out and submits their enrollment application for a specific course. The course is resolved from the `[slug]` in the URL (e.g., `/applications/software-engineering`). Hosts the multi-step Application Form in a full-page layout with a visual stepper.
 
-## Roles Permitted
-- `Applicant` with `application:create` or `application:update:own` privilege.
-- Redirect away if `ApplicationStruct.status` is `"submitted"` or later (send to `/application/status`).
+## Access
+- **Publicly accessible** — no authentication required to view the page or fill out the form.
+- Auth is only triggered when the user clicks "Submit Application" (sign-up/sign-in modal or redirect).
+- Redirect away if `ApplicationStruct.status` is `"submitted"` or later (send to `/applications/[slug]/status`).
+- If the course slug is invalid or inactive, show a 404 page.
 
 ## UI Layout
 
-1. **Top stepper bar** — shows the 3 steps: Personal Info → Education → Review & Submit. Highlights the current step.
+1. **Course header** — shows the course name, description, and tuition fee at the top of the page for context.
+2. **Top stepper bar** — shows the 3 steps: Personal Info → Education → Review & Submit. Highlights the current step.
 2. **Form area** — renders the active step's fields (see `ai/forms/03-application-form.mdc`).
 3. **Navigation bar** — "Back" / "Continue" / "Submit Application" buttons at the bottom.
 4. **Auto-save indicator** — subtle "Saving…" / "Saved" status in the top-right corner.
 
 ## Data Requirements
-- `applications.getOwnApplication()` — on load, fetches any existing draft to pre-populate fields.
+- `courses.getBySlug(slug)` — resolves the course from the URL. 404 if not found/inactive.
+- `applications.getOwnApplicationByCourse(courseId)` — on load, fetches any existing draft for this course.
 - `applications.saveDraft(data)` — called on debounced field changes.
 - `applications.submit(applicationId)` — called on final step submission.
 
 ## Navigation
-- On final submit → `/application/pay` (Application Fee Payment page).
-- If application already exists in `submitted+` state on load → redirect to `/application/status`.
+- On final submit → `/applications/[slug]/pay` (Application Fee Payment page).
+- If application already exists in `submitted+` state on load → redirect to `/applications/[slug]/status`.

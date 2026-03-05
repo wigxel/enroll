@@ -13,18 +13,20 @@ A searchable, sortable list of all fully enrolled students. Shows students who h
 
 1. **Admin sidebar nav** — Logo, "Dashboard", "Applications", "Students" (active), etc.
 2. **Page header** — "Students" title + total enrolled count.
-3. **Search & sort bar**:
+3. **Search & filter bar**:
    - Text search by name or email.
+   - **Cohort filter** — Dropdown select populated from `cohorts.listAll()`. Options: "All Cohorts" (default) + each cohort name. Selecting a cohort filters the table to only students assigned to that cohort.
    - Sort by: Enrolled Date (newest first default), Name A–Z.
 4. **Students table**:
    - Columns: Student (avatar + name + email), Course, Cohort, Enrolled Date.
    - Rows show green-tinted avatars.
    - Hover highlight on rows.
    - Pagination *(future scope)*.
-5. **Empty state** — "No students enrolled yet." or "No students found." (when searching).
+5. **Empty state** — "No students enrolled yet." or "No students found." (when searching/filtering).
 
 ## Data Requirements
-- `users.listStudents({ search, sort, page })` — paginated, filtered list of users with completed enrollment.
+- `users.listStudents({ search, sort, page, cohortId? })` — paginated, filtered list of users with completed enrollment. When `cohortId` is provided, only students in that cohort are returned.
+- `cohorts.listAll()` — fetches all cohorts for the filter dropdown.
 
 ## Navigation
 - Sidebar links to other admin pages.

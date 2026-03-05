@@ -1,7 +1,7 @@
 # Page Plan: Application Fee Payment
 
 ## Route
-`/application/pay`
+`/applications/[slug]/pay`
 
 ## Purpose
 Collects the mandatory application fee via Paystack to finalise the application submission and move it into admin review.
@@ -9,7 +9,7 @@ Collects the mandatory application fee via Paystack to finalise the application 
 ## Roles Permitted
 - `Applicant` with `payment:create` privilege.
 - Only accessible when `status === "submitted"` and `paymentStatus === "unpaid"`.
-- Redirect to `/application/status` if already paid.
+- Redirect to `/applications/[slug]/status` if already paid.
 
 ## UI Layout
 A focused, distraction-free payment confirmation screen:
@@ -24,8 +24,8 @@ A focused, distraction-free payment confirmation screen:
 - `payments.verifyApplicationFee({ reference })` — Convex action called after Paystack callback.
 
 ## Navigation
-- On successful payment → `/application/status`.
-- "Back" link → `/application` (only shown if status is still `"submitted"` and `"unpaid"`).
+- On successful payment → `/applications/[slug]/status`.
+- "Back" link → `/applications/[slug]` (only shown if status is still `"submitted"` and `"unpaid"`).
 
 ## Form Reference
 See `ai/forms/04-application-fee-payment.mdc` for full Paystack integration details.

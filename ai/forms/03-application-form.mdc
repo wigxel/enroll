@@ -4,19 +4,21 @@
 The primary multi-section form that a prospective student (Applicant) fills out to submit their application. Data auto-saves as a draft to Convex. On final submission, the applicant is directed to pay the application fee before the application is locked.
 
 ## Route
-`/application`
+`/applications/[slug]`
 
-## Roles Permitted
-- `Applicant` (with `application:create` and `application:update:own` privileges)
-- Access is blocked if the applicant already has a `submitted` or later status.
+> The `[slug]` is the course slug (e.g., `/applications/software-engineering`). The course is resolved on the server from the URL. Applicants do not manually select a course — the application is automatically linked to the course from the page they landed on.
+
+## Access
+- **Publicly accessible** — no login required to view the course details or fill in the form.
+- On "Submit Application", if the user is not signed in, they are prompted to sign up / sign in first. After authentication, the form data is preserved and the submission proceeds.
+- Access is blocked if the applicant already has a `submitted` or later status for this course.
 
 ## UI Layout
 A multi-step stepper form with 3 steps:
 
 1. **Personal Information**
 2. **Educational Background**
-3. **Course Selection**
-4. **Review & Submit**
+3. **Review & Submit**
 
 Progress is shown via a top stepper component. Each step has "Back" and "Continue" (or "Submit") navigation buttons.
 
@@ -40,16 +42,8 @@ Progress is shown via a top stepper component. Each step has "Back" and "Continu
 
 > Additional fields can be added here as requirements grow (e.g., last school attended, year of graduation, qualifications).
 
-### Step 3 — Course Selection
-
-| Field      | Type   | Validation                          |
-|------------|--------|-------------------------------------|
-| `courseId` | select | Required, exactly 1 course selected |
-
-> Note: The list of available courses is fetched from the backend (`courses.listActive()`), which also includes the `tuitionFee` for display context.
-
-### Step 4 — Review & Submit
-- Read-only summary of all entered data.
+### Step 3 — Review & Submit
+- Read-only summary of all entered data, including the **course name** (resolved from the URL slug, displayed as read-only text).
 - Checkbox: "I confirm that the information provided is accurate."
 - "Submit Application" button — disabled until checkbox is ticked.
 
@@ -70,25 +64,24 @@ const step2Schema = z.object({
   educationalBackground: z.string().min(20),
 });
 
-const step3Schema = z.object({
-  courseId: z.string().min(1, "Please select a course to enroll in"),
-});
-
-const applicationSchema = step1Schema.merge(step2Schema).merge(step3Schema);
+const applicationSchema = step1Schema.merge(step2Schema);
 ```
 
 ## Behaviour
-- **Auto-save (draft):** Every form change is debounced (1.5s) and persists to Convex via `applications.saveDraft`. Creates a new `ApplicationStruct` with `status: "draft"` on first save.
+- **Publicly accessible**: The form can be viewed and filled out without authentication. Form state is held in local state (React Hook Form) until submission.
+- **Auth gate on submit**: When the user clicks "Submit Application" on the final step, the system checks if they are authenticated. If not, a sign-up/sign-in modal or redirect is triggered. After successful auth, the form data is submitted automatically.
+- **Auto-save (draft):** For authenticated users, every form change is debounced (1.5s) and persists to Convex via `applications.saveDraft`. Creates a new `ApplicationStruct` with `status: "draft"` on first save. The `courseId` is automatically set from the URL slug.
 - **Step navigation:** Each step validates only its own fields before proceeding.
-- **Final submit:** Sets `status` to `"submitted"` and `paymentStatus` to `"unpaid"`, then redirects to the **Application Fee Payment** form (`/application/pay`).
-- If the applicant already has a draft, the form is pre-populated on load.
+- **Final submit:** Sets `status` to `"submitted"` and `paymentStatus` to `"unpaid"`, then redirects to the **Application Fee Payment** form (`/applications/[slug]/pay`).
+- If the applicant already has a draft for this course, the form is pre-populated on load.
+- If the course slug is invalid or inactive, show a 404 page.
 
 ## Error Handling
 - Per-step inline validation via React Hook Form + Zod resolver.
 - Convex mutation errors (e.g., network failure during save) shown as a toast notification.
 
 ## Related Convex Mutations / Queries
-- `applications.saveDraft(data)` — upserts draft application.
+- `courses.getBySlug(slug)` — resolves the course from the URL slug. Returns 404 if not found or inactive.
+- `applications.saveDraft(data)` — upserts draft application (courseId is set server-side from slug).
 - `applications.submit(applicationId)` — transitions status to `"submitted"`.
-- `applications.getOwnApplication()` — fetches existing draft to pre-populate form.
-- `courses.listActive()` — fetches the list of courses to display in Step 3.
+- `applications.getOwnApplicationByCourse(courseId)` — fetches existing draft for this specific course.

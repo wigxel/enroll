@@ -1,0 +1,41 @@
+# Page Plan: Course Catalog (Applications Landing)
+
+## Route
+`/applications`
+
+## Purpose
+A publicly accessible landing page that displays all available courses as a browsable catalog. Each course card has an "Enroll Now" CTA button that links to the course-specific application form at `/applications/[slug]`.
+
+## Access
+- **Fully public** — no authentication required.
+
+## UI Layout
+
+1. **Page Header**:
+   - Title: "Available Programs" or "Our Courses"
+   - Subtitle: brief institution tagline or enrollment window status (e.g., "Now accepting applications for Fall 2026")
+   - If applications are currently closed (`isAcceptingApplications === false`), show an alert banner: "Applications are currently closed. Check back soon."
+
+2. **Course Grid** (responsive: 1 col mobile, 2 col tablet, 3 col desktop):
+   - Each course is a card showing:
+     - Cover photo (or placeholder gradient)
+     - Course name
+     - Brief description (truncated to ~2 lines)
+     - Duration badge (e.g., "12 Weeks")
+     - Tuition fee (e.g., "₦250,000")
+     - **"Enroll Now →"** CTA button → links to `/applications/[course.slug]`
+   - If applications are closed, CTA is disabled with text "Applications Closed"
+
+3. **Empty state** — "No courses available at this time." (when no active courses exist)
+
+## Data Requirements
+- `courses.listActive()` — fetches all courses where `isActive === true`, ordered by `order` field.
+- `config.getSettings()` — checks if the application window is currently open.
+
+## Navigation
+- "Enroll Now" per card → `/applications/[slug]`
+
+## SEO
+- Title: "Apply Now — [Institution Name]"
+- Meta description: "Browse available programs and start your enrollment today."
+- Each course card should be wrapped in a semantic `<article>` element.
