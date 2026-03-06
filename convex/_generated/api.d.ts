@@ -8,11 +8,16 @@
  * @module
  */
 
+import type * as alumni from "../alumni.js";
 import type * as applications from "../applications.js";
 import type * as auth from "../auth.js";
+import type * as clerk from "../clerk.js";
 import type * as cohorts from "../cohorts.js";
 import type * as courses from "../courses.js";
+import type * as debug from "../debug.js";
 import type * as enrollments from "../enrollments.js";
+import type * as http from "../http.js";
+import type * as invitations from "../invitations.js";
 import type * as notifications from "../notifications.js";
 import type * as payments from "../payments.js";
 import type * as seed from "../seed.js";
@@ -20,6 +25,7 @@ import type * as settings from "../settings.js";
 import type * as storage from "../storage.js";
 import type * as users from "../users.js";
 import type * as utils from "../utils.js";
+import type * as webhooks from "../webhooks.js";
 
 import type {
   ApiFromModules,
@@ -28,11 +34,16 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  alumni: typeof alumni;
   applications: typeof applications;
   auth: typeof auth;
+  clerk: typeof clerk;
   cohorts: typeof cohorts;
   courses: typeof courses;
+  debug: typeof debug;
   enrollments: typeof enrollments;
+  http: typeof http;
+  invitations: typeof invitations;
   notifications: typeof notifications;
   payments: typeof payments;
   seed: typeof seed;
@@ -40,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   storage: typeof storage;
   users: typeof users;
   utils: typeof utils;
+  webhooks: typeof webhooks;
 }>;
 
 /**

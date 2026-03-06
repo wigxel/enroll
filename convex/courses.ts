@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { requirePrivilege, now } from "./utils";
+import { Id } from "./_generated/dataModel";
 
 /**
  * Admin: Lists all courses (active and inactive) sorted by order.
@@ -20,7 +21,8 @@ export const listAll = query({
 });
 
 /**
- * Public: Lists only active courses for the application form dropdown.
+ * Public: Lists only active courses for the application form dropdown and public catalog.
+ * Resolves the coverPhoto storage ID into a full, accessible URL.
  */
 export const listActive = query({
   args: {},
@@ -33,7 +35,55 @@ export const listActive = query({
     // Sort by order
     courses.sort((a, b) => a.order - b.order);
 
-    return courses;
+    // Resolve cover photo URLs
+    const coursesWithUrls = await Promise.all(
+      courses.map(async (course) => {
+        let coverPhotoUrl = undefined;
+        if (course.coverPhoto) {
+          // Attempt to get the URL from storage. If it's already a full HTTP URL, getUrl handles it or returns null.
+          // Fallback to the original string if it looks like a direct URL instead of a storage ID.
+          const url = await ctx.storage.getUrl(
+            course.coverPhoto as Id<"_storage">,
+          );
+          coverPhotoUrl = url ?? undefined;
+        }
+
+        return {
+          ...course,
+          coverPhoto: coverPhotoUrl,
+        };
+      }),
+    );
+
+    return coursesWithUrls;
+  },
+});
+
+/**
+ * Public: Gets a single active course by its URL slug.
+ */
+export const getBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args) => {
+    const course = await ctx.db
+      .query("courses")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .unique();
+
+    if (!course || !course.isActive) {
+      return null;
+    }
+
+    let coverPhotoUrl = undefined;
+    if (course.coverPhoto) {
+      const url = await ctx.storage.getUrl(course.coverPhoto as any);
+      coverPhotoUrl = url ?? course.coverPhoto;
+    }
+
+    return {
+      ...course,
+      coverPhoto: coverPhotoUrl,
+    };
   },
 });
 
@@ -44,6 +94,7 @@ export const listActive = query({
 export const create = mutation({
   args: {
     name: v.string(),
+    slug: v.string(),
     description: v.string(),
     duration: v.string(),
     certification: v.string(),
@@ -64,6 +115,7 @@ export const create = mutation({
     const timestamp = now();
     const courseId = await ctx.db.insert("courses", {
       name: args.name,
+      slug: args.slug,
       description: args.description,
       duration: args.duration,
       certification: args.certification,
@@ -86,6 +138,7 @@ export const update = mutation({
   args: {
     courseId: v.id("courses"),
     name: v.optional(v.string()),
+    slug: v.optional(v.string()),
     description: v.optional(v.string()),
     duration: v.optional(v.string()),
     certification: v.optional(v.string()),
@@ -103,6 +156,7 @@ export const update = mutation({
 
     await ctx.db.patch(args.courseId, {
       ...(args.name !== undefined && { name: args.name }),
+      ...(args.slug !== undefined && { slug: args.slug }),
       ...(args.description !== undefined && { description: args.description }),
       ...(args.duration !== undefined && { duration: args.duration }),
       ...(args.certification !== undefined && {

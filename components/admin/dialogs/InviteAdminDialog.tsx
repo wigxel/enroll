@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "~/convex/_generated/api";
 import {
   Dialog,
@@ -33,8 +33,7 @@ export function InviteAdminDialog({
   const [error, setError] = useState<string | null>(null);
 
   const roles = useQuery(api.auth.listRoles);
-  const createOrGetUser = useMutation(api.users.createOrGetUser);
-  const assignRole = useMutation(api.users.assignRole);
+  const sendInvite = useAction(api.invitations.sendInvite);
 
   const adminRoles = roles?.filter((r) => ADMIN_ROLE_NAMES.includes(r.name));
 
@@ -53,24 +52,24 @@ export function InviteAdminDialog({
 
   const handleInvite = async () => {
     setError(null);
-    const targetRole = adminRoles?.find((r) => r.name === selectedRoleName);
-    if (!targetRole || !isValid) return;
+    if (!isValid) return;
 
     setIsSubmitting(true);
     try {
-      const userId = await createOrGetUser({
-        clerkId: `invited_${email}`,
-        email,
-        name: `${firstName.trim()} ${lastName.trim()}`,
+      await sendInvite({
+        email: email.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        roleName: selectedRoleName,
       });
-
-      await assignRole({ userId, newRoleId: targetRole._id });
 
       resetForm();
       onOpenChange(false);
       onSuccess?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to invite user.");
+      setError(
+        err instanceof Error ? err.message : "Failed to send invitation.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -88,7 +87,8 @@ export function InviteAdminDialog({
         <DialogHeader>
           <DialogTitle>Invite New User</DialogTitle>
           <DialogDescription>
-            Send an invitation to join as an admin panel member.
+            A Clerk invitation email will be sent. They'll automatically receive
+            the selected role when they sign up.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -182,7 +182,7 @@ export function InviteAdminDialog({
             disabled={!isValid || isSubmitting}
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
           >
-            {isSubmitting ? "Inviting…" : "Send Invitation"}
+            {isSubmitting ? "Sending…" : "Send Invitation"}
           </button>
         </DialogFooter>
       </DialogContent>

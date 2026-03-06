@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useClerk, useUser } from "@clerk/nextjs";
 import { LogOut } from "lucide-react";
 import { NotificationBell } from "./NotificationBell";
 import {
@@ -28,52 +30,35 @@ const studentNav: NavItem[] = [
   { name: "Certifications", href: "/student/certifications" },
 ];
 
-// TODO: Replace with actual user data from Convex
-function useCurrentUser() {
-  return {
-    name: "Jane Doe",
-    email: "jane.doe@example.com",
-    initials: "JD",
-    role: "Applicant" as "Applicant" | "Student",
-    applicationStatus: "approved" as
-      | "draft"
-      | "submitted"
-      | "under_review"
-      | "approved"
-      | "declined",
-    enrollmentStatus: null as "pending" | "completed" | null,
-  };
-}
-
-function getNavigationItems(
-  user: ReturnType<typeof useCurrentUser>,
-): NavItem[] {
-  const items: NavItem[] = [];
-
-  if (user.role === "Student") {
-    items.push(...studentNav);
-  } else {
-    // Applicant role
-    if (
-      user.applicationStatus === "draft" ||
-      user.applicationStatus === "submitted" ||
-      user.applicationStatus === "under_review" ||
-      user.applicationStatus === "declined"
-    ) {
-      items.push(...applicantNav);
-    }
-    if (user.applicationStatus === "approved") {
-      items.push(...applicantNav, ...enrollmentNav);
-    }
-  }
-
-  return items;
+function getInitials(name: string | null | undefined): string {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("");
 }
 
 export function TopNav() {
   const pathname = usePathname();
-  const user = useCurrentUser();
-  const navItems = getNavigationItems(user);
+  const router = useRouter();
+  const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
+
+  const name = user?.fullName ?? user?.username ?? "User";
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
+  const imageUrl = user?.imageUrl;
+  const initials = getInitials(name);
+
+  // Basic nav logic: show student nav when on /student/* routes
+  const navItems: NavItem[] = pathname.startsWith("/student")
+    ? studentNav
+    : [...applicantNav, ...enrollmentNav];
+
+  const handleSignOut = () => {
+    signOut(() => router.push("/"));
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur-lg">
@@ -117,13 +102,24 @@ export function TopNav() {
                 type="button"
                 className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100"
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <span className="text-xs font-semibold leading-none">
-                    {user.initials}
-                  </span>
+                {/* Avatar — photo if available, else initials */}
+                <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10">
+                  {isLoaded && imageUrl ? (
+                    <Image
+                      src={imageUrl}
+                      alt={name}
+                      fill
+                      sizes="32px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs font-semibold leading-none text-primary">
+                      {isLoaded ? initials : "…"}
+                    </span>
+                  )}
                 </div>
                 <span className="hidden text-sm font-medium text-gray-700 sm:inline-block">
-                  {user.name}
+                  {isLoaded ? name : "Loading…"}
                 </span>
               </button>
             </HoverCardTrigger>
@@ -133,17 +129,34 @@ export function TopNav() {
               sideOffset={8}
               className="w-56 p-2"
             >
-              <div className="px-2 py-1.5 mb-1 border-b border-gray-100">
-                <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                <p className="text-xs text-gray-500">{user.email}</p>
+              <div className="mb-1 flex items-center gap-3 border-b border-gray-100 px-2 py-2">
+                {/* Mini avatar inside dropdown */}
+                <div className="relative flex h-9 w-9 shrink-0 overflow-hidden rounded-full bg-primary/10">
+                  {isLoaded && imageUrl ? (
+                    <Image
+                      src={imageUrl}
+                      alt={name}
+                      fill
+                      sizes="36px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="m-auto text-xs font-semibold text-primary">
+                      {isLoaded ? initials : "…"}
+                    </span>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-gray-900">
+                    {name}
+                  </p>
+                  <p className="truncate text-xs text-gray-500">{email}</p>
+                </div>
               </div>
               <button
                 type="button"
                 className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                onClick={() => {
-                  // TODO: Implement actual sign out via Clerk
-                  console.log("Sign out clicked");
-                }}
+                onClick={handleSignOut}
               >
                 <LogOut
                   className="mr-3 h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500"

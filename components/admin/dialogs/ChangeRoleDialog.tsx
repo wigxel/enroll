@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
 import {
@@ -35,7 +35,7 @@ export function ChangeRoleDialog({
   const [error, setError] = useState<string | null>(null);
 
   const roles = useQuery(api.auth.listRoles);
-  const assignRole = useMutation(api.users.assignRole);
+  const assignRole = useAction(api.users.assignRole);
 
   const adminRoles = roles?.filter((r) => ADMIN_ROLE_NAMES.includes(r.name));
 

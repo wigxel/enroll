@@ -176,8 +176,8 @@ export const list = query({
         const user = await ctx.db.get(payment.userId);
         return {
           ...payment,
-          userName: user?.name ?? "Unknown",
-          userEmail: user?.email ?? "",
+          userName: (user as any)?.name ?? "Unknown",
+          userEmail: (user as any)?.email ?? "",
         };
       }),
     );

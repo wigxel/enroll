@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -17,6 +18,9 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "~/components/ui/hover-card";
+import { useUser, useClerk } from "@clerk/nextjs";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -31,6 +35,22 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user } = useUser();
+  const { signOut } = useClerk();
+
+  const name = user?.fullName ?? user?.username ?? "Admin";
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const avatarUrl = user?.imageUrl;
+
+  // Retrieve user object from Convex to show their assigned role
+  const currentUser = useQuery(api.users.getCurrentUser);
+  const role = currentUser?.role ?? "User";
 
   return (
     <div className="flex h-screen w-64 flex-col border-r border-gray-200 bg-white">
@@ -74,16 +94,36 @@ export function Sidebar() {
               type="button"
               className="flex w-full items-center rounded-md px-2 py-2 transition-colors hover:bg-gray-50"
             >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <span className="text-sm font-medium leading-none">AD</span>
+              {/* Avatar */}
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary overflow-hidden">
+                {avatarUrl ? (
+                  <Image
+                    src={avatarUrl}
+                    alt={name}
+                    width={36}
+                    height={36}
+                    className="h-9 w-9 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="text-sm font-medium leading-none">
+                    {initials}
+                  </span>
+                )}
               </div>
               <div className="ml-3 flex min-w-0 flex-1 flex-col text-left">
                 <span className="truncate text-sm font-medium text-gray-900">
-                  Admin User
+                  {name}
                 </span>
                 <span className="truncate text-xs text-gray-500 mt-0.5">
-                  admin@example.com
+                  {email}
                 </span>
+                {currentUser && (
+                  <span className="mt-1 w-fit truncate rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                    {role
+                      .replace("_", " ")
+                      .replace(/\b\w/g, (c) => c.toUpperCase())}
+                  </span>
+                )}
               </div>
             </button>
           </HoverCardTrigger>
@@ -93,13 +133,21 @@ export function Sidebar() {
             sideOffset={8}
             className="w-56 p-2"
           >
+            <div className="px-2 py-1.5 mb-1 border-b border-gray-100 flex flex-col gap-1">
+              <p className="text-sm font-medium text-gray-900">{name}</p>
+              <p className="text-xs text-gray-500">{email}</p>
+              {currentUser && (
+                <span className="w-fit rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                  {role
+                    .replace("_", " ")
+                    .replace(/\b\w/g, (c) => c.toUpperCase())}
+                </span>
+              )}
+            </div>
             <button
               type="button"
               className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-              onClick={() => {
-                // TODO: Implement actual sign out when auth is added
-                console.log("Sign out clicked");
-              }}
+              onClick={() => signOut({ redirectUrl: "/" })}
             >
               <LogOut
                 className="mr-3 h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-gray-500"

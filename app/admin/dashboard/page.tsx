@@ -63,7 +63,7 @@ export default function AdminDashboardPage() {
         <div className="flex justify-end mb-4">
           <DateRangePicker
             value={dateRange}
-            onValueChange={setDateRange}
+            onChange={(range) => range && setDateRange(range)}
             className="w-full sm:w-72"
           />
         </div>

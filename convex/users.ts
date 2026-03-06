@@ -1,10 +1,20 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation, action } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { requireAuth, requirePrivilege, getUserRole, now } from "./utils";
+import {
+  requireAuth,
+  requirePrivilege,
+  getUserRole,
+  now,
+  getCurrentUser as getAuthUser,
+} from "./utils";
+import { deleteUser as deleteClerkUser, updateUserMetadata } from "./clerk";
 
 /**
  * Creates or retrieves a user from the database based on Clerk identity.
  * Called during sign-up / first login to upsert the user record.
+ * If the Clerk JWT carries `public_metadata.pendingRole` (set during invite),
+ * that role is assigned automatically instead of the default "Applicant".
  */
 export const createOrGetUser = mutation({
   args: {
@@ -14,7 +24,7 @@ export const createOrGetUser = mutation({
     profileImage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Check if user already exists
+    // Return early if user already exists
     const existing = await ctx.db
       .query("users")
       .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
@@ -22,13 +32,28 @@ export const createOrGetUser = mutation({
 
     if (existing) return existing._id;
 
-    // Find the default "Applicant" role
-    const applicantRole = await ctx.db
-      .query("roles")
-      .withIndex("by_name", (q) => q.eq("name", "Applicant"))
-      .unique();
+    // Check for a pre-assigned role from an admin invitation
+    const identity = await ctx.auth.getUserIdentity();
+    const pendingRoleName = (
+      identity?.publicMetadata as Record<string, unknown> | undefined
+    )?.pendingRole as string | undefined;
 
-    if (!applicantRole) {
+    // Try to find the pending role, fall back to "Applicant"
+    let roleRecord = pendingRoleName
+      ? await ctx.db
+          .query("roles")
+          .withIndex("by_name", (q) => q.eq("name", pendingRoleName))
+          .unique()
+      : null;
+
+    if (!roleRecord) {
+      roleRecord = await ctx.db
+        .query("roles")
+        .withIndex("by_name", (q) => q.eq("name", "Applicant"))
+        .unique();
+    }
+
+    if (!roleRecord) {
       throw new Error(
         "Default 'Applicant' role not found. Please seed the roles table.",
       );
@@ -39,13 +64,31 @@ export const createOrGetUser = mutation({
       clerkId: args.clerkId,
       email: args.email,
       name: args.name,
-      role: applicantRole._id,
+      role: roleRecord._id,
       profileImage: args.profileImage,
       createdAt: timestamp,
       updatedAt: timestamp,
     });
 
     return userId;
+  },
+});
+
+/**
+ * Retrieves the currently authenticated user's record from the database.
+ */
+export const getCurrentUser = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getAuthUser(ctx);
+    if (!user) return null;
+
+    const roleRecord = await getUserRole(ctx, user.role);
+
+    return {
+      ...user,
+      role: roleRecord?.name ?? "User",
+    };
   },
 });
 
@@ -245,9 +288,58 @@ export const listStudents = query({
 });
 
 /**
- * Admin: Assigns a new role to a user.
+ * Internal: Delete a user record from Convex database.
+ * Used by the `deleteUser` action.
  */
-export const assignRole = mutation({
+export const deleteUserRecord = internalMutation({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
+    // Capture clerkId before deleting
+    const clerkId = user.clerkId;
+    await ctx.db.delete(args.userId);
+
+    return { clerkId };
+  },
+});
+
+/**
+ * Admin: Deletes a user account from both Convex and Clerk.
+ */
+export const deleteUser = action({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    // 1. Delete from Convex & fetch clerkId
+    // We use an internal mutation because actions cannot do direct DB operations
+    const { clerkId } = await ctx.runMutation(internal.users.deleteUserRecord, {
+      userId: args.userId,
+    });
+
+    // 2. Delete from Clerk (if it's a real clerkId)
+    // We don't fail if the user is a local dev stub
+    if (clerkId && clerkId.startsWith("user_")) {
+      try {
+        await deleteClerkUser(clerkId);
+      } catch (err) {
+        console.error("Failed to delete user from Clerk:", err);
+      }
+    }
+  },
+});
+
+/**
+ * Internal: Assigns a new role to a user in the database.
+ * Used by the `assignRole` action.
+ */
+export const assignRoleRecord = internalMutation({
   args: {
     userId: v.id("users"),
     newRoleId: v.id("roles"),
@@ -269,5 +361,79 @@ export const assignRole = mutation({
       role: args.newRoleId,
       updatedAt: now(),
     });
+
+    return { clerkId: targetUser.clerkId, roleName: newRole.name };
+  },
+});
+
+/**
+ * Admin: Assigns a new role to a user and syncs it with Clerk metadata.
+ */
+export const assignRole = action({
+  args: {
+    userId: v.id("users"),
+    newRoleId: v.id("roles"),
+  },
+  handler: async (ctx, args) => {
+    // 1. Update in Convex. Because it's called with runMutation,
+    // the mutation will enforce admin privileges.
+    const { clerkId, roleName } = await ctx.runMutation(
+      internal.users.assignRoleRecord,
+      {
+        userId: args.userId,
+        newRoleId: args.newRoleId,
+      },
+    );
+
+    // 2. Update Clerk metadata
+    if (clerkId && clerkId.startsWith("user_")) {
+      try {
+        await updateUserMetadata({
+          userId: clerkId,
+          publicMetadata: { pendingRole: roleName },
+        });
+      } catch (err) {
+        console.error("Failed to sync new role to Clerk:", err);
+      }
+    }
+  },
+});
+
+/**
+ * Internal: Promotes any user to the "Super Admin" role.
+ * Run from the Convex dashboard → Functions, or via CLI:
+ *   npx convex run users:makeSuperAdmin '{"email":"you@example.com"}'
+ */
+export const makeSuperAdmin = internalMutation({
+  args: {
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .unique();
+
+    if (!user) {
+      throw new Error(`No user found with email: ${args.email}`);
+    }
+
+    const superAdminRole = await ctx.db
+      .query("roles")
+      .withIndex("by_name", (q) => q.eq("name", "Admin"))
+      .unique();
+
+    if (!superAdminRole) {
+      throw new Error(
+        '"Super Admin" role not found. Please run the seed or create the role first.',
+      );
+    }
+
+    await ctx.db.patch(user._id, {
+      role: superAdminRole._id,
+      updatedAt: now(),
+    });
+
+    return { userId: user._id, roleName: superAdminRole.name };
   },
 });

@@ -198,6 +198,7 @@ export const run = internalMutation({
         certification: "Full-Stack Developer Certificate",
         tuitionFee: 450000,
         order: 1,
+        slug: "full-stack-web-development",
         isActive: true,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -210,6 +211,7 @@ export const run = internalMutation({
         certification: "Data Science Professional Certificate",
         tuitionFee: 550000,
         order: 2,
+        slug: "data-science-machine-learning",
         isActive: true,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -222,6 +224,7 @@ export const run = internalMutation({
         certification: "UI/UX Designer Certificate",
         tuitionFee: 350000,
         order: 3,
+        slug: "ui-ux-design",
         isActive: true,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -233,11 +236,13 @@ export const run = internalMutation({
         certification: "Mobile Developer Certificate",
         tuitionFee: 400000,
         order: 4,
+        slug: "mobile-app-development",
         isActive: false,
         createdAt: timestamp,
         updatedAt: timestamp,
       },
     ];
+
     if (!dryRun) {
       for (const course of coursesData) {
         await ctx.db.insert("courses", course);
@@ -334,6 +339,7 @@ export const run = internalMutation({
           firstName: "John",
           lastName: "Doe",
           dateOfBirth: "1998-06-15",
+          gender: "Male",
           address: "42 Victoria Island, Lagos, Nigeria",
           phoneNumber: "+234 801 234 5678",
           educationalBackground:
@@ -352,6 +358,7 @@ export const run = internalMutation({
           firstName: "Jane",
           lastName: "Smith",
           dateOfBirth: "2000-03-22",
+          gender: "Female",
           address: "15 Wuse II, Abuja, Nigeria",
           phoneNumber: "+234 902 345 6789",
           educationalBackground:
@@ -369,6 +376,7 @@ export const run = internalMutation({
           firstName: "Kwame",
           lastName: "Asante",
           dateOfBirth: "1997-11-08",
+          gender: "Male",
           address: "25 East Legon, Accra, Ghana",
           phoneNumber: "+233 20 123 4567",
           educationalBackground: "BSc Electrical Engineering, KNUST (2019)",
@@ -386,6 +394,7 @@ export const run = internalMutation({
           firstName: "Amara",
           lastName: "Obi",
           dateOfBirth: "1999-04-12",
+          gender: "Female",
           address: "7 Lekki Phase 1, Lagos, Nigeria",
           phoneNumber: "+234 803 456 7890",
           educationalBackground: "BSc Mathematics, University of Ibadan (2021)",
@@ -405,6 +414,7 @@ export const run = internalMutation({
           firstName: "Chioma",
           lastName: "Nwosu",
           dateOfBirth: "2001-07-30",
+          gender: "Female",
           address: "33 Independence Layout, Enugu, Nigeria",
           phoneNumber: "+234 805 678 9012",
           educationalBackground: "BSc Biochemistry, UNN (2023)",

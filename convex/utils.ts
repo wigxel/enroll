@@ -9,6 +9,7 @@ export const getCurrentUser = async (
   ctx: QueryCtx | MutationCtx,
 ): Promise<Doc<"users"> | null> => {
   const identity = await ctx.auth.getUserIdentity();
+
   if (!identity) return null;
 
   const user = await ctx.db
@@ -22,24 +23,16 @@ export const getCurrentUser = async (
 /**
  * Ensures the user is authenticated and returns the user document.
  * Throws an error if not authenticated.
- *
- * TODO: Restore auth guard once Clerk is integrated.
  */
 export const requireAuth = async (
   ctx: QueryCtx | MutationCtx,
 ): Promise<Doc<"users">> => {
-  // --- AUTH BYPASSED FOR DEVELOPMENT ---
-  // const user = await getCurrentUser(ctx);
-  // if (!user) {
-  //     throw new Error("Authentication required. Please sign in.");
-  // }
-  // return user;
+  const user = await getCurrentUser(ctx);
 
-  const firstUser = await ctx.db.query("users").first();
-  if (!firstUser) {
-    throw new Error("No users in the database. Please run the seed first.");
+  if (!user) {
+    throw new Error("Authentication required. Please sign in.");
   }
-  return firstUser;
+  return user;
 };
 
 /**
@@ -55,26 +48,19 @@ export const getUserRole = async (
 /**
  * Ensures the authenticated user has a specific privilege.
  * Throws an error if the user lacks the required privilege.
- *
- * TODO: Restore privilege guard once Clerk is integrated.
  */
 export const requirePrivilege = async (
   ctx: QueryCtx | MutationCtx,
-  _privilege: string,
+  privilege: string,
 ): Promise<Doc<"users">> => {
-  // --- AUTH BYPASSED FOR DEVELOPMENT ---
-  // const user = await requireAuth(ctx);
-  // const role = await ctx.db.get(user.role);
-  //
-  // if (!role || !role.privileges.includes(_privilege)) {
-  //     throw new Error(
-  //         `Access denied. Required privilege: "${_privilege}".`,
-  //     );
-  // }
-  //
-  // return user;
+  const user = await requireAuth(ctx);
+  const role = await ctx.db.get(user.role);
 
-  return await requireAuth(ctx);
+  if (!role || !role.privileges.includes(privilege)) {
+    throw new Error(`Access denied. Required privilege: "${privilege}".`);
+  }
+
+  return user;
 };
 
 /**

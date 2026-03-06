@@ -2,12 +2,14 @@
 
 import React from "react";
 import { Sidebar } from "@/components/admin/Sidebar";
+import { useCreateOrGetUser } from "@/hooks/use-create-or-get-user";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  useCreateOrGetUser();
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar />

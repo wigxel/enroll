@@ -15,6 +15,7 @@ import {
 
 interface CourseFormData {
   name: string;
+  slug: string;
   description: string;
   duration: string;
   certification: string;
@@ -29,6 +30,7 @@ interface CourseFormDialogProps {
   course?: {
     _id: Id<"courses">;
     name: string;
+    slug?: string;
     description: string;
     duration: string;
     certification: string;
@@ -41,6 +43,7 @@ interface CourseFormDialogProps {
 
 const emptyForm: CourseFormData = {
   name: "",
+  slug: "",
   description: "",
   duration: "",
   certification: "",
@@ -58,6 +61,7 @@ export function CourseFormDialog({
   const [formData, setFormData] = useState<CourseFormData>(emptyForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [slugModified, setSlugModified] = useState(false);
 
   const createCourse = useMutation(api.courses.create);
   const updateCourse = useMutation(api.courses.update);
@@ -76,6 +80,7 @@ export function CourseFormDialog({
     if (course) {
       setFormData({
         name: course.name,
+        slug: course.slug || "",
         description: course.description,
         duration: course.duration,
         certification: course.certification,
@@ -83,11 +88,33 @@ export function CourseFormDialog({
         coverPhoto: course.coverPhoto,
         isActive: course.isActive,
       });
+      setSlugModified(false);
     } else {
       setFormData(emptyForm);
+      setSlugModified(false);
     }
     setError(null);
   }, [course]);
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+
+    // Only auto-update the slug if the user hasn't explicitly customized it
+    if (!slugModified) {
+      const generatedSlug = newName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+      setFormData({ ...formData, name: newName, slug: generatedSlug });
+    } else {
+      setFormData({ ...formData, name: newName });
+    }
+  };
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSlugModified(true);
+    setFormData({ ...formData, slug: e.target.value });
+  };
 
   const handleSave = async () => {
     setError(null);
@@ -95,11 +122,19 @@ export function CourseFormDialog({
 
     try {
       const tuitionFee = parseFloat(formData.tuitionFee);
+      // Auto-generate slug from name if empty
+      const finalSlug =
+        formData.slug.trim() ||
+        formData.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
 
       if (isEditing && course) {
         await updateCourse({
           courseId: course._id,
           name: formData.name,
+          slug: finalSlug,
           description: formData.description,
           duration: formData.duration,
           certification: formData.certification,
@@ -110,6 +145,7 @@ export function CourseFormDialog({
       } else {
         await createCourse({
           name: formData.name,
+          slug: finalSlug,
           description: formData.description,
           duration: formData.duration,
           certification: formData.certification,
@@ -149,9 +185,23 @@ export function CourseFormDialog({
               id="course-name"
               type="text"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={handleNameChange}
+              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="course-slug"
+              className="block text-sm font-medium text-gray-700"
+            >
+              URL Slug (auto-generated if empty)
+            </label>
+            <input
+              id="course-slug"
+              type="text"
+              placeholder="e.g., software-engineering"
+              value={formData.slug}
+              onChange={handleSlugChange}
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>

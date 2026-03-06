@@ -664,7 +664,7 @@ const SingleDatePicker = ({
                   {translations?.cancel ?? "Cancel"}
                 </Button>
                 <Button
-                  variant="primary"
+                  variant="default"
                   className="h-8 w-full"
                   type="button"
                   onClick={onApply}
@@ -996,7 +996,7 @@ const RangeDatePicker = ({
                     {translations?.cancel ?? "Cancel"}
                   </Button>
                   <Button
-                    variant="primary"
+                    variant="default"
                     className="h-8 w-full sm:w-fit"
                     type="button"
                     onClick={onApply}

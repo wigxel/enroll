@@ -35,6 +35,7 @@ export default defineSchema({
       firstName: v.string(),
       lastName: v.string(),
       dateOfBirth: v.string(),
+      gender: v.string(),
       address: v.string(),
       phoneNumber: v.string(),
       educationalBackground: v.string(),
@@ -113,6 +114,7 @@ export default defineSchema({
 
   courses: defineTable({
     name: v.string(),
+    slug: v.string(),
     description: v.string(),
     duration: v.string(),
     certification: v.string(),
@@ -124,7 +126,8 @@ export default defineSchema({
     updatedAt: v.string(),
   })
     .index("by_order", ["order"])
-    .index("by_isActive", ["isActive"]),
+    .index("by_isActive", ["isActive"])
+    .index("by_slug", ["slug"]),
 
   settings: defineTable({
     isAcceptingApplications: v.boolean(),

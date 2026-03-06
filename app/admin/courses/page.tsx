@@ -4,14 +4,34 @@ import React, { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
-import { Plus, GripVertical, Loader2 } from "lucide-react";
+import {
+  Plus,
+  GripVertical,
+  Loader2,
+  Link as LinkIcon,
+  Check,
+  MoreHorizontal,
+  Edit,
+  Power,
+  PowerOff,
+} from "lucide-react";
 import { CourseFormDialog } from "~/components/admin/dialogs/CourseFormDialog";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "~/components/ui/dropdown-menu";
 
 export default function CoursesPage() {
   const [showDialog, setShowDialog] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [editingCourse, setEditingCourse] = useState<{
     _id: Id<"courses">;
     name: string;
+    slug?: string;
     description: string;
     duration: string;
     certification: string;
@@ -38,6 +58,22 @@ export default function CoursesPage() {
     currentlyActive: boolean,
   ) => {
     await updateCourse({ courseId, isActive: !currentlyActive });
+  };
+
+  const copyToClipboard = (course: any) => {
+    let slug = course.slug;
+    if (!slug) {
+      // Fallback for older records without a slug saved in DB
+      slug = course.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+    }
+    const url = `${window.location.origin}/applications/${slug}`;
+    navigator.clipboard.writeText(url);
+    setCopiedId(course._id);
+    toast.success("Application link copied to clipboard");
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const isLoading = !courses;
@@ -145,23 +181,67 @@ export default function CoursesPage() {
                         {course.isActive ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 space-x-3">
-                      <button
-                        type="button"
-                        onClick={() => openEditDialog(course)}
-                        className="text-primary hover:text-primary/80"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          toggleActive(course._id, course.isActive)
-                        }
-                        className="text-gray-500 hover:text-gray-700"
-                      >
-                        {course.isActive ? "Deactivate" : "Activate"}
-                      </button>
+                    <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white hover:bg-gray-100 text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                          >
+                            <span className="sr-only">Open options</span>
+                            <MoreHorizontal
+                              className="h-5 w-5"
+                              aria-hidden="true"
+                            />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem
+                            onClick={() => openEditDialog(course)}
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => copyToClipboard(course)}
+                          >
+                            {copiedId === course._id ? (
+                              <span className="flex items-center text-green-600">
+                                <Check className="mr-2 h-4 w-4" />
+                                Copied!
+                              </span>
+                            ) : (
+                              <span className="flex items-center">
+                                <LinkIcon className="mr-2 h-4 w-4" />
+                                Share Link
+                              </span>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() =>
+                              toggleActive(course._id, course.isActive)
+                            }
+                            className={
+                              course.isActive
+                                ? "text-amber-600 focus:text-amber-600 focus:bg-amber-50"
+                                : "text-green-600 focus:text-green-600 focus:bg-green-50"
+                            }
+                          >
+                            {course.isActive ? (
+                              <>
+                                <PowerOff className="mr-2 h-4 w-4" />
+                                Deactivate
+                              </>
+                            ) : (
+                              <>
+                                <Power className="mr-2 h-4 w-4" />
+                                Activate
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </td>
                   </tr>
                 ))

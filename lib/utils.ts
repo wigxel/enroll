@@ -128,3 +128,10 @@ export const getColorClassName = (
   };
   return chartColors[color]?.[type] ?? fallbackColor[type];
 };
+
+export const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "NGN",
+  }).format(value);
+};
