@@ -1,38 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-
+import { useRouter } from "next/navigation";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import {
   GraduationCap,
   BookOpen,
   CalendarDays,
   CheckCircle2,
   User,
+  Loader2,
 } from "lucide-react";
-
-// TODO: Replace with Convex hook e.g. useQuery(api.users.getCurrentUserWithRole)
-function useCurrentStudent() {
-  return {
-    name: "Jane Doe",
-    email: "jane.doe@example.com",
-    profileImage: null as string | null,
-    initials: "JD",
-  };
-}
-
-// TODO: Replace with Convex hook e.g. useQuery(api.enrollments.getOwnEnrollment)
-function useStudentEnrollment() {
-  return {
-    completedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-    course: "Full-Stack Web Development",
-    cohort: "Spring 2026",
-    steps: {
-      tuitionPaid: true,
-      quizPassed: true,
-      documentsSigned: true,
-    },
-  };
-}
 
 const resourceCards = [
   {
@@ -56,34 +35,72 @@ const resourceCards = [
 ];
 
 export default function StudentDashboardPage() {
-  const student = useCurrentStudent();
-  const enrollment = useStudentEnrollment();
+  const router = useRouter();
+  const user = useQuery(api.users.getCurrentUser);
+  const application = useQuery(api.applications.getMyApplication);
+  const enrollment = useQuery(api.enrollments.get);
+
+  useEffect(() => {
+    if (application !== undefined && enrollment !== undefined) {
+      // If no application OR application is not 'approved' OR not enrolled, 
+      // they should be see the status/pending page instead of the dashboard.
+      const isApprovedValue = application?.status === "approved";
+      const isEnrolledValue = !!enrollment;
+
+      if (!isApprovedValue || !isEnrolledValue) {
+        router.replace("/student/application-pending");
+      }
+    }
+  }, [application, enrollment, router]);
+
+  if (user === undefined || application === undefined || enrollment === undefined) {
+    return (
+      <div className="flex flex-1 items-center justify-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Final safety check to prevent splash of content before redirect
+  if (application?.status !== "approved" || !enrollment) {
+    return null;
+  }
+
+  if (!user) return null;
+
+
+  const initials = user.name
+    ? user.name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+    : "U";
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <title>Student Dashboard - Enrollment System</title>
-      {/* Welcome Banner */}
       <div className="rounded-2xl bg-gradient-to-br from-primary/5 via-primary/[0.02] to-transparent border border-primary/10 p-6 sm:p-8">
         <div className="flex items-center gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-            {student.profileImage ? (
+            {user.profileImage ? (
               <img
-                src={student.profileImage}
-                alt={student.name}
+                src={user.profileImage}
+                alt={user.name}
                 className="h-14 w-14 rounded-full object-cover"
               />
             ) : (
-              <span className="text-lg font-bold">{student.initials}</span>
+              <span className="text-lg font-bold">{initials}</span>
             )}
           </div>
           <div>
             <h1 className="text-xl font-semibold text-gray-900 sm:text-2xl">
-              Welcome, {student.name}! 🎉
+              Welcome, {user.name}! 🎉
             </h1>
             <p className="mt-0.5 text-sm text-gray-500">
               You are now enrolled in{" "}
               <span className="font-medium text-gray-700">
-                {enrollment.course}
+                {application.courseName}
               </span>
             </p>
           </div>
@@ -102,9 +119,8 @@ export default function StudentDashboardPage() {
                 <CheckCircle2 className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">Enrollment Status</p>
                 <p className="text-sm font-semibold text-emerald-600">
-                  Completed
+                  {enrollment.status === "completed" ? "Enrolled" : "In Progress"}
                 </p>
               </div>
             </div>
@@ -117,7 +133,7 @@ export default function StudentDashboardPage() {
               <div>
                 <p className="text-xs text-gray-500">Cohort</p>
                 <p className="text-sm font-semibold text-gray-900">
-                  {enrollment.cohort}
+                  {enrollment.cohortName}
                 </p>
               </div>
             </div>
@@ -130,13 +146,14 @@ export default function StudentDashboardPage() {
               <div>
                 <p className="text-xs text-gray-500">Enrolled On</p>
                 <p className="text-sm font-semibold text-gray-900">
-                  {new Date(enrollment.completedAt).toLocaleDateString(
-                    "en-NG",
-                    {
+                  {enrollment.completedAt ? (
+                    new Date(enrollment.completedAt).toLocaleDateString("en-NG", {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
-                    },
+                    })
+                  ) : (
+                    "In Progress"
                   )}
                 </p>
               </div>
@@ -207,10 +224,10 @@ export default function StudentDashboardPage() {
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              {student.profileImage ? (
+              {user.profileImage ? (
                 <img
-                  src={student.profileImage}
-                  alt={student.name}
+                  src={user.profileImage}
+                  alt={user.name}
                   className="h-12 w-12 rounded-full object-cover"
                 />
               ) : (
@@ -219,9 +236,9 @@ export default function StudentDashboardPage() {
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-900">
-                {student.name}
+                {user.name}
               </p>
-              <p className="text-xs text-gray-500">{student.email}</p>
+              <p className="text-xs text-gray-500">{user.email}</p>
             </div>
           </div>
         </div>

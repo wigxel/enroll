@@ -9,6 +9,7 @@ import { InviteAdminDialog } from "~/components/admin/dialogs/InviteAdminDialog"
 import { ChangeRoleDialog } from "~/components/admin/dialogs/ChangeRoleDialog";
 import { useAction } from "convex/react";
 import { useEffect } from "react";
+import { cn } from "~/lib/utils";
 
 const ADMIN_ROLE_NAMES = ["Admin", "Staff", "Auditor"];
 
@@ -162,7 +163,10 @@ export default function TeamSettingsPage() {
                     </td>
                     <td className="whitespace-nowrap px-3 py-3 text-sm">
                       <span
-                        className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${roleBadgeStyles[admin.roleName ?? ""] ?? "bg-gray-100 text-gray-800"}`}
+                        className={cn(
+                          "inline-flex rounded-full px-2 text-xs font-semibold leading-5",
+                          roleBadgeStyles[admin.roleName ?? ""] ?? "bg-gray-100 text-gray-800"
+                        )}
                       >
                         {admin.roleName}
                       </span>
@@ -269,7 +273,10 @@ export default function TeamSettingsPage() {
                       </td>
                       <td className="whitespace-nowrap px-3 py-3 text-sm">
                         <span
-                          className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${roleBadgeStyles[roleName] ?? "bg-gray-100 text-gray-800"}`}
+                          className={cn(
+                            "inline-flex rounded-full px-2 text-xs font-semibold leading-5",
+                            roleBadgeStyles[roleName] ?? "bg-gray-100 text-gray-800"
+                          )}
                         >
                           {roleName}
                         </span>

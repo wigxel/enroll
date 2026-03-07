@@ -35,7 +35,7 @@ export default async function Home() {
             {isSignedIn ? (
               <div className="ml-2 flex items-center gap-3">
                 <Link
-                  href="/student"
+                  href="/dashboard"
                   className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-800 dark:hover:text-white"
                 >
                   Dashboard

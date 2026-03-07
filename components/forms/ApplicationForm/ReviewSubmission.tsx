@@ -12,9 +12,7 @@ import { Input } from "~/components/ui/input";
 // To submit the final form, they just need to confirm.
 export const reviewSubmissionSchema = z.object({
   confirm: z.literal(true, {
-    errorMap: () => ({
-      message: "You must confirm the information is accurate",
-    }),
+    message: "You must confirm the information is accurate"
   }),
 });
 
@@ -53,6 +51,7 @@ export const ReviewSubmission = React.forwardRef<
     onSubmit(data);
   };
 
+  const isConfirmed = form.watch("confirm");
   const isSaving = isLoading || form.formState.isSubmitting;
 
   return (
@@ -71,6 +70,12 @@ export const ReviewSubmission = React.forwardRef<
               <span className="font-medium text-gray-500">Name:</span>
               <span className="col-span-2 text-gray-900">
                 {formData.firstName} {formData.lastName}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 border-b pb-2">
+              <span className="font-medium text-gray-500">Email:</span>
+              <span className="col-span-2 text-gray-900">
+                {formData.email}
               </span>
             </div>
             <div className="grid grid-cols-3 gap-2 border-b pb-2">
@@ -160,8 +165,8 @@ export const ReviewSubmission = React.forwardRef<
 
           <Button
             type="submit"
-            disabled={isSaving}
-            className="px-8 rounded-full shadow-md bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white"
+            disabled={isSaving || !isConfirmed}
+            className="px-8 flex items-center justify-center rounded-full shadow-md bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white"
           >
             {isSaving ? "Submitting..." : "Submit Application"}
           </Button>

@@ -338,6 +338,7 @@ export const run = internalMutation({
         data: {
           firstName: "John",
           lastName: "Doe",
+          email: "john.doe@gmail.com",
           dateOfBirth: "1998-06-15",
           gender: "Male",
           address: "42 Victoria Island, Lagos, Nigeria",
@@ -357,6 +358,7 @@ export const run = internalMutation({
         data: {
           firstName: "Jane",
           lastName: "Smith",
+          email: "jane.smith@outlook.com",
           dateOfBirth: "2000-03-22",
           gender: "Female",
           address: "15 Wuse II, Abuja, Nigeria",
@@ -375,6 +377,7 @@ export const run = internalMutation({
         data: {
           firstName: "Kwame",
           lastName: "Asante",
+          email: "kwame.asante@yahoo.com",
           dateOfBirth: "1997-11-08",
           gender: "Male",
           address: "25 East Legon, Accra, Ghana",
@@ -393,6 +396,7 @@ export const run = internalMutation({
         data: {
           firstName: "Amara",
           lastName: "Obi",
+          email: "amara.obi@gmail.com",
           dateOfBirth: "1999-04-12",
           gender: "Female",
           address: "7 Lekki Phase 1, Lagos, Nigeria",
@@ -413,6 +417,7 @@ export const run = internalMutation({
         data: {
           firstName: "Chioma",
           lastName: "Nwosu",
+          email: "chioma.nwosu@gmail.com",
           dateOfBirth: "2001-07-30",
           gender: "Female",
           address: "33 Independence Layout, Enugu, Nigeria",

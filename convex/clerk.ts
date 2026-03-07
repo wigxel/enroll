@@ -115,6 +115,26 @@ export async function updateUserMetadata(opts: UpdateUserMetadataOptions) {
   });
 }
 
+export interface CreateUserOptions {
+  emailAddress: string;
+  firstName: string;
+  lastName: string;
+}
+
+/** Creates a Clerk user. */
+export async function createUser(opts: CreateUserOptions) {
+  return clerkFetch<{ id: string }>("/users", {
+    method: "POST",
+    body: JSON.stringify({
+      email_address: [opts.emailAddress],
+      first_name: opts.firstName,
+      last_name: opts.lastName,
+      skip_password_checks: true,
+      skip_password_requirement: true,
+    }),
+  });
+}
+
 /** Deletes a Clerk user account. */
 export async function deleteUser(clerkUserId: string) {
   return clerkFetch(`/users/${clerkUserId}`, { method: "DELETE" });

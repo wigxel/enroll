@@ -101,7 +101,7 @@ export default function ApplicationDetailPage() {
                 {applicantName}
               </h1>
               <p className="text-sm text-gray-500">
-                {application.applicant?.email}
+                {application.data.email}
               </p>
               <p className="mt-1 text-xs text-gray-400">
                 Course: {application.courseName} • Submitted:{" "}
@@ -214,11 +214,10 @@ export default function ApplicationDetailPage() {
                 <dt className="text-sm font-medium text-gray-500">Status</dt>
                 <dd className="mt-1">
                   <span
-                    className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                      application.paymentStatus === "paid"
+                    className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${application.paymentStatus === "paid"
                         ? "bg-green-100 text-green-800"
                         : "bg-yellow-100 text-yellow-800"
-                    }`}
+                      }`}
                   >
                     {application.paymentStatus.charAt(0).toUpperCase() +
                       application.paymentStatus.slice(1)}

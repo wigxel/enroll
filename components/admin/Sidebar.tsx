@@ -1,7 +1,9 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   FileText,
@@ -21,6 +23,7 @@ import {
 import { useUser, useClerk } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { cn } from "~/lib/utils";
 
 const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -35,8 +38,8 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useUser();
-  const { signOut } = useClerk();
 
   const name = user?.fullName ?? user?.username ?? "Admin";
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
@@ -67,18 +70,20 @@ export function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium ${
+                className={cn(
+                  "group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary/10 text-primary"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                }`}
+                )}
               >
                 <item.icon
-                  className={`mr-3 h-5 w-5 flex-shrink-0 ${
+                  className={cn(
+                    "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
                     isActive
                       ? "text-primary"
                       : "text-gray-400 group-hover:text-gray-500"
-                  }`}
+                  )}
                   aria-hidden="true"
                 />
                 {item.name}
@@ -114,9 +119,6 @@ export function Sidebar() {
                 <span className="truncate text-sm font-medium text-gray-900">
                   {name}
                 </span>
-                <span className="truncate text-xs text-gray-500 mt-0.5">
-                  {email}
-                </span>
                 {currentUser && (
                   <span className="mt-1 w-fit truncate rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
                     {role
@@ -146,8 +148,10 @@ export function Sidebar() {
             </div>
             <button
               type="button"
-              className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-              onClick={() => signOut({ redirectUrl: "/" })}
+              className={cn(
+                "group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+              )}
+              onClick={() => router.push("/logout")}
             >
               <LogOut
                 className="mr-3 h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-gray-500"

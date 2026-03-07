@@ -2,16 +2,19 @@ import { query, mutation, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { requireAuth, requirePrivilege, now } from "./utils";
+import type { Doc } from "./_generated/dataModel";
 
 /**
- * Creates a new application draft for the current user.
- * Only one application per user is allowed.
+ * Creates a new application draft.
+ * Supports both authenticated users and guests.
+ * Only one application per email address is allowed.
  */
 export const create = mutation({
   args: {
     data: v.object({
       firstName: v.string(),
       lastName: v.string(),
+      email: v.string(),
       dateOfBirth: v.string(),
       gender: v.string(),
       address: v.string(),
@@ -21,23 +24,33 @@ export const create = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    const user = await requireAuth(ctx);
+    // Attempt to identify the user (optional for guests)
+    const identity = await ctx.auth.getUserIdentity();
+    let userId;
 
-    // Check for existing application
+    if (identity) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
+        .unique();
+      userId = user?._id;
+    }
+
+    // Check for existing application by email
     const existing = await ctx.db
       .query("applications")
-      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .withIndex("by_email", (q) => q.eq("data.email", args.data.email))
       .first();
 
     if (existing) {
       throw new Error(
-        "You already have an application. Only one application per user is allowed.",
+        "An application already exists for this email address. Please use a different email or log in to view your application.",
       );
     }
 
     const timestamp = now();
     const applicationId = await ctx.db.insert("applications", {
-      userId: user._id,
+      userId: userId,
       status: "draft",
       paymentStatus: "unpaid",
       data: args.data,
@@ -58,6 +71,7 @@ export const update = mutation({
     data: v.object({
       firstName: v.string(),
       lastName: v.string(),
+      email: v.string(),
       dateOfBirth: v.string(),
       gender: v.string(),
       address: v.string(),
@@ -67,15 +81,20 @@ export const update = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    const user = await requireAuth(ctx);
     const application = await ctx.db.get(args.applicationId);
 
     if (!application) {
       throw new Error("Application not found.");
     }
-    if (application.userId !== user._id) {
-      throw new Error("You can only edit your own application.");
+
+    // If the application is linked to a user, enforce authentication
+    if (application.userId) {
+      const user = await requireAuth(ctx);
+      if (application.userId !== user._id) {
+        throw new Error("You can only edit your own application.");
+      }
     }
+
     if (application.status !== "draft") {
       throw new Error("Only draft applications can be edited.");
     }
@@ -95,15 +114,20 @@ export const submit = mutation({
     applicationId: v.id("applications"),
   },
   handler: async (ctx, args) => {
-    const user = await requireAuth(ctx);
     const application = await ctx.db.get(args.applicationId);
 
     if (!application) {
       throw new Error("Application not found.");
     }
-    if (application.userId !== user._id) {
-      throw new Error("You can only submit your own application.");
+
+    // If the application is linked to a user, enforce authentication
+    if (application.userId) {
+      const user = await requireAuth(ctx);
+      if (application.userId !== user._id) {
+        throw new Error("You can only submit your own application.");
+      }
     }
+
     if (application.status !== "draft") {
       throw new Error("This application has already been submitted.");
     }
@@ -127,6 +151,18 @@ export const submit = mutation({
       relatedEntityType: "application",
       targetAdmins: true,
     });
+
+    // Send notification to the student user if they exist
+    if (application.userId) {
+      await ctx.runMutation(internal.notifications.sendNotification, {
+        type: "application_status_change",
+        title: "Application Submitted",
+        body: "Your application has been successfully submitted and is now awaiting review.",
+        relatedEntityId: args.applicationId,
+        relatedEntityType: "application",
+        targetUserId: application.userId,
+      });
+    }
   },
 });
 
@@ -136,12 +172,47 @@ export const submit = mutation({
 export const getMyApplication = query({
   args: {},
   handler: async (ctx) => {
-    const user = await requireAuth(ctx);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
 
-    const application = await ctx.db
-      .query("applications")
-      .withIndex("by_userId", (q) => q.eq("userId", user._id))
-      .first();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) return null;
+
+    const application =
+      (await ctx.db
+        .query("applications")
+        .withIndex("by_userId", (q) => q.eq("userId", user._id))
+        .first()) ||
+      (await ctx.db
+        .query("applications")
+        .filter((q) => q.eq(q.field("data.email"), user.email))
+        .first());
+
+    if (!application) return null;
+
+    // Resolve course name
+    const course = await ctx.db.get(application.data.courseId);
+
+    return {
+      ...application,
+      courseName: course?.name ?? "Unknown Course",
+    };
+  },
+});
+
+/**
+ * Public: Retrieves a specific application by ID for the payment page or guest tracking.
+ * Only returns basic safe information.
+ */
+export const getByIdPublic = query({
+  args: { applicationId: v.id("applications") },
+  handler: async (ctx, args) => {
+    const application = await ctx.db.get(args.applicationId);
+    if (!application) return null;
 
     return application;
   },
@@ -158,7 +229,9 @@ export const getById = query({
     const application = await ctx.db.get(args.applicationId);
     if (!application) return null;
 
-    const applicant = await ctx.db.get(application.userId);
+    const applicant = application.userId
+      ? await ctx.db.get(application.userId)
+      : null;
 
     // Get payment info for this application
     const payment = await ctx.db
@@ -193,7 +266,7 @@ export const listPending = query({
   handler: async (ctx, args) => {
     await requirePrivilege(ctx, "application:read:all");
 
-    let applications;
+    let applications: Doc<"applications">[];
 
     if (args.statusFilter) {
       applications = await ctx.db
@@ -229,11 +302,13 @@ export const listPending = query({
     // Attach applicant info
     const withApplicants = await Promise.all(
       paginated.map(async (app) => {
-        const applicant = await ctx.db.get(app.userId);
+        const applicant = app.userId ? await ctx.db.get(app.userId) : null;
         return {
           ...app,
-          applicantName: applicant?.name ?? "Unknown",
-          applicantEmail: applicant?.email ?? "",
+          applicantName: applicant
+            ? applicant.name
+            : `${app.data.firstName} ${app.data.lastName}`,
+          applicantEmail: applicant ? applicant.email : app.data.email,
         };
       }),
     );
@@ -270,7 +345,7 @@ export const listAll = query({
 
     const statusFilter = args.statusFilter ?? "all";
 
-    let applications;
+    let applications: Doc<"applications">[];
 
     if (statusFilter !== "all") {
       applications = await ctx.db
@@ -291,12 +366,14 @@ export const listAll = query({
     // Attach applicant info + course name for every row
     const enriched = await Promise.all(
       applications.map(async (app) => {
-        const applicant = await ctx.db.get(app.userId);
+        const applicant = app.userId ? await ctx.db.get(app.userId) : null;
         const course = await ctx.db.get(app.data.courseId);
         return {
           ...app,
-          applicantName: applicant?.name ?? "Unknown",
-          applicantEmail: applicant?.email ?? "",
+          applicantName: applicant
+            ? applicant.name
+            : `${app.data.firstName} ${app.data.lastName}`,
+          applicantEmail: applicant ? applicant.email : app.data.email,
           courseName: course?.name ?? "Unknown Course",
         };
       }),
@@ -306,10 +383,10 @@ export const listAll = query({
     const searchTerm = (args.search ?? "").toLowerCase();
     const filtered = searchTerm
       ? enriched.filter(
-          (app) =>
-            app.applicantName.toLowerCase().includes(searchTerm) ||
-            app.applicantEmail.toLowerCase().includes(searchTerm),
-        )
+        (app) =>
+          app.applicantName.toLowerCase().includes(searchTerm) ||
+          app.applicantEmail.toLowerCase().includes(searchTerm),
+      )
       : enriched;
 
     // Compute counts across ALL applications (before pagination)
@@ -372,29 +449,41 @@ export const approve = mutation({
       updatedAt: timestamp,
     });
 
-    // Create enrollment record
-    await ctx.db.insert("enrollments", {
-      userId: application.userId,
-      applicationId: args.applicationId,
-      steps: {
-        tuitionPaid: false,
-        quizPassed: false,
-        documentsSigned: false,
-      },
-      status: "pending",
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    });
+    if (application.userId) {
+      // User already has an account (e.g., they applied while authenticated)
+      // Create enrollment record right away
+      await ctx.db.insert("enrollments", {
+        userId: application.userId,
+        applicationId: args.applicationId,
+        steps: {
+          tuitionPaid: false,
+          quizPassed: false,
+          documentsSigned: false,
+        },
+        status: "pending",
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      });
 
-    // Send notification to the applicant
-    await ctx.runMutation(internal.notifications.sendNotification, {
-      type: "application_status_change",
-      title: "Application Approved!",
-      body: "Congratulations! Your application has been approved. Please complete the enrollment steps to finalize your registration.",
-      relatedEntityId: args.applicationId,
-      relatedEntityType: "application",
-      targetUserId: application.userId,
-    });
+      // Send notification to the applicant
+      await ctx.runMutation(internal.notifications.sendNotification, {
+        type: "application_status_change",
+        title: "Application Approved!",
+        body: "Congratulations! Your application has been approved. Please complete the enrollment steps to finalize your registration.",
+        relatedEntityId: args.applicationId,
+        relatedEntityType: "application",
+        targetUserId: application.userId,
+      });
+    } else {
+      // Guest application: Send an invite to create a student account
+      await ctx.scheduler.runAfter(0, internal.invitations.sendStudentInvite, {
+        email: application.data.email,
+        firstName: application.data.firstName,
+        lastName: application.data.lastName,
+        applicationId: args.applicationId,
+      });
+      // The enrollment record will be created when they accept the invite and `user.created` webhook fires.
+    }
   },
 });
 
@@ -498,6 +587,71 @@ export const getDashboardStats = query({
       pendingReview,
       approved,
       declined,
+    };
+  },
+});
+
+/**
+ * Checks if there is already an application with the given email address or phone number.
+ * Returns the application id and payment status if found, otherwise null.
+ */
+export const checkExisting = query({
+  args: {
+    email: v.string(),
+    phoneNumber: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Check globally across all applications by email.
+    const byEmail = await ctx.db
+      .query("applications")
+      .withIndex("by_email", (q) =>
+        q.eq("data.email", args.email)
+      )
+      .first();
+
+    if (byEmail) {
+      return {
+        id: byEmail._id,
+        status: byEmail.status,
+        paymentStatus: byEmail.paymentStatus,
+      };
+    }
+
+    // Check by phone number
+    const byPhone = await ctx.db
+      .query("applications")
+      .withIndex("by_phoneNumber", (q) =>
+        q.eq("data.phoneNumber", args.phoneNumber)
+      )
+      .first();
+
+    if (byPhone) {
+      return {
+        id: byPhone._id,
+        status: byPhone.status,
+        paymentStatus: byPhone.paymentStatus,
+      };
+    }
+
+    return null;
+  },
+});
+
+/**
+ * Public: Retrieves safe application info for the payment page without requiring auth.
+ */
+export const getApplicationForPayment = query({
+  args: { applicationId: v.id("applications") },
+  handler: async (ctx, args) => {
+    const application = await ctx.db.get(args.applicationId);
+    if (!application) return null;
+
+    return {
+      _id: application._id,
+      status: application.status,
+      paymentStatus: application.paymentStatus,
+      applicantName: `${application.data.firstName} ${application.data.lastName}`,
+      applicantEmail: application.data.email,
     };
   },
 });

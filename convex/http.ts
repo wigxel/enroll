@@ -49,7 +49,11 @@ async function verifyWebhook(request: Request): Promise<unknown> {
     new TextEncoder().encode(signedContent),
   );
 
-  const computedSig = btoa(String.fromCharCode(...new Uint8Array(signature)));
+  const computedSig = btoa(
+    Array.from(new Uint8Array(signature))
+      .map((b) => String.fromCharCode(b))
+      .join("")
+  );
 
   // Svix may send multiple signatures (comma-separated "v1,<base64>")
   const isValid = svixSignature
@@ -116,6 +120,91 @@ http.route({
     }
 
     return new Response(JSON.stringify({ received: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }),
+});
+
+// ---------------------------------------------------------------------------
+// Paystack Webhook Handler
+// ---------------------------------------------------------------------------
+
+/**
+ * Verifies a Paystack webhook signature using HMAC SHA-512 and IP Whitelisting
+ */
+async function verifyPaystackWebhook(request: Request): Promise<unknown> {
+  const secret = process.env.PAYSTACK_SECRET_KEY;
+
+  if (!secret) {
+    throw new Error("PAYSTACK_SECRET_KEY is not set in the Convex environment variables.");
+  }
+
+  // 2. Signature Validation
+  const paystackSignature = request.headers.get("x-paystack-signature");
+  if (!paystackSignature) {
+    throw new Error("Missing Paystack signature header.");
+  }
+
+  const body = await request.text();
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-512" },
+    false,
+    ["sign"],
+  );
+
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(body),
+  );
+
+  // Convert ArrayBuffer to hex string
+  const hashArray = Array.from(new Uint8Array(signature));
+  const computedHash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  if (computedHash !== paystackSignature) {
+    throw new Error("Invalid Paystack webhook signature.");
+  }
+
+  return JSON.parse(body);
+}
+
+http.route({
+  path: "/events/paystack",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    let payload: unknown;
+
+    try {
+      payload = await verifyPaystackWebhook(request);
+    } catch (err) {
+      console.error("Paystack webhook verification failed:", err);
+      return new Response(JSON.stringify({ error: (err as Error).message }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const event = payload as {
+      event: string;
+      data: Record<string, unknown>;
+    };
+
+    console.log("Paystack webhook received:", event.event);
+
+    if (event.event === "charge.success") {
+      await ctx.runMutation(internal.webhooks.onPaystackChargeSuccess, {
+        data: event.data,
+      });
+    } else {
+      console.log("Unhandled Paystack event type:", event.event);
+    }
+
+    return new Response(JSON.stringify({ status: "success" }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

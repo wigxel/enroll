@@ -2,6 +2,7 @@ import { query, mutation, action, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { requireAuth, requirePrivilege, now } from "./utils";
+import { Id } from "./_generated/dataModel";
 
 /**
  * Creates a payment intent stub.
@@ -15,11 +16,7 @@ export const createIntent = action({
     currency: v.string(),
   },
   handler: async (ctx, args) => {
-    // --- AUTH BYPASSED FOR DEVELOPMENT ---
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) {
-    //     throw new Error("Authentication required.");
-    // }
+    const identity = await ctx.auth.getUserIdentity();
 
     // In production: call Stripe/Paystack API to create a payment intent
     // const paymentIntent = await stripe.paymentIntents.create({ ... });
@@ -27,7 +24,7 @@ export const createIntent = action({
 
     // Create the payment record in the database
     await ctx.runMutation(internal.payments.createPaymentRecord, {
-      clerkId: "clerk_admin_001", // TODO: use identity.subject
+      clerkId: identity?.subject,
       referenceId: args.referenceId,
       referenceType: args.referenceType,
       amount: args.amount,
@@ -44,7 +41,7 @@ export const createIntent = action({
  */
 export const createPaymentRecord = internalMutation({
   args: {
-    clerkId: v.string(),
+    clerkId: v.optional(v.string()),
     referenceId: v.string(),
     referenceType: v.union(v.literal("application"), v.literal("tuition")),
     amount: v.number(),
@@ -52,17 +49,21 @@ export const createPaymentRecord = internalMutation({
     stripePaymentIntentId: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
-      .unique();
+    let userId: Id<"users"> | undefined = undefined;
 
-    if (!user) {
-      throw new Error("User not found.");
+    if (args.clerkId) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId!))
+        .unique();
+
+      if (user) {
+        userId = user._id;
+      }
     }
 
     await ctx.db.insert("payments", {
-      userId: user._id,
+      userId,
       referenceId: args.referenceId,
       referenceType: args.referenceType,
       amount: args.amount,
@@ -108,18 +109,34 @@ export const confirm = mutation({
         .first();
 
       if (application) {
+        const timestamp = now();
         await ctx.db.patch(application._id, {
           paymentStatus: "paid",
-          updatedAt: now(),
+          status: "submitted",
+          submittedAt: timestamp,
+          updatedAt: timestamp,
+        });
+
+        // Send notification to admin users about the new submission
+        await ctx.runMutation(internal.notifications.sendNotification, {
+          type: "application_submitted",
+          title: "New Application Submitted",
+          body: `${application.data.firstName} ${application.data.lastName} has paid the application fee and is awaiting review.`,
+          relatedEntityId: application._id,
+          relatedEntityType: "application",
+          targetAdmins: true,
         });
       }
     }
 
     // If tuition payment succeeded, update the enrollment step
     if (args.status === "succeeded" && payment.referenceType === "tuition") {
+      if (!payment.userId) {
+        throw new Error("Tuition payments must be associated with a user.");
+      }
       const enrollment = await ctx.db
         .query("enrollments")
-        .withIndex("by_userId", (q) => q.eq("userId", payment.userId))
+        .withIndex("by_userId", (q) => q.eq("userId", payment.userId!))
         .first();
 
       if (enrollment) {
@@ -173,11 +190,28 @@ export const list = query({
     // Attach user info and apply search
     const withUser = await Promise.all(
       payments.map(async (payment) => {
-        const user = await ctx.db.get(payment.userId);
+        let userName = "Unknown Applicant (Guest)";
+        let userEmail = "";
+
+        if (payment.userId) {
+          const user = await ctx.db.get(payment.userId);
+          userName = (user as any)?.name ?? "Unknown";
+          userEmail = (user as any)?.email ?? "";
+        } else if (payment.referenceType === "application") {
+          const application = await ctx.db
+            .query("applications")
+            .filter((q) => q.eq(q.field("_id"), payment.referenceId as any))
+            .first();
+          if (application) {
+            userName = `${application.data.firstName} ${application.data.lastName}`;
+            userEmail = application.data.email;
+          }
+        }
+
         return {
           ...payment,
-          userName: (user as any)?.name ?? "Unknown",
-          userEmail: (user as any)?.email ?? "",
+          userName,
+          userEmail,
         };
       }),
     );
@@ -185,11 +219,11 @@ export const list = query({
     // Apply search filter
     const filtered = args.search
       ? withUser.filter(
-          (p) =>
-            p.userName.toLowerCase().includes(args.search!.toLowerCase()) ||
-            p.userEmail.toLowerCase().includes(args.search!.toLowerCase()) ||
-            p.stripePaymentIntentId.includes(args.search!),
-        )
+        (p) =>
+          p.userName.toLowerCase().includes(args.search!.toLowerCase()) ||
+          p.userEmail.toLowerCase().includes(args.search!.toLowerCase()) ||
+          p.stripePaymentIntentId.includes(args.search!),
+      )
       : withUser;
 
     // Sort by date (newest first)

@@ -11,6 +11,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "~/components/ui/hover-card";
+import { cn } from "~/lib/utils";
 
 interface NavItem {
   name: string;
@@ -18,12 +19,11 @@ interface NavItem {
 }
 
 const applicantNav: NavItem[] = [
-  { name: "Home", href: "/" },
-  { name: "Application", href: "/application" },
-  { name: "Status", href: "/application/status" },
+  { name: "Home", href: "/student/dashboard" },
+  { name: "My Application", href: "/student/application-pending" },
 ];
 
-const enrollmentNav: NavItem[] = [{ name: "Enrollment", href: "/enrollment" }];
+const enrollmentNav: NavItem[] = [{ name: "Enrollment", href: "/student/enrollment" }];
 
 const studentNav: NavItem[] = [
   { name: "Home", href: "/student/dashboard" },
@@ -57,7 +57,7 @@ export function TopNav() {
     : [...applicantNav, ...enrollmentNav];
 
   const handleSignOut = () => {
-    signOut(() => router.push("/"));
+    router.push("/logout");
   };
 
   return (
@@ -79,11 +79,12 @@ export function TopNav() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  className={cn(
+                    "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-primary/10 text-primary"
                       : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
+                  )}
                 >
                   {item.name}
                 </Link>

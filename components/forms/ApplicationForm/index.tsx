@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { toast } from "sonner";
+import { isDevelopment } from "@/lib/utils";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useDebounceCallback } from "~/hooks/use-debounce-callback";
@@ -16,18 +17,13 @@ import {
   EducationalBackgroundForm,
   EducationalBackgroundValues,
 } from "./EducationalBackgroundForm";
-import {
-  CourseSelectionForm,
-  CourseSelectionValues,
-} from "./CourseSelectionForm";
 import { ReviewSubmission } from "./ReviewSubmission";
 
 // Stepper Components
 const steps = [
   { id: 1, name: "Personal Information" },
   { id: 2, name: "Educational Background" },
-  { id: 3, name: "Course Selection" },
-  { id: 4, name: "Review & Submit" },
+  { id: 3, name: "Review & Submit" },
 ];
 
 interface ApplicationFormProps {
@@ -43,21 +39,29 @@ export default function ApplicationForm({
   const courses = useQuery(api.courses.listActive);
   const createApplication = useMutation(api.applications.create);
 
-  const [formData, setFormData] = useState<
-    Partial<
-      PersonalInformationValues &
-        EducationalBackgroundValues &
-        CourseSelectionValues
-    >
-  >({
-    firstName: "",
-    lastName: "",
-    gender: "",
-    dateOfBirth: "",
-    phoneNumber: "",
-    address: "",
-    educationalBackground: "",
-    courseId: defaultCourseId || "",
+  const [formData, setFormData] = useState<{
+    firstName: string;
+    lastName: string;
+    email: string;
+    gender: string;
+    dateOfBirth: string;
+    phoneNumber: string;
+    address: string;
+    educationalBackground: string;
+    courseId: string;
+  }>(() => {
+    const isDev = isDevelopment();
+    return {
+      firstName: isDev ? "John" : "",
+      lastName: isDev ? "Doe" : "",
+      email: isDev ? "john.doe@example.com" : "",
+      gender: isDev ? "Male" : "",
+      dateOfBirth: isDev ? "1998-05-15" : "",
+      phoneNumber: isDev ? "+2348000000000" : "",
+      address: isDev ? "123 Development Street, Tech City" : "",
+      educationalBackground: isDev ? "BSc in Computer Science from University of Example (2020-2024)." : "",
+      courseId: defaultCourseId || "",
+    };
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,10 +96,7 @@ export default function ApplicationForm({
     nextStep();
   };
 
-  const onStep3Submit = (data: CourseSelectionValues) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-    nextStep();
-  };
+
 
   const onFinalSubmit = async () => {
     try {
@@ -104,6 +105,7 @@ export default function ApplicationForm({
       if (
         !formData.firstName ||
         !formData.lastName ||
+        !formData.email ||
         !formData.dateOfBirth ||
         !formData.gender ||
         !formData.address ||
@@ -116,10 +118,11 @@ export default function ApplicationForm({
         );
       }
 
-      await createApplication({
+      const applicationId = await createApplication({
         data: {
           firstName: formData.firstName,
           lastName: formData.lastName,
+          email: formData.email,
           gender: formData.gender,
           dateOfBirth: formData.dateOfBirth,
           address: formData.address,
@@ -130,8 +133,8 @@ export default function ApplicationForm({
       });
 
       toast.success("Application submitted successfully!");
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // Redirect to payment
+      router.push(`/application/pay?reference=${applicationId}`);
     } catch (error: any) {
       toast.error(error.message || "Failed to submit application");
     } finally {
@@ -147,23 +150,20 @@ export default function ApplicationForm({
           {steps.map((step) => (
             <div
               key={step.id}
-              className={`relative z-10 flex flex-col items-center gap-2 ${
-                currentStep > step.id ? "text-primary" : "text-gray-400"
-              }`}
+              className={`relative z-10 flex flex-col items-center gap-2 ${currentStep > step.id ? "text-primary" : "text-gray-400"
+                }`}
             >
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                  currentStep >= step.id
-                    ? "bg-primary text-primary-foreground font-semibold shadow-sm"
-                    : "bg-gray-100 text-gray-500"
-                }`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${currentStep >= step.id
+                  ? "bg-primary text-primary-foreground font-semibold shadow-sm"
+                  : "bg-gray-100 text-gray-500"
+                  }`}
               >
                 {step.id}
               </div>
               <span
-                className={`text-xs font-medium hidden sm:block ${
-                  currentStep >= step.id ? "text-gray-900" : "text-gray-400"
-                }`}
+                className={`text-xs font-medium hidden sm:block ${currentStep >= step.id ? "text-gray-900" : "text-gray-400"
+                  }`}
               >
                 {step.name}
               </span>
@@ -190,17 +190,10 @@ export default function ApplicationForm({
           />
         )}
 
-        {currentStep === 3 && (
-          <CourseSelectionForm
-            courses={courses}
-            initialFormData={formData}
-            onSubmit={onStep3Submit}
-            onBack={prevStep}
-            onSaveDraft={handleSaveDraft}
-          />
-        )}
 
-        {currentStep === 4 && (
+
+
+        {currentStep === 3 && (
           <ReviewSubmission
             formData={formData}
             courses={courses}

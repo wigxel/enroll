@@ -22,7 +22,7 @@ export default defineSchema({
   }).index("by_name", ["name"]),
 
   applications: defineTable({
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
     status: v.union(
       v.literal("draft"),
       v.literal("submitted"),
@@ -34,6 +34,7 @@ export default defineSchema({
     data: v.object({
       firstName: v.string(),
       lastName: v.string(),
+      email: v.string(),
       dateOfBirth: v.string(),
       gender: v.string(),
       address: v.string(),
@@ -49,11 +50,13 @@ export default defineSchema({
     updatedAt: v.string(),
   })
     .index("by_userId", ["userId"])
+    .index("by_email", ["data.email"])
+    .index("by_phoneNumber", ["data.phoneNumber"])
     .index("by_status", ["status"])
     .index("by_paymentStatus", ["paymentStatus"]),
 
   payments: defineTable({
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
     referenceId: v.string(),
     referenceType: v.union(v.literal("application"), v.literal("tuition")),
     amount: v.number(),

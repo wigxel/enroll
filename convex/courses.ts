@@ -38,7 +38,7 @@ export const listActive = query({
     // Resolve cover photo URLs
     const coursesWithUrls = await Promise.all(
       courses.map(async (course) => {
-        let coverPhotoUrl = undefined;
+        let coverPhotoUrl: string | undefined = undefined;
         if (course.coverPhoto) {
           // Attempt to get the URL from storage. If it's already a full HTTP URL, getUrl handles it or returns null.
           // Fallback to the original string if it looks like a direct URL instead of a storage ID.
@@ -74,7 +74,7 @@ export const getBySlug = query({
       return null;
     }
 
-    let coverPhotoUrl = undefined;
+    let coverPhotoUrl: string | undefined = undefined;
     if (course.coverPhoto) {
       const url = await ctx.storage.getUrl(course.coverPhoto as any);
       coverPhotoUrl = url ?? course.coverPhoto;

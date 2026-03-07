@@ -1,5 +1,4 @@
 "use client";
-
 import { Bell } from "lucide-react";
 import Link from "next/link";
 import {
@@ -18,42 +17,44 @@ interface Notification {
   href: string;
 }
 
-// TODO: Replace with Convex hook e.g. useQuery(api.notifications.getUnreadCount)
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+
 function useUnreadCount() {
-  return 3;
+  const count = useQuery(api.notifications.getUnreadCount);
+  return count ?? 0;
 }
 
-// TODO: Replace with Convex hook e.g. useQuery(api.notifications.listOwn)
-function useRecentNotifications(): Notification[] {
-  return [
-    {
-      id: "n1",
-      title: "Application Approved",
-      body: "Congratulations! Your application has been approved. Begin your enrollment now.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-      isRead: false,
-      type: "application_status_change",
-      href: "/enrollment",
-    },
-    {
-      id: "n2",
-      title: "Payment Confirmed",
-      body: "Your application fee of ₦15,000 has been received.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-      isRead: false,
-      type: "payment_received",
-      href: "/application/status",
-    },
-    {
-      id: "n3",
-      title: "Tuition Payment Confirmed",
-      body: "Your tuition payment of ₦250,000 has been received.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-      isRead: true,
-      type: "tuition_payment_received",
-      href: "/enrollment",
-    },
-  ];
+function useRecentNotifications(): (Notification & { _id: string })[] {
+  const data = useQuery(api.notifications.list, { filter: "all" });
+  if (!data) return [];
+
+  return data.notifications.map((n) => ({
+    id: n._id,
+    _id: n._id, // Add _id for mutation
+    title: n.title,
+    body: n.body,
+    timestamp: n.createdAt,
+    isRead: n.isRead,
+    type: n.type,
+    href: getNotificationHref(n.type, n.relatedEntityId),
+  }));
+}
+
+function getNotificationHref(type: string, relatedEntityId?: string) {
+  switch (type) {
+    case "application_status_change":
+      return "/student/application-pending";
+    case "payment_received":
+      return "/student/application-pending";
+    case "tuition_payment_received":
+      return "/student/enrollment";
+    case "enrollment_step_complete":
+    case "enrollment_completed":
+      return "/student/enrollment";
+    default:
+      return "/student/dashboard";
+  }
 }
 
 function getRelativeTime(dateStr: string): string {
@@ -88,6 +89,17 @@ function getNotificationIcon(type: string): string {
 export function NotificationBell() {
   const unreadCount = useUnreadCount();
   const notifications = useRecentNotifications();
+  const markAsRead = useMutation(api.notifications.markAsRead);
+
+  const handleNotificationClick = async (id: string, isRead: boolean) => {
+    if (!isRead) {
+      try {
+        await markAsRead({ notificationId: id as any });
+      } catch (err) {
+        console.error("Failed to mark as read:", err);
+      }
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -132,9 +144,9 @@ export function NotificationBell() {
                 <Link
                   key={notification.id}
                   href={notification.href}
-                  className={`flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
-                    !notification.isRead ? "bg-primary/[0.02]" : ""
-                  }`}
+                  onClick={() => handleNotificationClick(notification._id, notification.isRead)}
+                  className={`flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${!notification.isRead ? "bg-primary/[0.02]" : ""
+                    }`}
                 >
                   <span className="text-base leading-none mt-0.5">
                     {getNotificationIcon(notification.type)}
@@ -142,11 +154,10 @@ export function NotificationBell() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <p
-                        className={`text-sm truncate ${
-                          !notification.isRead
-                            ? "font-semibold text-gray-900"
-                            : "font-medium text-gray-700"
-                        }`}
+                        className={`text-sm truncate ${!notification.isRead
+                          ? "font-semibold text-gray-900"
+                          : "font-medium text-gray-700"
+                          }`}
                       >
                         {notification.title}
                       </p>
@@ -168,7 +179,7 @@ export function NotificationBell() {
         </div>
         <div className="border-t border-gray-100 p-2">
           <Link
-            href="/notifications"
+            href="/student/notifications"
             className="block w-full rounded-lg px-3 py-2 text-center text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
           >
             View all notifications →

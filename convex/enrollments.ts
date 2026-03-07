@@ -16,7 +16,14 @@ export const get = query({
       .withIndex("by_userId", (q) => q.eq("userId", user._id))
       .first();
 
-    return enrollment;
+    if (!enrollment) return null;
+
+    const cohort = enrollment.cohortId ? await ctx.db.get(enrollment.cohortId) : null;
+
+    return {
+      ...enrollment,
+      cohortName: cohort?.name ?? "—",
+    };
   },
 });
 
