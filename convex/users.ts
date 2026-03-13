@@ -1,12 +1,13 @@
 import { v } from "convex/values";
+import { safeStr } from "../lib/data.helpers";
 import { internal } from "./_generated/api";
+import type { Doc } from "./_generated/dataModel";
 import { action, internalMutation, mutation, query } from "./_generated/server";
 import { deleteUser as deleteClerkUser, updateUserMetadata } from "./clerk";
 import {
   getCurrentUser as getAuthUser,
   getUserRole,
   now,
-  type Result,
   requireAuth,
   requirePrivilege,
 } from "./utils";
@@ -24,7 +25,7 @@ export const createOrGetUser = mutation({
     name: v.string(),
     profileImage: v.optional(v.string()),
   },
-  handler: async (ctx, args): Promise<Result<any>> => {
+  handler: async (ctx, args) => {
     // Return early if user already exists
     const existing = await ctx.db
       .query("users")
@@ -81,7 +82,7 @@ export const createOrGetUser = mutation({
  */
 export const getCurrentUser = query({
   args: {},
-  handler: async (ctx): Promise<Result<any>> => {
+  handler: async (ctx) => {
     const user = await getAuthUser(ctx);
     if (!user) {
       return { success: false, error: "Authentication required." };
@@ -107,7 +108,7 @@ export const updateProfile = mutation({
     name: v.optional(v.string()),
     profileImage: v.optional(v.string()),
   },
-  handler: async (ctx, args): Promise<Result<null>> => {
+  handler: async (ctx, args) => {
     const authResult = await requireAuth(ctx);
     if (!authResult.success) return authResult;
 
@@ -135,29 +136,28 @@ export const list = query({
     roleFilter: v.optional(v.id("roles")),
     page: v.optional(v.number()),
   },
-  handler: async (ctx, args): Promise<Result<any>> => {
+  handler: async (ctx, args) => {
     const privResult = await requirePrivilege(ctx, "user:read");
     if (!privResult.success) return privResult;
 
     const pageSize = 20;
-    let usersQuery;
 
-    if (args.roleFilter) {
-      usersQuery = ctx.db
+    const usersQuery = (args.roleFilter)
+      ? ctx.db
         .query("users")
-        .withIndex("by_role", (q) => q.eq("role", args.roleFilter!));
-    } else {
-      usersQuery = ctx.db.query("users");
-    }
+        .withIndex("by_role", (q) => q.eq("role", args.roleFilter!))
+      : ctx.db.query("users");
+
 
     const allUsers = await usersQuery.collect();
+    const search_ = safeStr(args.search);
 
     // Apply search filter in memory (Convex doesn't support full-text search on queries)
     const filtered = args.search
       ? allUsers.filter(
         (u) =>
-          u.name.toLowerCase().includes(args.search?.toLowerCase()) ||
-          u.email.toLowerCase().includes(args.search?.toLowerCase()),
+          u.name.toLowerCase().includes(search_.toLowerCase()) ||
+          u.email.toLowerCase().includes(search_.toLowerCase()),
       )
       : allUsers;
 
@@ -191,7 +191,7 @@ export const list = query({
  */
 export const getUser = query({
   args: { userId: v.id("users") },
-  handler: async (ctx, args): Promise<Result<any>> => {
+  handler: async (ctx, args) => {
     const privResult = await requirePrivilege(ctx, "user:read");
     if (!privResult.success) return privResult;
 
@@ -224,7 +224,7 @@ export const listStudents = query({
     page: v.optional(v.number()),
     cohortId: v.optional(v.id("cohorts")),
   },
-  handler: async (ctx, args): Promise<Result<any>> => {
+  handler: async (ctx, args) => {
     const privResult = await requirePrivilege(ctx, "student:read:list");
     if (!privResult.success) return privResult;
 
@@ -241,7 +241,7 @@ export const listStudents = query({
       };
     }
 
-    let studentUsers;
+    let studentUsers: Doc<'users'>[]
 
     if (args.cohortId) {
       // Filter by cohort: query enrollments first, then resolve users
@@ -264,12 +264,14 @@ export const listStudents = query({
         .collect();
     }
 
+    const search_ = safeStr(args.search)?.toLowerCase();
+
     // Apply search filter
     const filtered = args.search
       ? studentUsers.filter(
         (u) =>
-          u.name.toLowerCase().includes(args.search?.toLowerCase()) ||
-          u.email.toLowerCase().includes(args.search?.toLowerCase()),
+          u.name.toLowerCase().includes(search_) ||
+          u.email.toLowerCase().includes(search_),
       )
       : studentUsers;
 
@@ -367,7 +369,7 @@ export const deleteUser = action({
   args: {
     userId: v.id("users"),
   },
-  handler: async (ctx, args): Promise<Result<null>> => {
+  handler: async (ctx, args) => {
     try {
       // 1. Delete from Convex & fetch clerkId
       const { clerkId } = await ctx.runMutation(internal.users.deleteUserRecord, {
@@ -428,7 +430,7 @@ export const assignRole = action({
     userId: v.id("users"),
     newRoleId: v.id("roles"),
   },
-  handler: async (ctx, args): Promise<Result<null>> => {
+  handler: async (ctx, args) => {
     try {
       // 1. Update in Convex. Because it's called with runMutation,
       // the mutation will enforce admin privileges.

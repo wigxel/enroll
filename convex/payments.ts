@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { safeStr } from "../lib/data.helpers";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { action, internalMutation, mutation, query } from "./_generated/server";
@@ -219,13 +220,15 @@ export const list = query({
       }),
     );
 
+    const search_ = safeStr(args.search);
+
     // Apply search filter
     const filtered = args.search
       ? withUser.filter(
         (p) =>
-          p.userName.toLowerCase().includes(args.search?.toLowerCase()) ||
-          p.userEmail.toLowerCase().includes(args.search?.toLowerCase()) ||
-          p.stripePaymentIntentId.includes(args.search!),
+          p.userName.toLowerCase().includes(search_.toLowerCase()) ||
+          p.userEmail.toLowerCase().includes(search_.toLowerCase()) ||
+          p.stripePaymentIntentId.includes(search_),
       )
       : withUser;
 
