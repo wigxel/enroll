@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { action, internalMutation, mutation, query } from "./_generated/server";
-import { now, type Result, requireAuth, requirePrivilege } from "./utils";
+import { now, type Result, requirePrivilege } from "./utils";
 
 /**
  * Creates a payment intent stub.
@@ -223,8 +223,8 @@ export const list = query({
     const filtered = args.search
       ? withUser.filter(
         (p) =>
-          p.userName.toLowerCase().includes(args.search!.toLowerCase()) ||
-          p.userEmail.toLowerCase().includes(args.search!.toLowerCase()) ||
+          p.userName.toLowerCase().includes(args.search?.toLowerCase()) ||
+          p.userEmail.toLowerCase().includes(args.search?.toLowerCase()) ||
           p.stripePaymentIntentId.includes(args.search!),
       )
       : withUser;

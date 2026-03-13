@@ -1,17 +1,14 @@
 "use client";
 
-import React from "react";
+import { Badge, Flex, Text } from "@tremor/react";
+import { Activity, Calendar, Check, Copy, CreditCard, Hash, Mail, User } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from "~/components/ui/dialog";
-import { Badge, Text, Flex, Divider } from "@tremor/react";
-import { Calendar, User, Hash, CreditCard, Activity, Mail, Copy, Check } from "lucide-react";
-import { toast } from "sonner";
-import { useState } from "react";
 
 interface Payment {
   _id: string;

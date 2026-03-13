@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
 import { useClerk } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function LogoutPage() {
   const { signOut } = useClerk();

@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { ArrowLeft, CheckCircle, Loader2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
+import { useState } from "react";
+import { DeclineApplicationDialog } from "~/components/admin/dialogs/DeclineApplicationDialog";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
-import { ArrowLeft, CheckCircle, XCircle, Loader2 } from "lucide-react";
-import { DeclineApplicationDialog } from "~/components/admin/dialogs/DeclineApplicationDialog";
 
 export default function ApplicationDetailPage() {
   const params = useParams();
-  const router = useRouter();
+  const _router = useRouter();
   const applicationId = params.applicationId as Id<"applications">;
 
   const applicationResult = useQuery(api.applications.getById, { applicationId });

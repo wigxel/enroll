@@ -70,7 +70,7 @@ export const getById = query({
  */
 export const listByUserId = query({
   args: { userId: v.id("users") },
-  handler: async (ctx, args): Promise<Result<any[]>> => {
+  handler: async (ctx, args) => {
     const privResult = await requirePrivilege(ctx, "student:read");
     if (!privResult.success) return privResult;
 
@@ -109,7 +109,7 @@ export const listByUserId = query({
  */
 export const getOwnCompletedEnrollments = query({
   args: {},
-  handler: async (ctx): Promise<Result<any[]>> => {
+  handler: async (ctx) => {
     const authResult = await requireAuth(ctx);
     if (!authResult.success) return authResult;
 

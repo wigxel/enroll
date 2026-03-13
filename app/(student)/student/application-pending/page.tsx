@@ -1,8 +1,8 @@
 "use client";
 import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { ApplicationStatusView } from "@/components/student/ApplicationStatusView";
 import { Loader2 } from "lucide-react";
+import { ApplicationStatusView } from "@/components/student/ApplicationStatusView";
+import { api } from "@/convex/_generated/api";
 
 export default function ApplicationPendingPage() {
     const applicationResult = useQuery(api.applications.getMyApplication);

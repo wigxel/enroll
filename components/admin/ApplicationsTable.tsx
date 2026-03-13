@@ -1,9 +1,8 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
 import { format } from "date-fns";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export type ApplicationStatus =
   | "draft"

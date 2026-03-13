@@ -1,11 +1,15 @@
 "use client";
 
-import React, { useImperativeHandle, useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { useConvex } from "convex/react";
 import { differenceInYears } from "date-fns";
-
+import { AlertCircle, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
+import Link from "next/link";
+import React, { useEffect, useImperativeHandle } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { api } from "@/convex/_generated/api";
+import { Button } from "~/components/ui/button";
 import {
   Form,
   FormControl,
@@ -14,17 +18,12 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { useConvex } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { AlertCircle, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
-import Link from "next/link";
 import { Input } from "~/components/ui/input";
-import { Button } from "~/components/ui/button";
 import { useDebounceCallback } from "~/hooks/use-debounce-callback";
+import { AddressInputField } from "../../fields/AddressInputField";
+import { DateOfBirthInputField } from "../../fields/DateOfBirthInputField";
 import { GenderSelectField } from "../../fields/GenderSelectField";
 import { PhoneNumberInputField } from "../../fields/PhoneNumberInputField";
-import { DateOfBirthInputField } from "../../fields/DateOfBirthInputField";
-import { AddressInputField } from "../../fields/AddressInputField";
 
 export const personalInformationSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -36,14 +35,14 @@ export const personalInformationSchema = z.object({
     .min(1, "Date of birth is required")
     .refine((d) => {
       const birthDate = new Date(d);
-      if (isNaN(birthDate.getTime())) return false;
+      if (Number.isNaN(birthDate.getTime())) return false;
       return differenceInYears(new Date(), birthDate) >= 16;
     }, "You must be at least 16 years old"),
   phoneNumber: z.string().min(7, "Please enter a valid phone number"),
   address: z.string().min(10, "Address must be at least 10 characters"),
 });
 
-const phoneOnlySchema = personalInformationSchema.pick({ phoneNumber: true });
+const _phoneOnlySchema = personalInformationSchema.pick({ phoneNumber: true });
 
 export type PersonalInformationValues = z.infer<
   typeof personalInformationSchema

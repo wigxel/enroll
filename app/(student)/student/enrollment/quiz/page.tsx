@@ -1,7 +1,7 @@
 "use client";
 
+import { ArrowLeft, BookOpen, Clock, PlayCircle, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Clock, ShieldCheck, PlayCircle } from "lucide-react";
 
 export default function QuizLandingPage() {
     return (

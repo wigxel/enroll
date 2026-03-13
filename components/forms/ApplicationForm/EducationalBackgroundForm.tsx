@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useImperativeHandle, useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useEffect, useImperativeHandle } from "react";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
-
+import { Button } from "~/components/ui/button";
 import {
   Form,
   FormControl,
@@ -13,7 +13,6 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { Button } from "~/components/ui/button";
 import { useDebounceCallback } from "~/hooks/use-debounce-callback";
 
 export const educationalBackgroundSchema = z.object({

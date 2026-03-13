@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
 import { useAction } from "convex/react";
-import { api } from "~/convex/_generated/api";
-import type { Id } from "~/convex/_generated/dataModel";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import { api } from "~/convex/_generated/api";
+import type { Id } from "~/convex/_generated/dataModel";
 
 interface RefundDialogProps {
   open: boolean;

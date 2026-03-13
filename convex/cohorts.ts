@@ -1,7 +1,8 @@
-import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requirePrivilege, now, type Result } from "./utils";
-import { Id } from "./_generated/dataModel";
+import { safeStr } from "../lib/data.helpers";
+import type { Id } from "./_generated/dataModel";
+import { mutation, query } from "./_generated/server";
+import { now, type Result, requirePrivilege } from "./utils";
 
 /**
  * Lists all cohorts with optional status-derived filtering and student counts.
@@ -11,7 +12,7 @@ export const list = query({
     search: v.optional(v.string()),
     page: v.optional(v.number()),
   },
-  handler: async (ctx, args): Promise<Result<any>> => {
+  handler: async (ctx, args) => {
     const privResult = await requirePrivilege(ctx, "cohort:read:all");
     if (!privResult.success) return privResult;
 
@@ -20,9 +21,10 @@ export const list = query({
     // Apply search filter
     if (args.search) {
       cohorts = cohorts.filter((c) =>
-        c.name.toLowerCase().includes(args.search!.toLowerCase()),
+        c.name.toLowerCase().includes(safeStr(args.search)?.toLowerCase()),
       );
     }
+
 
     // Sort by start date (newest first)
     cohorts.sort((a, b) => b.startDate.localeCompare(a.startDate));

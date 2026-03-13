@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "~/convex/_generated/api";
-import { toast } from "sonner";
+import { useMutation, useQuery } from "convex/react";
 import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { api } from "~/convex/_generated/api";
 
 export default function FeesSettingsPage() {
   const settingsResult = useQuery(api.settings.get);
@@ -27,7 +27,7 @@ export default function FeesSettingsPage() {
     try {
       const res = await updateSettings({
         isAcceptingApplications: isAccepting,
-        applicationFeeAmount: parseInt(applicationFee) || 0,
+        applicationFeeAmount: parseInt(applicationFee, 10) || 0,
       });
       if (res.success) {
         setSaved(true);

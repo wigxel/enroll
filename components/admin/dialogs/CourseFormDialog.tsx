@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "~/convex/_generated/api";
-import type { Id } from "~/convex/_generated/dataModel";
-import { FileUpload } from "~/components/ui/file-upload";
+import type React from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import { FileUpload } from "~/components/ui/file-upload";
+import { api } from "~/convex/_generated/api";
+import type { Id } from "~/convex/_generated/dataModel";
 
 interface CourseFormData {
   name: string;

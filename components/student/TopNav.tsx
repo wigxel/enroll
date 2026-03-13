@@ -1,17 +1,17 @@
 "use client";
 
+import { useClerk, useUser } from "@clerk/nextjs";
+import { LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useClerk, useUser } from "@clerk/nextjs";
-import { LogOut } from "lucide-react";
-import { NotificationBell } from "./NotificationBell";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "~/components/ui/hover-card";
 import { cn } from "~/lib/utils";
+import { NotificationBell } from "./NotificationBell";
 
 interface NavItem {
   name: string;

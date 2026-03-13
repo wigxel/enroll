@@ -1,29 +1,29 @@
 "use client";
 
-import React, { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "~/convex/_generated/api";
-import type { Id } from "~/convex/_generated/dataModel";
+import { useMutation, useQuery } from "convex/react";
 import {
-  Plus,
-  GripVertical,
-  Loader2,
-  Link as LinkIcon,
   Check,
-  MoreHorizontal,
   Edit,
+  GripVertical,
+  Link as LinkIcon,
+  Loader2,
+  MoreHorizontal,
+  Plus,
   Power,
   PowerOff,
 } from "lucide-react";
-import { CourseFormDialog } from "~/components/admin/dialogs/CourseFormDialog";
+import { useState } from "react";
 import { toast } from "sonner";
+import { CourseFormDialog } from "~/components/admin/dialogs/CourseFormDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { api } from "~/convex/_generated/api";
+import type { Id } from "~/convex/_generated/dataModel";
 
 export default function CoursesPage() {
   const [showDialog, setShowDialog] = useState(false);

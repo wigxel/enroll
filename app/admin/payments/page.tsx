@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import { AreaChart, Badge, Card, Flex, Grid, Metric, Tab, TabGroup, TabList, Text } from "@tremor/react";
 import { useQuery } from "convex/react";
-import { api } from "~/convex/_generated/api";
-import { Search, Loader2, TrendingUp, CreditCard, Wallet } from "lucide-react";
-import { TransactionDetailDialog } from "~/components/admin/dialogs/TransactionDetailDialog";
+import { AnimatePresence, motion } from "framer-motion";
+import { CreditCard, Loader2, Search, TrendingUp, Wallet } from "lucide-react";
+import { useState } from "react";
 import { RefundDialog } from "~/components/admin/dialogs/RefundDialog";
-import { AreaChart, Card, Metric, Text, Flex, Grid, Badge, TabGroup, TabList, Tab } from "@tremor/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { TransactionDetailDialog } from "~/components/admin/dialogs/TransactionDetailDialog";
+import { api } from "~/convex/_generated/api";
 
 type PaymentStatus = "succeeded" | "pending" | "failed" | "refunded";
 type PaymentType = "application" | "tuition";

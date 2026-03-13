@@ -1,11 +1,11 @@
-import { action, internalAction } from "./_generated/server";
 import { v } from "convex/values";
-import { type Result } from "./utils";
+import { action, internalAction } from "./_generated/server";
 import {
-  sendInvitation,
   getPendingInvitations,
   revokeInvitation,
+  sendInvitation,
 } from "./clerk";
+import type { Result } from "./utils";
 
 /**
  * Sends a Clerk invitation email for a new admin/staff member.

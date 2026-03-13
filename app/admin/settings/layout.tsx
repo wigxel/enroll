@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
+import { Calendar, DollarSign, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Calendar, DollarSign } from "lucide-react";
+import type React from "react";
 
 const settingsTabs = [
   { name: "Team", href: "/admin/settings/team", icon: Users },

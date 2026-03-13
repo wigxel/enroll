@@ -1,7 +1,7 @@
-import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requirePrivilege, now, type Result } from "./utils";
-import { Id } from "./_generated/dataModel";
+import type { Id } from "./_generated/dataModel";
+import { mutation, query } from "./_generated/server";
+import { now, type Result, requirePrivilege } from "./utils";
 
 /**
  * Admin: Lists all courses (active and inactive) sorted by order.
@@ -39,7 +39,7 @@ export const listActive = query({
     // Resolve cover photo URLs
     const coursesWithUrls = await Promise.all(
       courses.map(async (course) => {
-        let coverPhotoUrl: string | undefined = undefined;
+        let coverPhotoUrl: string | undefined ;
         if (course.coverPhoto) {
           // Attempt to get the URL from storage. If it's already a full HTTP URL, getUrl handles it or returns null.
           // Fallback to the original string if it looks like a direct URL instead of a storage ID.
@@ -75,7 +75,7 @@ export const getBySlug = query({
       return { success: false, error: "Course not found or inactive." };
     }
 
-    let coverPhotoUrl: string | undefined = undefined;
+    let coverPhotoUrl: string | undefined ;
     if (course.coverPhoto) {
       const url = await ctx.storage.getUrl(course.coverPhoto as any);
       coverPhotoUrl = url ?? course.coverPhoto;

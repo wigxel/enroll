@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
 import { useQuery } from "convex/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { Search } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useCallback, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { safeArray } from "@/lib/data.helpers";
-import { Search } from "lucide-react";
 
 type SortKey = "enrolledAt" | "name";
 

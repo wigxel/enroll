@@ -1,23 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { isDevelopment } from "@/lib/utils";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
-import { useDebounceCallback } from "~/hooks/use-debounce-callback";
+import type { Id } from "@/convex/_generated/dataModel";
 import { safeArray } from "@/lib/data.helpers";
-
-import {
-  PersonalInformationForm,
-  PersonalInformationValues,
-} from "./PersonalInformationForm";
+import { isDevelopment } from "@/lib/utils";
+import { useDebounceCallback } from "~/hooks/use-debounce-callback";
 import {
   EducationalBackgroundForm,
-  EducationalBackgroundValues,
+  type EducationalBackgroundValues,
 } from "./EducationalBackgroundForm";
+import {
+  PersonalInformationForm,
+  type PersonalInformationValues,
+} from "./PersonalInformationForm";
 import { ReviewSubmission } from "./ReviewSubmission";
 
 // Stepper Components

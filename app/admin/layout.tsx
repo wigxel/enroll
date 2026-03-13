@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import type React from "react";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { useCreateOrGetUser } from "@/hooks/use-create-or-get-user";
 

@@ -2,23 +2,23 @@
 
 "use client";
 
-import * as React from "react";
 import { Time } from "@internationalized/date";
 import * as PopoverPrimitives from "@radix-ui/react-popover";
 import {
-  useDateSegment,
-  useTimeField,
   type AriaTimeFieldProps,
   type TimeValue,
+  useDateSegment,
+  useTimeField,
 } from "@react-aria/datepicker";
 import {
-  useTimeFieldState,
   type DateFieldState,
   type DateSegment,
+  useTimeFieldState,
 } from "@react-stately/datepicker";
 import { RiCalendar2Fill, RiSubtractFill } from "@remixicon/react";
 import { format, type Locale } from "date-fns";
 import { enUS } from "date-fns/locale";
+import * as React from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 
 import { cn as cx, focusInput, focusRing, hasErrorInput } from "@/lib/utils";
@@ -496,7 +496,7 @@ const SingleDatePicker = ({
   const initialDate = React.useMemo(() => {
     return date;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [date]);
 
   React.useEffect(() => {
     setDate(value ?? defaultValue ?? undefined);
@@ -513,7 +513,7 @@ const SingleDatePicker = ({
       setMonth(date);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, date]);
 
   const onCancel = () => {
     setDate(initialDate);
@@ -732,7 +732,7 @@ const RangeDatePicker = ({
   const initialRange = React.useMemo(() => {
     return range;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [range]);
 
   React.useEffect(() => {
     setRange(value ?? defaultValue ?? undefined);
@@ -749,7 +749,7 @@ const RangeDatePicker = ({
       setMonth(range?.from);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, range?.from]);
 
   const onRangeChange = (range: DateRange | undefined) => {
     const newRange = range;

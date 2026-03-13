@@ -17,7 +17,7 @@ interface Notification {
   href: string;
 }
 
-import { useQuery, useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 function useUnreadCount() {
@@ -43,7 +43,7 @@ function useRecentNotifications(): (Notification & { _id: string })[] {
   }));
 }
 
-function getNotificationHref(type: string, relatedEntityId?: string) {
+function getNotificationHref(type: string, _relatedEntityId?: string) {
   switch (type) {
     case "application_status_change":
       return "/student/application-pending";

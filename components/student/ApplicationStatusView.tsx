@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import {
-  Clock,
   CheckCircle2,
-  XCircle,
   ChevronDown,
+  Clock,
   PlusCircle,
+  XCircle,
 } from "lucide-react";
-import { Doc } from "@/convex/_generated/dataModel";
+import Link from "next/link";
+import { useState } from "react";
 
 interface ApplicationStatusViewProps {
   application: any; // Using any for brevity or specific type if needed

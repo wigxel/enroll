@@ -1,11 +1,10 @@
 "use client";
 
-import type React from "react";
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "~/convex/_generated/api";
-import { toast } from "sonner";
+import { useMutation, useQuery } from "convex/react";
 import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { api } from "~/convex/_generated/api";
 
 export default function ApplicationWindowSettingsPage() {
   const settingsResult = useQuery(api.settings.get);

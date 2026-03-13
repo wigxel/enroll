@@ -15,7 +15,7 @@ import type React from "react";
 import { useState } from "react";
 import { safeArray } from "@/lib/data.helpers";
 import { api } from "~/convex/_generated/api";
-import type { Id } from "~/convex/_generated/dataModel";
+import type { Doc, Id } from "~/convex/_generated/dataModel";
 
 type NotificationType =
   | "application_submitted"
@@ -26,6 +26,8 @@ type NotificationType =
   | "quiz_failed"
   | "system_alert"
   | "payment_refund";
+
+type Notification = Doc<"notifications">
 
 const typeIcon: Record<string, React.ReactNode> = {
   application_submitted: <Info className="h-5 w-5 text-blue-500" />,
@@ -64,7 +66,7 @@ export default function NotificationsPage() {
   const markAllAsRead = useMutation(api.notifications.markAllAsRead);
   const archiveNotification = useMutation(api.notifications.archive);
 
-  const notifications = safeArray((resultRaw as any)?.data?.notifications);
+  const notifications: Notification[] = safeArray((resultRaw as any)?.data?.notifications);
   const unreadCount = unreadCountResult?.success ? unreadCountResult.data : 0;
   const isLoading = resultRaw === undefined;
 
@@ -140,6 +142,7 @@ export default function NotificationsPage() {
           ) : (
             notifications.map((notification) => {
               const link = getNotificationLink(notification);
+
               return (
                 <div
                   key={notification._id}
@@ -147,7 +150,7 @@ export default function NotificationsPage() {
                     }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5 flex-shrink-0">
+                    <div className="mt-0.5 shrink-0">
                       {typeIcon[notification.type] ?? (
                         <Info className="h-5 w-5 text-gray-400" />
                       )}
@@ -162,7 +165,7 @@ export default function NotificationsPage() {
                         >
                           {notification.title}
                         </h3>
-                        <span className="ml-2 flex-shrink-0 text-xs text-gray-400">
+                        <span className="ml-2 shrink-0 text-xs text-gray-400">
                           {formatDistanceToNow(
                             new Date(notification.createdAt),
                             {

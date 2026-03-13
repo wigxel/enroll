@@ -1,7 +1,7 @@
-import Link from "next/link";
-import { GraduationCap, BookOpen, LogIn, ArrowRight } from "lucide-react";
 import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
+import { ArrowRight, BookOpen, GraduationCap, LogIn } from "lucide-react";
+import Link from "next/link";
 
 export default async function Home() {
   const { userId } = await auth();

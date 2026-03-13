@@ -1,8 +1,8 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import Link from "next/link";
+import { api } from "@/convex/_generated/api";
 
 interface Certification {
   id: string;

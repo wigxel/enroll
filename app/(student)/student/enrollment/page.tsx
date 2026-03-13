@@ -260,8 +260,7 @@ export default function EnrollmentChecklistPage() {
 
                 {/* CTA */}
                 {isCurrent && (
-                  <>
-                    {step.id === "documents" ? (
+                  step.id === "documents" ? (
                       <button
                         type="button"
                         onClick={() => setIsSignModalOpen(true)}
@@ -278,8 +277,7 @@ export default function EnrollmentChecklistPage() {
                         Continue
                         <ArrowRight className="h-3.5 w-3.5" />
                       </Link>
-                    )}
-                  </>
+                    )
                 )}
               </div>
             </div>

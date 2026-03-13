@@ -1,6 +1,6 @@
-import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requirePrivilege, now, type Result } from "./utils";
+import { mutation, query } from "./_generated/server";
+import { now, type Result, requirePrivilege } from "./utils";
 
 /**
  * Fetches global system settings.

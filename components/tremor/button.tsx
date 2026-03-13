@@ -1,8 +1,8 @@
 // Tremor Button [v1.0.0]
 
-import React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { RiLoader2Fill } from "@remixicon/react";
+import React from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 import { cn, focusRing } from "~/lib/utils";
 

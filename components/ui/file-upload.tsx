@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useMutation } from "convex/react";
+import { FileImage, Loader2, Upload, X } from "lucide-react";
+import type React from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
-import { Upload, X, FileImage, Loader2 } from "lucide-react";
 import { cn } from "~/lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import { type ConsolaReporter, createConsola, LogLevels } from "consola";
+import { createConsola, LogLevels } from "consola";
 import { APP_LOG_LEVEL } from "~/config/constants";
 
 export type LogLevel = keyof typeof LogLevels;

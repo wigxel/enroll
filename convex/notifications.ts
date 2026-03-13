@@ -1,6 +1,6 @@
-import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuth, requirePrivilege, now, type Result } from "./utils";
+import { internalMutation, mutation, query } from "./_generated/server";
+import { now, type Result, requireAuth, requirePrivilege } from "./utils";
 
 /**
  * Retrieves notifications for the currently authenticated user.

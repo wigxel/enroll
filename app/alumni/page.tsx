@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { BookOpen, GraduationCap, Layers, Search, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { GraduationCap, Users, BookOpen, Layers, Search } from "lucide-react";
-import { safeArray } from "@/lib/data.helpers";
+import { useState } from "react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 
 function Avatar({
   name,

@@ -1,11 +1,11 @@
-import { api } from "@/convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
-import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import ApplicationForm from "@/components/forms/ApplicationForm";
 import { PartnersMarquee } from "@/components/ui/partners-marquee";
-import type { Metadata } from "next";
+import { api } from "@/convex/_generated/api";
 
 interface CourseApplicationPageProps {
   params: Promise<{

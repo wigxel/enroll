@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
 import { useQuery } from "convex/react";
+import { Loader2, Plus } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { CohortFormDialog } from "~/components/admin/dialogs/CreateCohortDialog";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
-import { Plus, Loader2 } from "lucide-react";
-import { CohortFormDialog } from "~/components/admin/dialogs/CreateCohortDialog";
 
 type CohortStatus = "active" | "upcoming" | "completed";
 
@@ -27,7 +27,6 @@ export default function CohortsPage() {
   } | null>(null);
 
   const resultRaw = useQuery(api.cohorts.list, {});
-
   const cohorts = resultRaw?.success ? resultRaw.data.cohorts : [];
 
   const openCreateDialog = () => {
@@ -104,6 +103,7 @@ export default function CohortsPage() {
                     colSpan={6}
                     className="py-8 text-center text-sm text-red-600 bg-red-50"
                   >
+                    {/*@ts-expect-error Possibly an issue with Typescript*/}
                     {resultRaw.error}
                   </td>
                 </tr>

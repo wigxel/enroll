@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
 import { useQuery } from "convex/react";
+import { ArrowRight, Filter, Loader2, Search } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 import { api } from "~/convex/_generated/api";
-import { safeArray } from "@/lib/data.helpers";
-import { Search, ArrowRight, Filter, Loader2 } from "lucide-react";
 
 type ApplicationStatus =
   | "draft"

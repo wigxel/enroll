@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
 import { useQuery } from "convex/react";
-import { api } from "~/convex/_generated/api";
-import { Users, FileText, CheckCircle, XCircle, Loader2 } from "lucide-react";
-import { StatCard } from "@/components/admin/StatCard";
-import { ApplicationsTable } from "@/components/admin/ApplicationsTable";
-import {
-  DateRangePicker,
-  type DateRange,
-} from "~/components/tremor/date-range-filter";
 import { startOfMonth } from "date-fns";
+import { CheckCircle, FileText, Loader2, Users, XCircle } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { ApplicationsTable } from "@/components/admin/ApplicationsTable";
+import { StatCard } from "@/components/admin/StatCard";
+import {
+  type DateRange,
+  DateRangePicker,
+} from "~/components/tremor/date-range-filter";
+import { api } from "~/convex/_generated/api";
 
 export default function AdminDashboardPage() {
   // Default to 'This Month'

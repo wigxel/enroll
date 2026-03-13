@@ -1,12 +1,12 @@
 "use client";
+import { useAction, useMutation, useQuery } from "convex/react";
+import { ArrowLeft, Loader2, Shield } from "lucide-react";
 import Link from "next/link";
-import { Shield, ArrowLeft, Loader2 } from "lucide-react";
-import { useQuery, useMutation, useAction } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { usePaystackPayment } from "react-paystack";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "sonner";
 import { useState } from "react";
+import { usePaystackPayment } from "react-paystack";
+import { toast } from "sonner";
+import { api } from "@/convex/_generated/api";
 
 export default function PaymentComponent() {
   const router = useRouter();

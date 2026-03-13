@@ -104,7 +104,7 @@ export default function TeamSettingsPage() {
 
   useEffect(() => {
     fetchInvites();
-  }, []);
+  }, [fetchInvites]);
 
   return (
     <>

@@ -1,15 +1,15 @@
-import { query, mutation, internalMutation, action } from "./_generated/server";
-import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
+import { action, internalMutation, mutation, query } from "./_generated/server";
+import { deleteUser as deleteClerkUser, updateUserMetadata } from "./clerk";
 import {
-  requireAuth,
-  requirePrivilege,
+  getCurrentUser as getAuthUser,
   getUserRole,
   now,
-  getCurrentUser as getAuthUser,
   type Result,
+  requireAuth,
+  requirePrivilege,
 } from "./utils";
-import { deleteUser as deleteClerkUser, updateUserMetadata } from "./clerk";
 
 /**
  * Creates or retrieves a user from the database based on Clerk identity.
@@ -156,8 +156,8 @@ export const list = query({
     const filtered = args.search
       ? allUsers.filter(
         (u) =>
-          u.name.toLowerCase().includes(args.search!.toLowerCase()) ||
-          u.email.toLowerCase().includes(args.search!.toLowerCase()),
+          u.name.toLowerCase().includes(args.search?.toLowerCase()) ||
+          u.email.toLowerCase().includes(args.search?.toLowerCase()),
       )
       : allUsers;
 
@@ -268,8 +268,8 @@ export const listStudents = query({
     const filtered = args.search
       ? studentUsers.filter(
         (u) =>
-          u.name.toLowerCase().includes(args.search!.toLowerCase()) ||
-          u.email.toLowerCase().includes(args.search!.toLowerCase()),
+          u.name.toLowerCase().includes(args.search?.toLowerCase()) ||
+          u.email.toLowerCase().includes(args.search?.toLowerCase()),
       )
       : studentUsers;
 
@@ -375,7 +375,7 @@ export const deleteUser = action({
       });
 
       // 2. Delete from Clerk (if it's a real clerkId)
-      if (clerkId && clerkId.startsWith("user_")) {
+      if (clerkId?.startsWith("user_")) {
         try {
           await deleteClerkUser(clerkId);
         } catch (err: any) {
@@ -441,7 +441,7 @@ export const assignRole = action({
       );
 
       // 2. Update Clerk metadata
-      if (clerkId && clerkId.startsWith("user_")) {
+      if (clerkId?.startsWith("user_")) {
         try {
           await updateUserMetadata({
             userId: clerkId,

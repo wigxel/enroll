@@ -1,28 +1,27 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import { useQuery } from "convex/react";
 import {
-  LayoutDashboard,
+  Bell,
+  BookOpen,
+  CreditCard,
   FileText,
   GraduationCap,
-  CreditCard,
-  Bell,
   Layers,
-  Settings,
+  LayoutDashboard,
   LogOut,
-  BookOpen,
+  Settings,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { api } from "@/convex/_generated/api";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "~/components/ui/hover-card";
-import { useUser, useClerk } from "@clerk/nextjs";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { cn } from "~/lib/utils";
 
 const navigation = [

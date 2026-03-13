@@ -1,12 +1,11 @@
 "use client";
 
+import { Badge, Button, Card } from "@tremor/react";
 import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Card, Button, Badge } from "@tremor/react";
 import Image from "next/image";
 import Link from "next/link";
+import { api } from "@/convex/_generated/api";
 import { formatCurrency } from "@/lib/utils";
-import { safeArray } from "@/lib/data.helpers";
 
 export default function CourseCatalogPage() {
   const coursesResult = useQuery(api.courses.listActive);

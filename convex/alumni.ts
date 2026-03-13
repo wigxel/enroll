@@ -1,6 +1,6 @@
-import { query } from "./_generated/server";
 import { v } from "convex/values";
-import { type Result } from "./utils";
+import { query } from "./_generated/server";
+import type { Result } from "./utils";
 
 /**
  * Public: Returns alumni grouped by user.

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import { Bell, CheckCheck } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
 interface Notification {
   id: string;
@@ -14,7 +14,7 @@ interface Notification {
   href: string;
 }
 
-import { useQuery, useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 function useNotifications(): (Notification & { _id: string })[] {
@@ -33,7 +33,7 @@ function useNotifications(): (Notification & { _id: string })[] {
   }));
 }
 
-function getNotificationHref(type: string, relatedEntityId?: string) {
+function getNotificationHref(type: string, _relatedEntityId?: string) {
   switch (type) {
     case "application_status_change":
       return "/student/application-pending";
