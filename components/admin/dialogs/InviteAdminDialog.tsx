@@ -32,10 +32,12 @@ export function InviteAdminDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const roles = useQuery(api.auth.listRoles);
+  const rolesResult = useQuery(api.auth.listRoles);
   const sendInvite = useAction(api.invitations.sendInvite);
 
-  const adminRoles = roles?.filter((r) => ADMIN_ROLE_NAMES.includes(r.name));
+  const adminRoles = rolesResult?.success
+    ? rolesResult.data.filter((r: any) => ADMIN_ROLE_NAMES.includes(r.name))
+    : [];
 
   const resetForm = () => {
     setFirstName("");
@@ -56,13 +58,15 @@ export function InviteAdminDialog({
 
     setIsSubmitting(true);
     try {
-      await sendInvite({
+      const res = await sendInvite({
         email: email.trim(),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         roleName: selectedRoleName,
         redirectUrl: `${window.location.origin}${process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL ?? "/sign-up"}`,
       });
+
+      if (!res.success) throw new Error(res.error);
 
       resetForm();
       onOpenChange(false);

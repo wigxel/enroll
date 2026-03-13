@@ -84,11 +84,14 @@ export const PersonalInformationForm = React.forwardRef<
     paymentStatus: string;
   } | null>(null);
 
-  const initialSchema = personalInformationSchema.pick({ email: true, phoneNumber: true });
+  const initialSchema = personalInformationSchema.pick({
+    email: true,
+    phoneNumber: true,
+  });
 
   const form = useForm<PersonalInformationValues>({
     resolver: zodResolver(
-      isInitialValidated ? personalInformationSchema : initialSchema
+      isInitialValidated ? personalInformationSchema : initialSchema,
     ),
     defaultValues: { ...defaultPersonalInformationState, ...initialFormData },
     mode: "onChange",
@@ -144,7 +147,8 @@ export const PersonalInformationForm = React.forwardRef<
     onSubmit(data);
   };
 
-  const isSaving = isLoading || form.formState.isSubmitting || isValidatingInitial;
+  const isSaving =
+    isLoading || form.formState.isSubmitting || isValidatingInitial;
 
   return (
     <Form {...form}>
@@ -158,10 +162,17 @@ export const PersonalInformationForm = React.forwardRef<
           </h2>
 
           {!existingApp && (
-            <div className={isInitialValidated ? "opacity-70 pointer-events-none mb-4" : "space-y-4"}>
+            <div
+              className={
+                isInitialValidated
+                  ? "opacity-70 pointer-events-none mb-4"
+                  : "space-y-4"
+              }
+            >
               {!isInitialValidated && (
                 <p className="text-gray-500 text-sm mb-6">
-                  Please enter your email address and phone number to check if you already have an application in progress.
+                  Please enter your email address and phone number to check if
+                  you already have an application in progress.
                 </p>
               )}
               <FormField
@@ -173,13 +184,20 @@ export const PersonalInformationForm = React.forwardRef<
                       Email Address <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="john.doe@example.com" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="john.doe@example.com"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <PhoneNumberInputField control={form.control} name="phoneNumber" />
+              <PhoneNumberInputField
+                control={form.control}
+                name="phoneNumber"
+              />
             </div>
           )}
 
@@ -192,7 +210,8 @@ export const PersonalInformationForm = React.forwardRef<
                     Pending Payment
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    We found an existing application with these details, but the application fee has not been paid yet.
+                    We found an existing application with these details, but the
+                    application fee has not been paid yet.
                   </p>
                   <Button asChild className="w-full sm:w-auto mt-4">
                     <Link href={`/application/pay?reference=${existingApp.id}`}>
@@ -207,9 +226,15 @@ export const PersonalInformationForm = React.forwardRef<
                     Application Received
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    You already have a {existingApp.status.replace("_", " ")} application with these details. Please check your email or dashboard for updates, and wait for it to be processed.
+                    You already have a {existingApp.status.replace("_", " ")}{" "}
+                    application with these details. Please check your email or
+                    dashboard for updates, and wait for it to be processed.
                   </p>
-                  <Button asChild variant="outline" className="w-full sm:w-auto mt-4">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="w-full sm:w-auto mt-4"
+                  >
                     <Link href="/student/dashboard">Go to Dashboard</Link>
                   </Button>
                 </>
@@ -252,7 +277,10 @@ export const PersonalInformationForm = React.forwardRef<
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <DateOfBirthInputField control={form.control} name="dateOfBirth" />
+                <DateOfBirthInputField
+                  control={form.control}
+                  name="dateOfBirth"
+                />
                 <GenderSelectField control={form.control} name="gender" />
               </div>
 

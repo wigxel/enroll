@@ -7,6 +7,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import Image from "next/image";
 import Link from "next/link";
 import { GraduationCap, Users, BookOpen, Layers, Search } from "lucide-react";
+import { safeArray } from "@/lib/data.helpers";
 
 function Avatar({
   name,
@@ -62,17 +63,24 @@ export default function AlumniPage() {
   const [cohortFilter, setCohortFilter] = useState<Id<"cohorts"> | "">("");
   const [search, setSearch] = useState("");
 
-  const alumni = useQuery(api.alumni.list, {
+  const alumniResult = useQuery(api.alumni.list, {
     courseId: courseFilter || undefined,
     cohortId: cohortFilter || undefined,
     search: search || undefined,
   });
 
-  const stats = useQuery(api.alumni.getStats, {});
-  const courses = useQuery(api.courses.listActive);
+  const statsResult = useQuery(api.alumni.getStats, {});
+  const coursesResult = useQuery(api.courses.listActive);
   const cohortsResult = useQuery(api.cohorts.list, {});
 
-  const isLoading = alumni === undefined;
+  const alumni = alumniResult?.success ? (alumniResult.data as any[]) : [];
+  const stats = statsResult?.success ? statsResult.data : null;
+  const courses = coursesResult?.success ? (coursesResult.data as any[]) : [];
+  const cohorts = cohortsResult?.success
+    ? (cohortsResult.data.cohorts as any[])
+    : [];
+
+  const isLoading = alumniResult === undefined;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
@@ -163,7 +171,7 @@ export default function AlumniPage() {
             className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-200"
           >
             <option value="">All Cohorts</option>
-            {cohortsResult?.cohorts.map((c) => (
+            {cohorts.map((c: any) => (
               <option key={c._id} value={c._id}>
                 {c.name}
               </option>

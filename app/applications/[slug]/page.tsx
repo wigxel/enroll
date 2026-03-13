@@ -16,9 +16,10 @@ interface CourseApplicationPageProps {
 export async function generateMetadata({
   params,
 }: CourseApplicationPageProps): Promise<Metadata> {
-  const course = await fetchQuery(api.courses.getBySlug, {
+  const result = await fetchQuery(api.courses.getBySlug, {
     slug: (await params).slug,
   });
+  const course = result?.success ? result.data : null;
   if (!course) return { title: "Course Not Found" };
   return {
     title: `Apply — ${course.name}`,
@@ -29,10 +30,13 @@ export async function generateMetadata({
 export default async function CourseApplicationPage({
   params,
 }: CourseApplicationPageProps) {
-  const [course, appStatus] = await Promise.all([
+  const [courseResult, appStatusResult] = await Promise.all([
     fetchQuery(api.courses.getBySlug, { slug: (await params).slug }),
     fetchQuery(api.settings.getAppStatus),
   ]);
+
+  const course = courseResult?.success ? courseResult.data : null;
+  const appStatus = appStatusResult?.success ? appStatusResult.data : null;
 
   if (!course) {
     notFound();
@@ -176,7 +180,7 @@ export default async function CourseApplicationPage({
                         : "Free"}
                     </span>
                   </div>
-                  {appStatus.applicationFeeAmount ? (
+                  {appStatus?.applicationFeeAmount ? (
                     <div className="flex justify-between items-center py-3 border-t dark:border-zinc-800">
                       <span className="text-gray-500 dark:text-gray-400 text-sm">
                         Application Fee

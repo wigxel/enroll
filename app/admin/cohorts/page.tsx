@@ -26,7 +26,9 @@ export default function CohortsPage() {
     capacity?: number;
   } | null>(null);
 
-  const result = useQuery(api.cohorts.list, {});
+  const resultRaw = useQuery(api.cohorts.list, {});
+
+  const cohorts = resultRaw?.success ? resultRaw.data.cohorts : [];
 
   const openCreateDialog = () => {
     setEditingCohort(null);
@@ -44,7 +46,7 @@ export default function CohortsPage() {
     setShowDialog(true);
   };
 
-  const isLoading = !result;
+  const isLoading = resultRaw === undefined;
 
   return (
     <div className="py-8">
@@ -96,7 +98,16 @@ export default function CohortsPage() {
                     <Loader2 className="mx-auto h-5 w-5 animate-spin text-gray-400" />
                   </td>
                 </tr>
-              ) : result.cohorts.length === 0 ? (
+              ) : (resultRaw.success === false) ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="py-8 text-center text-sm text-red-600 bg-red-50"
+                  >
+                    {resultRaw.error}
+                  </td>
+                </tr>
+              ) : cohorts.length === 0 ? (
                 <tr>
                   <td
                     colSpan={6}
@@ -106,7 +117,7 @@ export default function CohortsPage() {
                   </td>
                 </tr>
               ) : (
-                result.cohorts.map((cohort) => (
+                cohorts.map((cohort: any) => (
                   <tr key={cohort._id} className="hover:bg-gray-50">
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                       <Link

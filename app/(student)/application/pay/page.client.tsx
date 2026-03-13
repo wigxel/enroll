@@ -16,10 +16,12 @@ export default function PaymentComponent() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Fetch application using the ID given in the reference
-  const application = useQuery(
+  const applicationResult = useQuery(
     api.applications.getApplicationForPayment,
-    explicitAppId ? { applicationId: explicitAppId as any } : "skip"
+    explicitAppId ? { applicationId: explicitAppId as any } : "skip",
   );
+
+  const application = applicationResult?.success ? applicationResult.data : null;
 
   const createIntent = useAction(api.payments.createIntent);
   const confirmPayment = useMutation(api.payments.confirm);
@@ -33,7 +35,7 @@ export default function PaymentComponent() {
   const initializePayment = usePaystackPayment(config as any);
 
   // Loading states
-  const isLoading = explicitAppId ? application === undefined : false;
+  const isLoading = explicitAppId ? applicationResult === undefined : false;
 
   if (isLoading) {
     return (
@@ -44,10 +46,12 @@ export default function PaymentComponent() {
   }
 
   // Not found
-  if (!application) {
+  if (applicationResult?.success === false || (applicationResult !== undefined && !application)) {
     return (
       <div className="flex flex-1 items-center justify-center p-12 text-gray-500">
-        No pending application found or invalid reference.
+        {applicationResult?.success === false
+          ? applicationResult.error
+          : "No pending application found or invalid reference."}
       </div>
     );
   }
@@ -69,10 +73,14 @@ export default function PaymentComponent() {
         currency: "NGN",
       });
 
+      if (!intentResponse.success) {
+        throw new Error(intentResponse.error);
+      }
+
       // 2. Setup dynamic config for this transaction
       const dynamicConfig = {
         ...config,
-        reference: intentResponse.stripePaymentIntentId, // Using this as our Paystack reference
+        reference: intentResponse.data.stripePaymentIntentId, // Using this as our Paystack reference
       };
 
       // 3. Initialize Paystack
@@ -81,16 +89,21 @@ export default function PaymentComponent() {
         onSuccess: async (referenceData: any) => {
           try {
             toast.loading("Confirming payment...", { id: "payment-confirm" });
-            await confirmPayment({
+            const confirmRes = await confirmPayment({
               stripePaymentIntentId: referenceData.reference,
               status: "succeeded",
             });
+            if (!confirmRes.success) {
+              throw new Error(confirmRes.error);
+            }
             toast.success("Payment successful!", { id: "payment-confirm" });
             // Assuming this automatically gets submitted or we just redirect
             router.push("/application/under-review");
           } catch (error) {
             console.error("Confirmation error:", error);
-            toast.error("Failed to confirm payment status.", { id: "payment-confirm" });
+            toast.error("Failed to confirm payment status.", {
+              id: "payment-confirm",
+            });
           } finally {
             setIsProcessing(false);
           }
@@ -98,9 +111,8 @@ export default function PaymentComponent() {
         onClose: () => {
           toast("Payment cancelled");
           setIsProcessing(false);
-        }
+        },
       });
-
     } catch (error) {
       console.error("Payment initiation error:", error);
       toast.error("Failed to initiate payment. Please try again.");
@@ -109,7 +121,6 @@ export default function PaymentComponent() {
   };
 
   return (
-
     <div className="w-full max-w-md mx-auto">
       {/* Progress breadcrumb */}
       <div className="mb-8 flex items-center justify-center gap-2 text-sm">
@@ -122,9 +133,7 @@ export default function PaymentComponent() {
 
       {/* Payment Card */}
       <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-semibold text-gray-900">
-          Application Fee
-        </h1>
+        <h1 className="text-xl font-semibold text-gray-900">Application Fee</h1>
         <p className="mt-1 text-sm text-gray-500">
           Complete payment to submit your application for review.
         </p>
@@ -146,9 +155,7 @@ export default function PaymentComponent() {
             </div>
             <div className="flex justify-between border-t border-gray-200 pt-3">
               <dt className="text-sm font-medium text-gray-900">Total Due</dt>
-              <dd className="text-lg font-bold text-gray-900">
-                ₦15,000
-              </dd>
+              <dd className="text-lg font-bold text-gray-900">₦15,000</dd>
             </div>
           </dl>
         </div>
@@ -160,9 +167,7 @@ export default function PaymentComponent() {
           disabled={isProcessing}
           className="mt-6 flex w-full flex-row items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none"
         >
-          {isProcessing ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : null}
+          {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {isProcessing ? "Processing..." : "Pay Now — ₦15,000"}
         </button>
 

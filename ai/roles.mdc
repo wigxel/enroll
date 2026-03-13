@@ -10,7 +10,10 @@ Administrators have full oversight of the system, managing applications, users, 
   - `user:read`
   - `user:update`
   - `user:assign:role`
+  - `student:read`
   - `student:read:list` (View all enrolled students)
+- **Content Management:**
+  - `content:manage`
 - **Application Management:**
   - `application:read:all`
   - `application:update:status` (Approve/Decline)
@@ -40,6 +43,7 @@ Administrators have full oversight of the system, managing applications, users, 
 Staff members manage day-to-day operations like reviewing applications and handling enrollments, but cannot manage users, alter permissions, or issue refunds.
 
 - **User Management:**
+  - `student:read`
   - `student:read:list`
 - **Application Management:**
   - `application:read:all`

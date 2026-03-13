@@ -1,67 +1,41 @@
 # Form Plan: Application Fee Payment
 
 ## Purpose
-Collects the mandatory application fee via Paystack to officially submit and lock in the applicant's application. Without successful payment, the application remains in a `submitted` but incomplete state (not forwarded to admin review).
+Collects the mandatory application fee via Paystack to officially submit the applicant's application. Successful payment transitions the application from `draft` to `submitted`.
 
 ## Route
-`/application/pay`
+`/applications/[slug]/pay`
 
 ## Roles Permitted
-- `Applicant` with `payment:create` privilege
-- Only accessible when `ApplicationStruct.status === "submitted"` and `paymentStatus === "unpaid"`
+- `Applicant` (or guest with a valid draft)
+- Only accessible when `ApplicationStruct.paymentStatus === "unpaid"`
 
 ## UI Layout
-A simple, focused payment confirmation screen (not a traditional form):
+A focused checkout page:
 
-1. **Summary card** — shows the applicant's name and the application fee amount.
-2. **"Pay Now" button** — triggers the Paystack inline popup.
-3. **Security note** — "Payments are secured by Paystack."
+1. **Course & Fee Summary** — displays course name and fee amount.
+2. **Paystack Payment Element** — embedded secure payment form.
+3. **"Pay Now" button** — submits the payment to Paystack.
 
-> There are no custom input fields — Paystack's inline JS modal handles card/bank details.
+## Integration
+The system uses **Paystack** for secure payment collection.
 
-## Fields
-No custom HTML form fields. Paystack Inline JS collects:
-- Email (prefilled from the user's Clerk account)
-- Card/Bank details (handled entirely within the Paystack popup)
-
-## Paystack Integration
-```ts
-// Initialize payment via Paystack Inline
-const handler = PaystackPop.setup({
-  key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-  email: currentUser.email,
-  amount: APPLICATION_FEE_AMOUNT * 100, // in kobo
-  currency: "NGN",
-  ref: generateReference(), // unique transaction reference
-  metadata: {
-    applicationId: application._id,
-    userId: currentUser._id,
-    type: "application",
-  },
-  callback: (response) => {
-    // Call Convex mutation to verify payment
-    verifyPayment({ reference: response.reference });
-  },
-  onClose: () => {
-    // Show "Payment cancelled" toast
-  },
-});
-handler.openIframe();
-```
+1. **Server-side**: `payments.createIntent` is called to generate a client secret.
+2. **Client-side**: The secret is used to initialize the Paystack SDK
+3. **On Success**: The user is redirected to a confirmation page while a webhook (handled via `payments.confirm`) updates the application status in the background.
 
 ## Behaviour
-1. On page load: fetch the current application to confirm it is in `submitted` + `unpaid` state.
-2. On "Pay Now": open Paystack inline popup.
-3. On Paystack `callback` (success): call Convex action `payments.verifyApplicationFee({ reference })`.
-   - This action calls the Paystack Verify Transaction API server-side.
-   - On verified success: update `ApplicationStruct.paymentStatus` to `"paid"` and `status` to `"under_review"`.
-   - Creates a `PaymentStruct` record with `referenceType: "application"`.
-4. On success: redirect applicant to `/application/status` with a success message.
-
-## Error Handling
-- If the Paystack popup is closed without payment: show a dismissible banner — "Payment was not completed. Your application is saved."
-- If server-side verification fails: show an error toast and instruct the user to contact support with their reference number.
+1. On page load: Fetch application details and initialize Paystack Payment Intent via `payments.createIntent`.
+2. User enters payment details into the Paystack Client Library.
+3. On "Pay Now": `stripe.confirmPayment` is called.
+4. On Success: User is redirected to `/applications/[slug]/status`.
+5. Background: `payments.confirm` mutation is triggered (via webhook or client callback) to:
+   - Update `ApplicationStruct.paymentStatus` to `"paid"`.
+   - Update `ApplicationStruct.status` to `"submitted"`.
+   - Create a `PaymentStruct` record.
+   - Send admin notifications.
 
 ## Related Convex Actions / Mutations
-- `payments.verifyApplicationFee({ reference })` — calls Paystack API to verify, then updates application and creates payment record.
-- `applications.getOwnApplication()` — to fetch application state on load.
+- `payments.createIntent` — creates a Paystack payment intent stub.
+- `payments.confirm` — finalizes the payment record and application status.
+- `applications.getApplicationForPayment` — fetches public info for the payment page.

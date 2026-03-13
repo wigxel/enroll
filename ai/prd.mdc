@@ -29,7 +29,7 @@ The Student Enrollment System is a comprehensive web application designed to man
 
 - **Application Form:** detailed form collecting personal, educational, and background information.
 - **Application Fee:** Mandatory payment step to submit the application.
-  - Integration with a payment provider (e.g., Stripe).
+  - Integration with a payment provider (e.g., Paystack).
   - Application is locked/submitted only after successful payment.
 - **Submission Status:** Applicants see their status as "Under Review" after submission.
 
@@ -68,7 +68,7 @@ The Student Enrollment System is a comprehensive web application designed to man
 - **Frontend:** Next.js (React), Tailwind CSS.
 - **Backend & Database:** Convex (Real-time backend, reactive database, serverless functions).
 - **Authentication:** Clerk or Auth0 (integrated with Convex).
-- **Payments:** Stripe (for Application Fee and Tuition).
+- **Payments:** Paystack (for Application Fee and Tuition).
 
 ## 7. UX/UI Guidelines
 

@@ -1,5 +1,9 @@
-import type { QueryCtx, MutationCtx } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
+
+export type Result<T> =
+  | { success: true; data: T }
+  | { success: false; error: string };
 
 /**
  * Retrieves the currently authenticated user from the database
@@ -26,13 +30,13 @@ export const getCurrentUser = async (
  */
 export const requireAuth = async (
   ctx: QueryCtx | MutationCtx,
-): Promise<Doc<"users">> => {
+): Promise<Result<Doc<"users">>> => {
   const user = await getCurrentUser(ctx);
 
   if (!user) {
-    throw new Error("Authentication required. Please sign in.");
+    return { success: false, error: "Authentication required. Please sign in." };
   }
-  return user;
+  return { success: true, data: user };
 };
 
 /**
@@ -52,15 +56,18 @@ export const getUserRole = async (
 export const requirePrivilege = async (
   ctx: QueryCtx | MutationCtx,
   privilege: string,
-): Promise<Doc<"users">> => {
-  const user = await requireAuth(ctx);
+): Promise<Result<Doc<"users">>> => {
+  const authResult = await requireAuth(ctx);
+  if (!authResult.success) return authResult;
+
+  const user = authResult.data;
   const role = await ctx.db.get(user.role);
 
   if (!role || !role.privileges.includes(privilege)) {
-    throw new Error(`Access denied. Required privilege: "${privilege}".`);
+    return { success: false, error: `Access denied. Required privilege: "${privilege}".` };
   }
 
-  return user;
+  return { success: true, data: user };
 };
 
 /**

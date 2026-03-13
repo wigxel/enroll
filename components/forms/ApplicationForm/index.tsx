@@ -8,6 +8,7 @@ import { isDevelopment } from "@/lib/utils";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useDebounceCallback } from "~/hooks/use-debounce-callback";
+import { safeArray } from "@/lib/data.helpers";
 
 import {
   PersonalInformationForm,
@@ -36,7 +37,8 @@ export default function ApplicationForm({
   const [currentStep, setCurrentStep] = useState(1);
   const router = useRouter();
 
-  const courses = useQuery(api.courses.listActive);
+  const coursesResult = useQuery(api.courses.listActive);
+  const courses = safeArray((coursesResult as any)?.data);
   const createApplication = useMutation(api.applications.create);
 
   const [formData, setFormData] = useState<{
@@ -59,7 +61,9 @@ export default function ApplicationForm({
       dateOfBirth: isDev ? "1998-05-15" : "",
       phoneNumber: isDev ? "+2348000000000" : "",
       address: isDev ? "123 Development Street, Tech City" : "",
-      educationalBackground: isDev ? "BSc in Computer Science from University of Example (2020-2024)." : "",
+      educationalBackground: isDev
+        ? "BSc in Computer Science from University of Example (2020-2024)."
+        : "",
       courseId: defaultCourseId || "",
     };
   });
@@ -96,8 +100,6 @@ export default function ApplicationForm({
     nextStep();
   };
 
-
-
   const onFinalSubmit = async () => {
     try {
       setIsSubmitting(true);
@@ -118,7 +120,7 @@ export default function ApplicationForm({
         );
       }
 
-      const applicationId = await createApplication({
+      const res = await createApplication({
         data: {
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -131,6 +133,11 @@ export default function ApplicationForm({
           courseId: formData.courseId as Id<"courses">,
         },
       });
+
+      if (!res.success) {
+        throw new Error(res.error);
+      }
+      const applicationId = res.data;
 
       toast.success("Application submitted successfully!");
       // Redirect to payment
@@ -189,9 +196,6 @@ export default function ApplicationForm({
             onSaveDraft={handleSaveDraft}
           />
         )}
-
-
-
 
         {currentStep === 3 && (
           <ReviewSubmission

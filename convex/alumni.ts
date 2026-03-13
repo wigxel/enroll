@@ -1,5 +1,6 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { type Result } from "./utils";
 
 /**
  * Public: Returns alumni grouped by user.
@@ -13,7 +14,7 @@ export const list = query({
     cohortId: v.optional(v.id("cohorts")),
     search: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Result<any>> => {
     const enrollments = await ctx.db
       .query("enrollments")
       .withIndex("by_status", (q) => q.eq("status", "completed"))
@@ -118,7 +119,7 @@ export const list = query({
       b.latestGraduatedAt.localeCompare(a.latestGraduatedAt),
     );
 
-    return result;
+    return { success: true, data: result };
   },
 });
 
@@ -127,7 +128,7 @@ export const list = query({
  */
 export const getStats = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<Result<any>> => {
     const completedEnrollments = await ctx.db
       .query("enrollments")
       .withIndex("by_status", (q) => q.eq("status", "completed"))
@@ -140,9 +141,12 @@ export const getStats = query({
     const uniqueAlumni = new Set(completedEnrollments.map((e) => e.userId));
 
     return {
-      totalAlumni: uniqueAlumni.size,
-      totalCourses: courses.filter((c) => c.isActive).length,
-      totalCohorts: cohorts.length,
+      success: true,
+      data: {
+        totalAlumni: uniqueAlumni.size,
+        totalCourses: courses.filter((c) => c.isActive).length,
+        totalCohorts: cohorts.length,
+      }
     };
   },
 });

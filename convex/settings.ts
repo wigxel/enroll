@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requirePrivilege, now } from "./utils";
+import { requirePrivilege, now, type Result } from "./utils";
 
 /**
  * Fetches global system settings.
@@ -8,11 +8,12 @@ import { requirePrivilege, now } from "./utils";
  */
 export const get = query({
   args: {},
-  handler: async (ctx) => {
-    await requirePrivilege(ctx, "settings:update");
+  handler: async (ctx): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "settings:update");
+    if (!privResult.success) return privResult;
 
     const settings = await ctx.db.query("settings").first();
-    return settings;
+    return { success: true, data: settings };
   },
 });
 
@@ -27,8 +28,9 @@ export const update = mutation({
     applicationFeeAmount: v.optional(v.number()),
     tuitionFeeAmount: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "settings:update");
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const privResult = await requirePrivilege(ctx, "settings:update");
+    if (!privResult.success) return privResult;
 
     const existing = await ctx.db.query("settings").first();
     const timestamp = now();
@@ -56,6 +58,8 @@ export const update = mutation({
         updatedAt: timestamp,
       });
     }
+
+    return { success: true, data: null };
   },
 });
 
@@ -65,24 +69,30 @@ export const update = mutation({
  */
 export const getAppStatus = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<Result<any>> => {
     const settings = await ctx.db.query("settings").first();
 
     if (!settings) {
       // Default: applications are closed until settings are configured
       return {
-        isOpen: false,
-        applicationFeeAmount: 0,
-        message: "Application settings have not been configured yet.",
+        success: true,
+        data: {
+          isOpen: false,
+          applicationFeeAmount: 0,
+          message: "Application settings have not been configured yet.",
+        }
       };
     }
 
     // Check manual override first
     if (!settings.isAcceptingApplications) {
       return {
-        isOpen: false,
-        applicationFeeAmount: settings.applicationFeeAmount,
-        message: "Applications are currently closed.",
+        success: true,
+        data: {
+          isOpen: false,
+          applicationFeeAmount: settings.applicationFeeAmount,
+          message: "Applications are currently closed.",
+        }
       };
     }
 
@@ -91,24 +101,33 @@ export const getAppStatus = query({
 
     if (settings.openDate && currentDate < settings.openDate) {
       return {
-        isOpen: false,
-        applicationFeeAmount: settings.applicationFeeAmount,
-        message: `Applications will open on ${settings.openDate}.`,
+        success: true,
+        data: {
+          isOpen: false,
+          applicationFeeAmount: settings.applicationFeeAmount,
+          message: `Applications will open on ${settings.openDate}.`,
+        }
       };
     }
 
     if (settings.closeDate && currentDate > settings.closeDate) {
       return {
-        isOpen: false,
-        applicationFeeAmount: settings.applicationFeeAmount,
-        message: "The application window has closed.",
+        success: true,
+        data: {
+          isOpen: false,
+          applicationFeeAmount: settings.applicationFeeAmount,
+          message: "The application window has closed.",
+        }
       };
     }
 
     return {
-      isOpen: true,
-      applicationFeeAmount: settings.applicationFeeAmount,
-      message: "Applications are open.",
+      success: true,
+      data: {
+        isOpen: true,
+        applicationFeeAmount: settings.applicationFeeAmount,
+        message: "Applications are open.",
+      }
     };
   },
 });

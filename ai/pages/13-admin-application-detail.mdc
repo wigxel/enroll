@@ -19,15 +19,15 @@ Full detail view of a single application. Allows an admin to review all submitte
    - Educational Background
    - Payment Details (paymentStatus, amount, Paystack reference)
 5. **Action bar** (sticky footer or top-right):
-   - **"Approve" button** (primary) — triggers `applications.approve(applicationId)`. Only shown if status is `under_review`.
-   - **"Decline" button** (destructive) — opens the Decline modal (see `ai/forms/05-admin-decline.mdc`).
+   - **"Approve" button** (primary) — triggers `applications.approve(applicationId)`. Only shown if status is `submitted` or `under_review`.
+   - **"Decline" button** (destructive) — opens the Decline modal.
    - Both buttons hidden if already `approved` or `declined`.
-6. **Decline Modal** — overlays the page; see `ai/forms/05-admin-decline.mdc` for plan.
+6. **Decline Modal** — overlays the page.
 
 ## Data Requirements
 - `applications.getById(applicationId)` — fetches full application data including payment info.
 - `applications.approve(applicationId)` — sets status to `"approved"`, creates `EnrollmentStruct`, sends notification.
-- `applications.decline({ applicationId, rejectionReason })` — sets status to `"declined"`, automatically refunds the application fee (if paid), and sends notifications.
+- `applications.decline({ applicationId, rejectionReason })` — sets status to `"declined"`, automatically refunds the application fee (if paid).
 
 ## Navigation
 - Back link → `/admin/applications`.

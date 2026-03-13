@@ -132,6 +132,15 @@ export default defineSchema({
     .index("by_isActive", ["isActive"])
     .index("by_slug", ["slug"]),
 
+  quizQuestions: defineTable({
+    question: v.string(),
+    options: v.array(v.string()),
+    correctOptionIndex: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_isActive", ["isActive"]),
+
   settings: defineTable({
     isAcceptingApplications: v.boolean(),
     openDate: v.optional(v.string()),
@@ -140,4 +149,10 @@ export default defineSchema({
     tuitionFeeAmount: v.number(),
     updatedAt: v.string(),
   }),
+
+  analytics_cache: defineTable({
+    key: v.string(),
+    data: v.any(),
+    updatedAt: v.string(),
+  }).index("by_key", ["key"]),
 });

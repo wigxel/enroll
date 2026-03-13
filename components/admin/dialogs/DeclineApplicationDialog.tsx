@@ -37,10 +37,11 @@ export function DeclineApplicationDialog({
   const handleDecline = async () => {
     setIsPending(true);
     try {
-      await declineMutation({
+      const res = await declineMutation({
         applicationId,
         rejectionReason: reason,
       });
+      if (!res.success) throw new Error(res.error);
       setReason("");
       onOpenChange(false);
       onSuccess?.();

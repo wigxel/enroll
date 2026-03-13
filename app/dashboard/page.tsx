@@ -4,38 +4,40 @@ import { redirect } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 
 export default async function DashboardProxy() {
-    const { userId, getToken } = await auth();
+  const { userId, getToken } = await auth();
 
-    if (!userId) {
-        redirect("/sign-in");
-    }
+  if (!userId) {
+    redirect("/sign-in");
+  }
 
-    // Get the token for Convex authentication
-    const token = await getToken({ template: "convex" });
+  // Get the token for Convex authentication
+  const token = await getToken({ template: "convex" });
 
-    // Fetch the current user's Convex record with their role name
-    // If the user record isn't created yet, the query returns null
-    const user = await fetchQuery(
-        api.users.getCurrentUser,
-        {},
-        token ? { token } : undefined,
-    );
+  // Fetch the current user's Convex record with their role name
+  // If the user record isn't created yet, the query returns null
+  const userResult = await fetchQuery(
+    api.users.getCurrentUser,
+    {},
+    token ? { token } : undefined,
+  );
 
-    // If the user doesn't exist in Convex yet, we might want to redirect
-    // them somewhere to trigger user creation or just go to home.
-    if (!user) {
-        redirect("/");
-    }
+  // If the user doesn't exist in Convex yet, or query failed, redirect
+  // them somewhere to trigger user creation or just go to home.
+  if (!userResult || !userResult.success || !userResult.data) {
+    redirect("/");
+  }
 
-    console.log("User", user);
+  const user = userResult.data;
 
-    // Define admin roles
-    const ADMIN_ROLES = ["admin", "staff", "auditor"];
+  console.log("User", user);
 
-    if (ADMIN_ROLES.includes(user.role.toLowerCase())) {
-        redirect("/admin/dashboard");
-    }
+  // Define admin roles
+  const ADMIN_ROLES = ["admin", "staff", "auditor"];
 
-    // Fallback to student dashboard
-    redirect("/student/dashboard");
+  if (ADMIN_ROLES.includes(user.role.toLowerCase())) {
+    redirect("/admin/dashboard");
+  }
+
+  // Fallback to student dashboard
+  redirect("/student/dashboard");
 }

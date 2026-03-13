@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requirePrivilege, now } from "./utils";
+import { requirePrivilege, now, type Result } from "./utils";
+import { Id } from "./_generated/dataModel";
 
 /**
  * Lists all cohorts with optional status-derived filtering and student counts.
@@ -10,8 +11,9 @@ export const list = query({
     search: v.optional(v.string()),
     page: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "cohort:read:all");
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "cohort:read:all");
+    if (!privResult.success) return privResult;
 
     let cohorts = await ctx.db.query("cohorts").collect();
 
@@ -58,10 +60,13 @@ export const list = query({
     );
 
     return {
-      cohorts: withCounts,
-      total: cohorts.length,
-      page,
-      totalPages: Math.ceil(cohorts.length / pageSize),
+      success: true,
+      data: {
+        cohorts: withCounts,
+        total: cohorts.length,
+        page,
+        totalPages: Math.ceil(cohorts.length / pageSize),
+      }
     };
   },
 });
@@ -71,11 +76,14 @@ export const list = query({
  */
 export const getById = query({
   args: { cohortId: v.id("cohorts") },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "cohort:read:all");
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "cohort:read:all");
+    if (!privResult.success) return privResult;
 
     const cohort = await ctx.db.get(args.cohortId);
-    if (!cohort) return null;
+    if (!cohort) {
+      return { success: false, error: "Cohort not found." };
+    }
 
     // Get all enrollments in this cohort
     const enrollments = await ctx.db
@@ -97,7 +105,7 @@ export const getById = query({
       }),
     );
 
-    return { ...cohort, students };
+    return { success: true, data: { ...cohort, students } };
   },
 });
 
@@ -111,8 +119,9 @@ export const create = mutation({
     endDate: v.string(),
     capacity: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "cohort:manage");
+  handler: async (ctx, args): Promise<Result<Id<"cohorts">>> => {
+    const privResult = await requirePrivilege(ctx, "cohort:manage");
+    if (!privResult.success) return privResult as any;
 
     const cohortId = await ctx.db.insert("cohorts", {
       name: args.name,
@@ -121,7 +130,7 @@ export const create = mutation({
       capacity: args.capacity,
     });
 
-    return cohortId;
+    return { success: true, data: cohortId };
   },
 });
 
@@ -136,12 +145,13 @@ export const update = mutation({
     endDate: v.optional(v.string()),
     capacity: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "cohort:manage");
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const privResult = await requirePrivilege(ctx, "cohort:manage");
+    if (!privResult.success) return privResult;
 
     const cohort = await ctx.db.get(args.cohortId);
     if (!cohort) {
-      throw new Error("Cohort not found.");
+      return { success: false, error: "Cohort not found." };
     }
 
     await ctx.db.patch(args.cohortId, {
@@ -150,6 +160,8 @@ export const update = mutation({
       ...(args.endDate !== undefined && { endDate: args.endDate }),
       ...(args.capacity !== undefined && { capacity: args.capacity }),
     });
+
+    return { success: true, data: null };
   },
 });
 
@@ -161,17 +173,18 @@ export const assignStudent = mutation({
     enrollmentId: v.id("enrollments"),
     cohortId: v.id("cohorts"),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "cohort:manage");
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const privResult = await requirePrivilege(ctx, "cohort:manage");
+    if (!privResult.success) return privResult;
 
     const enrollment = await ctx.db.get(args.enrollmentId);
     if (!enrollment) {
-      throw new Error("Enrollment not found.");
+      return { success: false, error: "Enrollment not found." };
     }
 
     const cohort = await ctx.db.get(args.cohortId);
     if (!cohort) {
-      throw new Error("Cohort not found.");
+      return { success: false, error: "Cohort not found." };
     }
 
     // Check capacity if set
@@ -182,7 +195,7 @@ export const assignStudent = mutation({
         .collect();
 
       if (currentStudents.length >= cohort.capacity) {
-        throw new Error("Cohort has reached its maximum capacity.");
+        return { success: false, error: "Cohort has reached its maximum capacity." };
       }
     }
 
@@ -190,5 +203,7 @@ export const assignStudent = mutation({
       cohortId: args.cohortId,
       updatedAt: now(),
     });
+
+    return { success: true, data: null };
   },
 });

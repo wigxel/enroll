@@ -20,15 +20,18 @@ export default function AdminDashboardPage() {
     to: new Date(),
   });
 
-  const stats = useQuery(api.applications.getDashboardStats, {
+  const statsResult = useQuery(api.applications.getDashboardStats, {
     from: dateRange?.from?.toISOString(),
     to: dateRange?.to?.toISOString(),
   });
 
   // Pending applications table remains unfiltered by date, representing the current backlog
-  const pendingResult = useQuery(api.applications.listPending, {});
+  const pendingResultRaw = useQuery(api.applications.listPending, {});
 
-  const isLoading = stats === undefined || pendingResult === undefined;
+  const stats = statsResult?.success ? statsResult.data : null;
+  const pendingResult = pendingResultRaw?.success ? pendingResultRaw.data : { applications: [] };
+
+  const isLoading = statsResult === undefined || pendingResultRaw === undefined;
 
   const statCards = [
     {

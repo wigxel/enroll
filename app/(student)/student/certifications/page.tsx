@@ -1,6 +1,7 @@
 "use client";
 
-import { Award, BookOpen } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 
 interface Certification {
@@ -11,37 +12,6 @@ interface Certification {
   completedAt: string;
 }
 
-// TODO: Replace with Convex hook e.g. useQuery(api.enrollments.getOwnCompletedEnrollments)
-function useCompletedCertifications(): Certification[] {
-  return [
-    {
-      id: "cert1",
-      courseName: "Full-Stack Web Development",
-      certification: "Full-Stack Web Development Certificate",
-      coverPhoto: null,
-      completedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-    },
-    {
-      id: "cert2",
-      courseName: "UI/UX Design Fundamentals",
-      certification: "UI/UX Design Professional Certificate",
-      coverPhoto: null,
-      completedAt: new Date(
-        Date.now() - 1000 * 60 * 60 * 24 * 60,
-      ).toISOString(),
-    },
-    {
-      id: "cert3",
-      courseName: "Data Science & Analytics",
-      certification: "Data Science Certificate",
-      coverPhoto: null,
-      completedAt: new Date(
-        Date.now() - 1000 * 60 * 60 * 24 * 120,
-      ).toISOString(),
-    },
-  ];
-}
-
 const gradientBackgrounds = [
   "from-primary/20 via-primary/10 to-indigo-50",
   "from-emerald-100/80 via-teal-50 to-cyan-50",
@@ -50,8 +20,26 @@ const gradientBackgrounds = [
   "from-rose-100/80 via-pink-50 to-red-50",
 ];
 
+import { Award, BookOpen, Loader2 } from "lucide-react";
+
 export default function CertificationsPage() {
-  const certifications = useCompletedCertifications();
+  const result = useQuery(api.enrollments.getOwnCompletedEnrollments);
+
+  if (result === undefined) {
+    return (
+      <div className="flex flex-1 items-center justify-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const certifications = result.success ? result.data.map(enrollment => ({
+    id: enrollment._id,
+    courseName: enrollment.courseName,
+    certification: `${enrollment.courseName} Certificate`,
+    coverPhoto: null,
+    completedAt: enrollment.completedAt || new Date().toISOString()
+  })) : [];
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">

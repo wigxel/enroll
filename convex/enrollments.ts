@@ -1,28 +1,38 @@
-import { query, mutation } from "./_generated/server";
-import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { requireAuth, requirePrivilege, now } from "./utils";
+import { internal } from "./_generated/api";
+import { mutation, query } from "./_generated/server";
+import { now, type Result, requireAuth, requirePrivilege } from "./utils";
 
 /**
  * Retrieves the current user's enrollment checklist.
  */
 export const get = query({
   args: {},
-  handler: async (ctx) => {
-    const user = await requireAuth(ctx);
+  handler: async (ctx): Promise<Result<any>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+
+    const user = authResult.data;
 
     const enrollment = await ctx.db
       .query("enrollments")
       .withIndex("by_userId", (q) => q.eq("userId", user._id))
       .first();
 
-    if (!enrollment) return null;
+    if (!enrollment) {
+      return { success: false, error: "Enrollment not found." };
+    }
 
-    const cohort = enrollment.cohortId ? await ctx.db.get(enrollment.cohortId) : null;
+    const cohort = enrollment.cohortId
+      ? await ctx.db.get(enrollment.cohortId)
+      : null;
 
     return {
-      ...enrollment,
-      cohortName: cohort?.name ?? "—",
+      success: true,
+      data: {
+        ...enrollment,
+        cohortName: cohort?.name ?? "—"
+      }
     };
   },
 });
@@ -32,20 +42,146 @@ export const get = query({
  */
 export const getById = query({
   args: { enrollmentId: v.id("enrollments") },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "enrollment:view:details");
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "enrollment:view:details");
+    if (!privResult.success) return privResult;
 
     const enrollment = await ctx.db.get(args.enrollmentId);
-    if (!enrollment) return null;
+    if (!enrollment) {
+      return { success: false, error: "Enrollment not found." };
+    }
 
     const user = await ctx.db.get(enrollment.userId);
     const application = await ctx.db.get(enrollment.applicationId);
 
     return {
-      ...enrollment,
-      user,
-      application,
+      success: true,
+      data: {
+        ...enrollment,
+        user,
+        application,
+      }
     };
+  },
+});
+
+/**
+ * Admin: Lists all enrollments for a specific user.
+ */
+export const listByUserId = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args): Promise<Result<any[]>> => {
+    const privResult = await requirePrivilege(ctx, "student:read");
+    if (!privResult.success) return privResult;
+
+    const enrollments = await ctx.db
+      .query("enrollments")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .collect();
+
+    // Enrich with course and cohort info
+    const enriched = await Promise.all(
+      enrollments.map(async (e) => {
+        const cohort = e.cohortId ? await ctx.db.get(e.cohortId) : null;
+        const application = await ctx.db.get(e.applicationId);
+        let courseName = "—";
+
+        if (application) {
+          const course = await ctx.db.get(application.data.courseId);
+          if (course) courseName = course.name;
+        }
+
+        return {
+          ...e,
+          cohortName: cohort?.name ?? "—",
+          courseName,
+        };
+      }),
+    );
+
+    return { success: true, data: enriched };
+  },
+});
+
+/**
+ * Student: Lists all completed enrollments for the current user.
+ * Used for the certifications page.
+ */
+export const getOwnCompletedEnrollments = query({
+  args: {},
+  handler: async (ctx): Promise<Result<any[]>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+
+    const user = authResult.data;
+
+    const enrollments = await ctx.db
+      .query("enrollments")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .filter((q) => q.eq(q.field("status"), "completed"))
+      .collect();
+
+    // Enrich with course info
+    const enriched = await Promise.all(
+      enrollments.map(async (e) => {
+        const application = await ctx.db.get(e.applicationId);
+        let courseName = "—";
+
+        if (application) {
+          const course = await ctx.db.get(application.data.courseId);
+          if (course) courseName = course.name;
+        }
+
+        return {
+          ...e,
+          courseName,
+        };
+      }),
+    );
+
+    return { success: true, data: enriched };
+  },
+});
+
+/**
+ * Admin: Updates the cohort for a specific enrollment.
+ */
+export const updateCohort = mutation({
+  args: {
+    enrollmentId: v.id("enrollments"),
+    cohortId: v.id("cohorts"),
+  },
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const privResult = await requirePrivilege(ctx, "enrollment:update");
+    if (!privResult.success) return privResult;
+
+    const enrollment = await ctx.db.get(args.enrollmentId);
+    if (!enrollment) {
+      return { success: false, error: "Enrollment not found." };
+    }
+
+    const cohort = await ctx.db.get(args.cohortId);
+    if (!cohort) {
+      return { success: false, error: "Cohort not found." };
+    }
+
+    await ctx.db.patch(args.enrollmentId, {
+      cohortId: args.cohortId,
+      updatedAt: now(),
+    });
+
+    // Notify user of cohort change
+    await ctx.runMutation(internal.notifications.sendNotification, {
+      type: "enrollment_update",
+      title: "Cohort Updated",
+      body: `Your enrollment cohort has been updated to ${cohort.name}.`,
+      relatedEntityId: args.enrollmentId,
+      relatedEntityType: "enrollment",
+      targetAdmins: false,
+      targetUserId: enrollment.userId,
+    });
+
+    return { success: true, data: null };
   },
 });
 
@@ -63,12 +199,15 @@ export const updateStep = mutation({
     ),
     value: v.boolean(),
   },
-  handler: async (ctx, args) => {
-    const user = await requireAuth(ctx);
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+
+    const user = authResult.data;
     const enrollment = await ctx.db.get(args.enrollmentId);
 
     if (!enrollment) {
-      throw new Error("Enrollment not found.");
+      return { success: false, error: "Enrollment not found." };
     }
 
     // Allow the enrollment owner or an admin to update
@@ -76,12 +215,12 @@ export const updateStep = mutation({
       // If not the owner, check for admin privilege
       const role = await ctx.db.get(user.role);
       if (!role || !role.privileges.includes("enrollment:update")) {
-        throw new Error("You can only update your own enrollment steps.");
+        return { success: false, error: "You can only update your own enrollment steps." };
       }
     }
 
     if (enrollment.status === "completed") {
-      throw new Error("This enrollment is already completed.");
+      return { success: false, error: "This enrollment is already completed." };
     }
 
     const updatedSteps = {
@@ -93,6 +232,8 @@ export const updateStep = mutation({
       steps: updatedSteps,
       updatedAt: now(),
     });
+
+    return { success: true, data: null };
   },
 });
 
@@ -102,26 +243,30 @@ export const updateStep = mutation({
  */
 export const complete = mutation({
   args: { enrollmentId: v.id("enrollments") },
-  handler: async (ctx, args) => {
-    const user = await requireAuth(ctx);
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+
+    const user = authResult.data;
     const enrollment = await ctx.db.get(args.enrollmentId);
 
     if (!enrollment) {
-      throw new Error("Enrollment not found.");
+      return { success: false, error: "Enrollment not found." };
     }
     if (enrollment.userId !== user._id) {
-      throw new Error("You can only complete your own enrollment.");
+      return { success: false, error: "You can only complete your own enrollment." };
     }
     if (enrollment.status === "completed") {
-      throw new Error("Enrollment is already completed.");
+      return { success: false, error: "Enrollment is already completed." };
     }
 
     // Verify all steps are done
     const { tuitionPaid, quizPassed, documentsSigned } = enrollment.steps;
     if (!tuitionPaid || !quizPassed || !documentsSigned) {
-      throw new Error(
-        "All enrollment steps must be completed before finalizing.",
-      );
+      return {
+        success: false,
+        error: "All enrollment steps must be completed before finalizing.",
+      };
     }
 
     const timestamp = now();
@@ -155,5 +300,101 @@ export const complete = mutation({
       relatedEntityType: "user",
       targetAdmins: true,
     });
+
+    return { success: true, data: null };
+  },
+});
+
+/**
+ * Grades the orientation quiz and updates the enrollment step if passed.
+ * Requires an 80% score to pass (4/5 questions correct).
+ */
+export const submitQuiz = mutation({
+  args: {
+    enrollmentId: v.id("enrollments"),
+    answers: v.record(v.id("quizQuestions"), v.number()), // e.g. { "questionId": selectedIndex }
+  },
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+
+    const user = authResult.data;
+    const enrollment = await ctx.db.get(args.enrollmentId);
+
+    if (!enrollment || enrollment.userId !== user._id) {
+      return { success: false, error: "Enrollment not found or unauthorized." };
+    }
+
+    if (!enrollment.steps.tuitionPaid) {
+      return { success: false, error: "You must complete the 'Pay Tuition' step first." };
+    }
+
+    // Fetch all active questions to grade against
+    const activeQuestions = await ctx.db
+      .query("quizQuestions")
+      .withIndex("by_isActive", (q) => q.eq("isActive", true))
+      .collect();
+
+    if (activeQuestions.length === 0) {
+      return { success: false, error: "No active quiz questions found." };
+    }
+
+    // Calculate score
+    let correctCount = 0;
+
+    for (const question of activeQuestions) {
+      const studentAnswerIndex = args.answers[question._id];
+      if (studentAnswerIndex !== undefined && studentAnswerIndex === question.correctOptionIndex) {
+        correctCount++;
+      }
+    }
+
+    const totalQuestions = activeQuestions.length;
+    const score = (correctCount / totalQuestions) * 100;
+    const requiredScore = 80;
+    const passed = score >= requiredScore;
+
+    if (passed && !enrollment.steps.quizPassed) {
+      // Update enrollment step
+      const updatedSteps = {
+        ...enrollment.steps,
+        quizPassed: true,
+      };
+      await ctx.db.patch(args.enrollmentId, {
+        steps: updatedSteps,
+        updatedAt: now(),
+      });
+
+      // Send success notification to user
+      await ctx.runMutation(internal.notifications.sendNotification, {
+        type: "enrollment_step_complete",
+        title: "Orientation Quiz Passed",
+        body: `Congratulations! You scored ${score}% on the orientation quiz.`,
+        relatedEntityId: args.enrollmentId,
+        relatedEntityType: "enrollment",
+        targetAdmins: false,
+        targetUserId: user._id,
+      });
+    } else if (!passed) {
+      // Optionally notify failure (can be noisy, UI feedback usually enough)
+      await ctx.runMutation(internal.notifications.sendNotification, {
+        type: "enrollment_step_complete", // Reuse type or create a specific 'quiz_failed'
+        title: "Orientation Quiz Result",
+        body: `You scored ${score}%. A minimum of ${requiredScore}% is required. Please review the materials and try again.`,
+        relatedEntityId: args.enrollmentId,
+        relatedEntityType: "enrollment",
+        targetAdmins: false,
+        targetUserId: user._id,
+      });
+    }
+
+    return {
+      success: true,
+      data: {
+        passed,
+        score,
+        requiredScore,
+      }
+    };
   },
 });

@@ -7,6 +7,7 @@ import {
   getUserRole,
   now,
   getCurrentUser as getAuthUser,
+  type Result,
 } from "./utils";
 import { deleteUser as deleteClerkUser, updateUserMetadata } from "./clerk";
 
@@ -23,14 +24,14 @@ export const createOrGetUser = mutation({
     name: v.string(),
     profileImage: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Result<any>> => {
     // Return early if user already exists
     const existing = await ctx.db
       .query("users")
       .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
       .unique();
 
-    if (existing) return existing._id;
+    if (existing) return { success: true, data: existing._id };
 
     // Check for a pre-assigned role from an admin invitation
     const identity = await ctx.auth.getUserIdentity();
@@ -41,9 +42,9 @@ export const createOrGetUser = mutation({
     // Try to find the pending role, fall back to "Applicant"
     let roleRecord = pendingRoleName
       ? await ctx.db
-          .query("roles")
-          .withIndex("by_name", (q) => q.eq("name", pendingRoleName))
-          .unique()
+        .query("roles")
+        .withIndex("by_name", (q) => q.eq("name", pendingRoleName))
+        .unique()
       : null;
 
     if (!roleRecord) {
@@ -54,9 +55,10 @@ export const createOrGetUser = mutation({
     }
 
     if (!roleRecord) {
-      throw new Error(
-        "Default 'Applicant' role not found. Please seed the roles table.",
-      );
+      return {
+        success: false,
+        error: "Default 'Applicant' role not found. Please seed the roles table.",
+      };
     }
 
     const timestamp = now();
@@ -70,7 +72,7 @@ export const createOrGetUser = mutation({
       updatedAt: timestamp,
     });
 
-    return userId;
+    return { success: true, data: userId };
   },
 });
 
@@ -79,15 +81,20 @@ export const createOrGetUser = mutation({
  */
 export const getCurrentUser = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<Result<any>> => {
     const user = await getAuthUser(ctx);
-    if (!user) return null;
+    if (!user) {
+      return { success: false, error: "Authentication required." };
+    }
 
     const roleRecord = await getUserRole(ctx, user.role);
 
     return {
-      ...user,
-      role: roleRecord?.name ?? "User",
+      success: true,
+      data: {
+        ...user,
+        role: roleRecord?.name ?? "User",
+      }
     };
   },
 });
@@ -100,8 +107,11 @@ export const updateProfile = mutation({
     name: v.optional(v.string()),
     profileImage: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
-    const user = await requireAuth(ctx);
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+
+    const user = authResult.data;
 
     await ctx.db.patch(user._id, {
       ...(args.name !== undefined && { name: args.name }),
@@ -110,6 +120,8 @@ export const updateProfile = mutation({
       }),
       updatedAt: now(),
     });
+
+    return { success: true, data: null };
   },
 });
 
@@ -123,8 +135,9 @@ export const list = query({
     roleFilter: v.optional(v.id("roles")),
     page: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "user:read");
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "user:read");
+    if (!privResult.success) return privResult;
 
     const pageSize = 20;
     let usersQuery;
@@ -142,10 +155,10 @@ export const list = query({
     // Apply search filter in memory (Convex doesn't support full-text search on queries)
     const filtered = args.search
       ? allUsers.filter(
-          (u) =>
-            u.name.toLowerCase().includes(args.search!.toLowerCase()) ||
-            u.email.toLowerCase().includes(args.search!.toLowerCase()),
-        )
+        (u) =>
+          u.name.toLowerCase().includes(args.search!.toLowerCase()) ||
+          u.email.toLowerCase().includes(args.search!.toLowerCase()),
+      )
       : allUsers;
 
     // Pagination
@@ -162,10 +175,39 @@ export const list = query({
     );
 
     return {
-      users: usersWithRoles,
-      total: filtered.length,
-      page,
-      totalPages: Math.ceil(filtered.length / pageSize),
+      success: true,
+      data: {
+        users: usersWithRoles,
+        total: filtered.length,
+        page,
+        totalPages: Math.ceil(filtered.length / pageSize),
+      }
+    };
+  },
+});
+
+/**
+ * Admin: Retrieves a single user's record by ID.
+ */
+export const getUser = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "user:read");
+    if (!privResult.success) return privResult;
+
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      return { success: false, error: "User not found." };
+    }
+
+    const role = await getUserRole(ctx, user.role);
+
+    return {
+      success: true,
+      data: {
+        ...user,
+        roleName: role?.name ?? null,
+      }
     };
   },
 });
@@ -182,8 +224,9 @@ export const listStudents = query({
     page: v.optional(v.number()),
     cohortId: v.optional(v.id("cohorts")),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "student:read:list");
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "student:read:list");
+    if (!privResult.success) return privResult;
 
     // Find the "Student" role
     const studentRole = await ctx.db
@@ -191,7 +234,12 @@ export const listStudents = query({
       .withIndex("by_name", (q) => q.eq("name", "Student"))
       .unique();
 
-    if (!studentRole) return { users: [], total: 0, page: 0, totalPages: 0 };
+    if (!studentRole) {
+      return {
+        success: true,
+        data: { users: [], total: 0, page: 0, totalPages: 0 }
+      };
+    }
 
     let studentUsers;
 
@@ -219,10 +267,10 @@ export const listStudents = query({
     // Apply search filter
     const filtered = args.search
       ? studentUsers.filter(
-          (u) =>
-            u.name.toLowerCase().includes(args.search!.toLowerCase()) ||
-            u.email.toLowerCase().includes(args.search!.toLowerCase()),
-        )
+        (u) =>
+          u.name.toLowerCase().includes(args.search!.toLowerCase()) ||
+          u.email.toLowerCase().includes(args.search!.toLowerCase()),
+      )
       : studentUsers;
 
     // Enrich with enrollment data (courseName, cohortName, enrolledAt)
@@ -279,10 +327,13 @@ export const listStudents = query({
     const paginated = sorted.slice(start, start + pageSize);
 
     return {
-      users: paginated,
-      total: filtered.length,
-      page,
-      totalPages: Math.ceil(filtered.length / pageSize),
+      success: true,
+      data: {
+        users: paginated,
+        total: filtered.length,
+        page,
+        totalPages: Math.ceil(filtered.length / pageSize),
+      }
     };
   },
 });
@@ -316,21 +367,24 @@ export const deleteUser = action({
   args: {
     userId: v.id("users"),
   },
-  handler: async (ctx, args) => {
-    // 1. Delete from Convex & fetch clerkId
-    // We use an internal mutation because actions cannot do direct DB operations
-    const { clerkId } = await ctx.runMutation(internal.users.deleteUserRecord, {
-      userId: args.userId,
-    });
+  handler: async (ctx, args): Promise<Result<null>> => {
+    try {
+      // 1. Delete from Convex & fetch clerkId
+      const { clerkId } = await ctx.runMutation(internal.users.deleteUserRecord, {
+        userId: args.userId,
+      });
 
-    // 2. Delete from Clerk (if it's a real clerkId)
-    // We don't fail if the user is a local dev stub
-    if (clerkId && clerkId.startsWith("user_")) {
-      try {
-        await deleteClerkUser(clerkId);
-      } catch (err) {
-        console.error("Failed to delete user from Clerk:", err);
+      // 2. Delete from Clerk (if it's a real clerkId)
+      if (clerkId && clerkId.startsWith("user_")) {
+        try {
+          await deleteClerkUser(clerkId);
+        } catch (err: any) {
+          console.error("Failed to delete user from Clerk:", err);
+        }
       }
+      return { success: true, data: null };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Failed to delete user." };
     }
   },
 });
@@ -374,27 +428,36 @@ export const assignRole = action({
     userId: v.id("users"),
     newRoleId: v.id("roles"),
   },
-  handler: async (ctx, args) => {
-    // 1. Update in Convex. Because it's called with runMutation,
-    // the mutation will enforce admin privileges.
-    const { clerkId, roleName } = await ctx.runMutation(
-      internal.users.assignRoleRecord,
-      {
-        userId: args.userId,
-        newRoleId: args.newRoleId,
-      },
-    );
+  handler: async (ctx, args): Promise<Result<null>> => {
+    try {
+      // 1. Update in Convex. Because it's called with runMutation,
+      // the mutation will enforce admin privileges.
+      const { clerkId, roleName } = await ctx.runMutation(
+        internal.users.assignRoleRecord,
+        {
+          userId: args.userId,
+          newRoleId: args.newRoleId,
+        },
+      );
 
-    // 2. Update Clerk metadata
-    if (clerkId && clerkId.startsWith("user_")) {
-      try {
-        await updateUserMetadata({
-          userId: clerkId,
-          publicMetadata: { pendingRole: roleName },
-        });
-      } catch (err) {
-        console.error("Failed to sync new role to Clerk:", err);
+      // 2. Update Clerk metadata
+      if (clerkId && clerkId.startsWith("user_")) {
+        try {
+          await updateUserMetadata({
+            userId: clerkId,
+            publicMetadata: { pendingRole: roleName },
+          });
+        } catch (err: any) {
+          console.error("Failed to sync new role to Clerk:", err);
+          // Return success anyway because Convex is updated?
+          // Or return error? Let's return error if syncing is critical.
+          return { success: false, error: `Role assigned in DB but Clerk sync failed: ${err.message}` };
+        }
       }
+
+      return { success: true, data: null };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Failed to assign role." };
     }
   },
 });

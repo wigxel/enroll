@@ -3,91 +3,133 @@
 import React, { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "~/convex/_generated/api";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, TrendingUp, CreditCard, Wallet } from "lucide-react";
 import { TransactionDetailDialog } from "~/components/admin/dialogs/TransactionDetailDialog";
 import { RefundDialog } from "~/components/admin/dialogs/RefundDialog";
+import { AreaChart, Card, Metric, Text, Flex, Grid, Badge, TabGroup, TabList, Tab } from "@tremor/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type PaymentStatus = "succeeded" | "pending" | "failed" | "refunded";
 type PaymentType = "application" | "tuition";
 
-const statusBadge: Record<PaymentStatus, string> = {
-  succeeded: "bg-green-100 text-green-800",
-  pending: "bg-yellow-100 text-yellow-800",
-  failed: "bg-red-100 text-red-800",
-  refunded: "bg-gray-100 text-gray-800",
-};
-
-const typeBadge: Record<PaymentType, string> = {
-  application: "bg-blue-100 text-blue-800",
-  tuition: "bg-purple-100 text-purple-800",
+const statusBadge: Record<PaymentStatus, { color: any; text: string }> = {
+  succeeded: { color: "emerald", text: "Successful" },
+  pending: { color: "amber", text: "Pending" },
+  failed: { color: "rose", text: "Failed" },
+  refunded: { color: "slate", text: "Refunded" },
 };
 
 export default function PaymentsPage() {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"All" | PaymentStatus>(
-    "All",
-  );
+  const [statusFilter, setStatusFilter] = useState<"All" | PaymentStatus>("All");
   const [typeFilter, setTypeFilter] = useState<"All" | PaymentType>("All");
   const [detailPayment, setDetailPayment] = useState<any | null>(null);
   const [refundPayment, setRefundPayment] = useState<any | null>(null);
+  const [chartDays, setChartDays] = useState(30);
 
-  const paymentsResult = useQuery(api.payments.list, {
+  const paymentsResultRaw = useQuery(api.payments.list, {
     search: search || undefined,
     status: statusFilter === "All" ? undefined : statusFilter,
     referenceType: typeFilter === "All" ? undefined : typeFilter,
   });
 
-  const stats = useQuery(api.payments.getStats, {});
+  const statsResult = useQuery(api.payments.getStats, {});
+  const trendsResult = useQuery(api.payments.getRevenueTrends, { days: chartDays });
 
-  const payments = paymentsResult?.payments ?? [];
-  const isLoading = paymentsResult === undefined;
+  const payments = paymentsResultRaw?.success ? paymentsResultRaw.data.payments : [];
+  const stats = statsResult?.success ? statsResult.data : null;
+  const trends = trendsResult?.success ? trendsResult.data : [];
+  const isLoading = paymentsResultRaw === undefined;
 
   return (
-    <div className="py-8">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="py-8 space-y-8"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Payments &amp; Transactions
-        </h1>
-
-        {/* Revenue Summary Cards */}
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
-          {[
-            { label: "Total Collected", value: stats?.totalCollected ?? 0 },
-            { label: "Application Fees", value: stats?.applicationFees ?? 0 },
-            { label: "Tuition Collected", value: stats?.tuitionCollected ?? 0 },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-lg bg-white px-4 py-5 shadow sm:p-6"
-            >
-              <dt className="truncate text-sm font-medium text-gray-500">
-                {stat.label}
-              </dt>
-              <dd className="mt-1 text-2xl font-semibold text-gray-900">
-                ₦{stat.value.toLocaleString()}
-              </dd>
-            </div>
-          ))}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Financial Overview</h1>
+            <p className="text-gray-500 mt-1">Monitor revenue, track transactions, and manage refunds.</p>
+          </div>
         </div>
 
+        {/* Revenue Summary Cards */}
+        <Grid numItemsSm={2} numItemsLg={3} className="mt-8 gap-6">
+          <Card decoration="top" decorationColor="indigo" className="hover:shadow-lg transition-shadow">
+            <Flex alignItems="start">
+              <div className="space-y-2">
+                <Text className="text-gray-500 font-medium">Total Revenue</Text>
+                <Metric className="text-indigo-600 font-bold">₦{(stats?.totalCollected ?? 0).toLocaleString()}</Metric>
+              </div>
+              <Badge icon={TrendingUp} color="indigo" size="sm">Overall</Badge>
+            </Flex>
+          </Card>
+          <Card decoration="top" decorationColor="blue" className="hover:shadow-lg transition-shadow">
+            <Flex alignItems="start">
+              <div className="space-y-2">
+                <Text className="text-gray-500 font-medium">Application Fees</Text>
+                <Metric className="text-blue-600 font-bold">₦{(stats?.applicationFees ?? 0).toLocaleString()}</Metric>
+              </div>
+              <Badge icon={Wallet} color="blue" size="sm">Enrollment</Badge>
+            </Flex>
+          </Card>
+          <Card decoration="top" decorationColor="purple" className="hover:shadow-lg transition-shadow">
+            <Flex alignItems="start">
+              <div className="space-y-2">
+                <Text className="text-gray-500 font-medium">Tuition Collected</Text>
+                <Metric className="text-purple-600 font-bold">₦{(stats?.tuitionCollected ?? 0).toLocaleString()}</Metric>
+              </div>
+              <Badge icon={CreditCard} color="purple" size="sm">Academic</Badge>
+            </Flex>
+          </Card>
+        </Grid>
+
+        {/* Revenue Chart */}
+        <Card className="mt-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <Text className="text-lg font-bold text-gray-900">Revenue Trends</Text>
+              <Text className="text-gray-500">Daily revenue breakdown</Text>
+            </div>
+            <TabGroup index={chartDays === 7 ? 0 : chartDays === 30 ? 1 : 2} onIndexChange={(i) => setChartDays(i === 0 ? 7 : i === 1 ? 30 : 90)}>
+              <TabList variant="solid">
+                <Tab>7D</Tab>
+                <Tab>30D</Tab>
+                <Tab>90D</Tab>
+              </TabList>
+            </TabGroup>
+          </div>
+          <AreaChart
+            className="h-72 mt-4"
+            data={trends}
+            index="date"
+            categories={["App Fees", "Tuition"]}
+            colors={["blue", "purple"]}
+            valueFormatter={(v) => `₦${v.toLocaleString()}`}
+            showAnimation={true}
+            curveType="monotone"
+          />
+        </Card>
+
         {/* Search & Filters */}
-        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by name, email, or reference..."
+              placeholder="Filter by name, email, or reference..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-lg border-gray-200 py-2.5 pl-10 pr-4 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all"
             />
           </div>
           <select
             value={statusFilter}
-            onChange={(e) =>
-              setStatusFilter(e.target.value as "All" | PaymentStatus)
-            }
-            className="rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            onChange={(e) => setStatusFilter(e.target.value as "All" | PaymentStatus)}
+            className="rounded-lg border-gray-200 py-2.5 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all"
           >
             <option value="All">All Statuses</option>
             <option value="succeeded">Succeeded</option>
@@ -97,123 +139,123 @@ export default function PaymentsPage() {
           </select>
           <select
             value={typeFilter}
-            onChange={(e) =>
-              setTypeFilter(e.target.value as "All" | PaymentType)
-            }
-            className="rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            onChange={(e) => setTypeFilter(e.target.value as "All" | PaymentType)}
+            className="rounded-lg border-gray-200 py-2.5 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all"
           >
             <option value="All">All Types</option>
             <option value="application">Application Fee</option>
-            <option value="tuition">Tuition</option>
+            <option value="tuition">Tuition Building</option>
           </select>
         </div>
 
         {/* Transactions Table */}
-        <div className="mt-6 overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-          <table className="min-w-full divide-y divide-gray-300 bg-white">
-            <thead className="bg-gray-50">
+        <div className="mt-6 overflow-hidden bg-white shadow-sm border border-gray-100 rounded-xl">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50/50">
               <tr>
-                <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                  Date
-                </th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  User
-                </th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  Type
-                </th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  Reference
-                </th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  Amount
-                </th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  Status
-                </th>
-                <th className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                <th className="py-4 pl-6 pr-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Date</th>
+                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">User</th>
+                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Type</th>
+                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Reference</th>
+                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest text-right">Amount</th>
+                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Status</th>
+                <th className="relative py-4 pl-3 pr-6 text-right">
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
-              {isLoading ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="py-8 text-center text-sm text-gray-500"
+            <tbody className="divide-y divide-gray-100">
+              <AnimatePresence mode="popLayout">
+                {isLoading ? (
+                  <motion.tr 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    exit={{ opacity: 0 }}
                   >
-                    <Loader2 className="mx-auto h-5 w-5 animate-spin text-gray-400" />
-                  </td>
-                </tr>
-              ) : payments.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="py-8 text-center text-sm text-gray-500"
-                  >
-                    No transactions found.
-                  </td>
-                </tr>
-              ) : (
-                payments.map((payment) => (
-                  <tr
-                    key={payment._id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-500 sm:pl-6">
-                      {new Date(payment.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm">
-                      <div className="font-medium text-gray-900">
-                        {payment.userName}
+                    <td colSpan={7} className="py-12 text-center text-sm text-gray-500">
+                      <div className="flex flex-col items-center gap-3">
+                        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+                        <span className="font-medium">Loading transactions...</span>
                       </div>
-                      <div className="text-gray-500">{payment.userEmail}</div>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm">
-                      <span
-                        className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${typeBadge[payment.referenceType]}`}
-                      >
-                        {payment.referenceType === "application"
-                          ? "App Fee"
-                          : "Tuition"}
-                      </span>
+                  </motion.tr>
+                ) : (paymentsResultRaw.success === false) ? (
+                  <motion.tr 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    exit={{ opacity: 0 }}
+                  >
+                    <td colSpan={7} className="py-12 text-center text-sm text-red-600 font-medium">
+                      {paymentsResultRaw.error}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 font-mono">
-                      {payment.stripePaymentIntentId}
+                  </motion.tr>
+                ) : payments.length === 0 ? (
+                  <motion.tr 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    exit={{ opacity: 0 }}
+                  >
+                    <td colSpan={7} className="py-12 text-center text-sm text-gray-500">
+                      No transactions found for the selected filters.
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 font-medium">
-                      ₦{payment.amount.toLocaleString()}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm">
-                      <span
-                        className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${statusBadge[payment.status]}`}
-                      >
-                        {payment.status.charAt(0).toUpperCase() +
-                          payment.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 space-x-3">
-                      <button
-                        type="button"
-                        onClick={() => setDetailPayment(payment)}
-                        className="text-primary hover:text-primary/80"
-                      >
-                        View
-                      </button>
-                      {payment.status === "succeeded" && (
+                  </motion.tr>
+                ) : (
+                  payments.map((payment: any, idx: number) => (
+                    <motion.tr
+                      key={payment._id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      onClick={() => setDetailPayment(payment)}
+                      className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
+                    >
+                      <td className="whitespace-nowrap py-5 pl-6 pr-3 text-sm text-gray-600">
+                        {new Date(payment.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-5 text-sm">
+                        <div className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                          {payment.userName}
+                        </div>
+                        <div className="text-gray-400 text-xs">{payment.userEmail}</div>
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-5 text-sm">
+                        <Badge color={payment.referenceType === "application" ? "blue" : "purple"} size="xs">
+                          {payment.referenceType === "application" ? "Application" : "Tuition"}
+                        </Badge>
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-5 text-sm font-mono text-gray-400 text-xs">
+                        {payment.stripePaymentIntentId}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-900 font-bold text-right">
+                        ₦{payment.amount.toLocaleString()}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-5 text-sm">
+                        <Badge color={statusBadge[payment.status as PaymentStatus].color} size="xs">
+                          {statusBadge[payment.status as PaymentStatus].text}
+                        </Badge>
+                      </td>
+                      <td className="relative whitespace-nowrap py-5 pl-3 pr-6 text-right text-sm font-semibold space-x-4">
                         <button
                           type="button"
-                          onClick={() => setRefundPayment(payment)}
-                          className="text-red-600 hover:text-red-800"
+                          onClick={() => setDetailPayment(payment)}
+                          className="text-indigo-600 hover:text-indigo-900 transition-colors"
                         >
-                          Refund
+                          Details
                         </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
+                        {payment.status === "succeeded" && (
+                          <button
+                            type="button"
+                            onClick={() => setRefundPayment(payment)}
+                            className="text-gray-400 hover:text-red-600 transition-colors"
+                          >
+                            Refund
+                          </button>
+                        )}
+                      </td>
+                    </motion.tr>
+                  ))
+                )}
+              </AnimatePresence>
             </tbody>
           </table>
         </div>
@@ -227,13 +269,17 @@ export default function PaymentsPage() {
         payment={detailPayment}
       />
 
-      <RefundDialog
-        open={!!refundPayment}
-        onOpenChange={(open) => {
-          if (!open) setRefundPayment(null);
-        }}
-        payment={refundPayment}
-      />
-    </div>
+      <AnimatePresence>
+        {refundPayment && (
+          <RefundDialog
+            open={!!refundPayment}
+            onOpenChange={(open) => {
+              if (!open) setRefundPayment(null);
+            }}
+            payment={refundPayment}
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

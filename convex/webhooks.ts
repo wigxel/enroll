@@ -43,9 +43,9 @@ export const onUserCreated = internalMutation({
     // Resolve role: pending invite role → Applicant
     let roleRecord = pendingRoleName
       ? await ctx.db
-        .query("roles")
-        .withIndex("by_name", (q) => q.eq("name", pendingRoleName))
-        .unique()
+          .query("roles")
+          .withIndex("by_name", (q) => q.eq("name", pendingRoleName))
+          .unique()
       : null;
 
     if (!roleRecord) {
@@ -73,7 +73,8 @@ export const onUserCreated = internalMutation({
     const applicationId = publicMetadata.applicationId as string | undefined;
 
     if (applicationId) {
-      const appId = applicationId as import("./_generated/dataModel").Id<"applications">;
+      const appId =
+        applicationId as import("./_generated/dataModel").Id<"applications">;
       const app = await ctx.db.get(appId);
 
       if (app) {
@@ -82,7 +83,7 @@ export const onUserCreated = internalMutation({
 
         // If the application is already approved (it should be since we invite on approval)
         // Ensure there is a pending enrollment record for this student
-        if (app.status === "approved" || app.status === "enrolled" as any) {
+        if (app.status === "approved" || app.status === ("enrolled" as any)) {
           // Send notification to the newly created user
           await ctx.runMutation(internal.notifications.sendNotification, {
             type: "application_status_change",
@@ -190,7 +191,9 @@ export const onPaystackChargeSuccess = internalMutation({
     const payment = payments.find((p) => p.stripePaymentIntentId === reference);
 
     if (!payment) {
-      console.warn(`Payment record not found for Paystack reference: ${reference}`);
+      console.warn(
+        `Payment record not found for Paystack reference: ${reference}`,
+      );
       return;
     }
 
@@ -262,4 +265,3 @@ export const onPaystackChargeSuccess = internalMutation({
     }
   },
 });
-

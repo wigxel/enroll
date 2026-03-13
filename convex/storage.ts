@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { type Result, requireAuth } from "./utils";
 
 /**
  * Generates a short-lived upload URL for Convex file storage.
@@ -7,8 +8,12 @@ import { v } from "convex/values";
  */
 export const generateUploadUrl = mutation({
   args: {},
-  handler: async (ctx) => {
-    return await ctx.storage.generateUploadUrl();
+  handler: async (ctx): Promise<Result<string>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+
+    const url = await ctx.storage.generateUploadUrl();
+    return { success: true, data: url };
   },
 });
 
@@ -17,7 +22,8 @@ export const generateUploadUrl = mutation({
  */
 export const getFileUrl = query({
   args: { storageId: v.id("_storage") },
-  handler: async (ctx, args) => {
-    return await ctx.storage.getUrl(args.storageId);
+  handler: async (ctx, args): Promise<Result<string | null>> => {
+    const url = await ctx.storage.getUrl(args.storageId);
+    return { success: true, data: url };
   },
 });

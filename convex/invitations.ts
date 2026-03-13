@@ -1,5 +1,6 @@
 import { action, internalAction } from "./_generated/server";
 import { v } from "convex/values";
+import { type Result } from "./utils";
 import {
   sendInvitation,
   getPendingInvitations,
@@ -19,18 +20,22 @@ export const sendInvite = action({
     roleName: v.string(),
     redirectUrl: v.string(),
   },
-  handler: async (_ctx, args) => {
-    await sendInvitation({
-      emailAddress: args.email,
-      publicMetadata: {
-        pendingRole: args.roleName,
-        invitedFirstName: args.firstName,
-        invitedLastName: args.lastName,
-      },
-      redirectUrl: args.redirectUrl,
-    });
+  handler: async (_ctx, args): Promise<Result<null>> => {
+    try {
+      await sendInvitation({
+        emailAddress: args.email,
+        publicMetadata: {
+          pendingRole: args.roleName,
+          invitedFirstName: args.firstName,
+          invitedLastName: args.lastName,
+        },
+        redirectUrl: args.redirectUrl,
+      });
 
-    return { success: true };
+      return { success: true, data: null };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Failed to send invitation." };
+    }
   },
 });
 
@@ -39,8 +44,13 @@ export const sendInvite = action({
  */
 export const getPendingInvites = action({
   args: {},
-  handler: async () => {
-    return await getPendingInvitations();
+  handler: async (): Promise<Result<any>> => {
+    try {
+      const invites = await getPendingInvitations();
+      return { success: true, data: invites };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Failed to fetch pending invitations." };
+    }
   },
 });
 
@@ -51,9 +61,13 @@ export const revokeInvite = action({
   args: {
     invitationId: v.string(),
   },
-  handler: async (_ctx, args) => {
-    await revokeInvitation(args.invitationId);
-    return { success: true };
+  handler: async (_ctx, args): Promise<Result<null>> => {
+    try {
+      await revokeInvitation(args.invitationId);
+      return { success: true, data: null };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Failed to revoke invitation." };
+    }
   },
 });
 

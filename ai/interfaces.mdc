@@ -1,114 +1,125 @@
 struct UserStruct {
-\_id: String
-email: String
-name: String
-role: Role.\_id
-clerkId: String // The clerkUser Id
-profileImage: O.Option<String> // a profile image url
-createdAt: Timestamp(ISO)
-updatedAt: Timestamp(ISO)
+  _id: String
+  clerkId: String
+  email: String
+  name: String
+  role: Role._id
+  profileImage: O.Option<String>
+  createdAt: Timestamp(ISO)
+  updatedAt: Timestamp(ISO)
 }
 
 struct RoleStruct {
-\_id: String
-name: String
-description: String
-privileges: Array<String>
+  _id: String
+  name: String
+  description: String
+  privileges: Array<String>
 }
 
 struct CourseStruct {
-\_id: String
-name: String
-slug: String // URL-friendly identifier, e.g. "software-engineering"
-description: String
-duration: String
-certification: String
-coverPhoto: O.Option<String>
-tuitionFee: Number
-order: Number
-isActive: Boolean
-createdAt: Timestamp(ISO)
-updatedAt: Timestamp(ISO)
+  _id: String
+  name: String
+  slug: String
+  description: String
+  duration: String
+  certification: String
+  coverPhoto: O.Option<String>
+  tuitionFee: Number
+  order: Number
+  isActive: Boolean
+  createdAt: Timestamp(ISO)
+  updatedAt: Timestamp(ISO)
 }
 
 struct ApplicationStruct {
-\_id: String
-userId: User.\_id
-courseId: Course.\_id // Linked to a specific course (derived from URL slug)
-status: "draft" | "submitted" | "under_review" | "approved" | "declined"
-paymentStatus: "unpaid" | "paid"
-data: {
-firstName: String
-lastName: String
-dateOfBirth: String
-address: String
-phoneNumber: String
-educationalBackground: String
-// Add other relevant fields as needed
-}
-submittedAt: O.Option<Timestamp(ISO)>
-reviewedAt: O.Option<Timestamp(ISO)>
-reviewedBy: O.Option<User.\_id>
-rejectionReason: O.Option<String>
-createdAt: Timestamp(ISO)
-updatedAt: Timestamp(ISO)
+  _id: String
+  userId: O.Option<User._id>
+  status: "draft" | "submitted" | "under_review" | "approved" | "declined"
+  paymentStatus: "unpaid" | "paid"
+  data: {
+    firstName: String
+    lastName: String
+    email: String
+    dateOfBirth: String
+    gender: String
+    address: String
+    phoneNumber: String
+    educationalBackground: String
+    courseId: Course._id
+  }
+  submittedAt: O.Option<Timestamp(ISO)>
+  reviewedAt: O.Option<Timestamp(ISO)>
+  reviewedBy: O.Option<User._id>
+  rejectionReason: O.Option<String>
+  createdAt: Timestamp(ISO)
+  updatedAt: Timestamp(ISO)
 }
 
 struct PaymentStruct {
-\_id: String
-userId: User.\_id
-referenceId: String // ID of the related entity (Application.\_id or Enrollment.\_id)
-referenceType: "application" | "tuition"
-amount: Number
-currency: String
-stripePaymentIntentId: String
-status: "pending" | "succeeded" | "failed"
-createdAt: Timestamp(ISO)
+  _id: String
+  userId: O.Option<User._id>
+  referenceId: String
+  referenceType: "application" | "tuition"
+  amount: Number
+  currency: String
+  stripePaymentIntentId: String
+  status: "pending" | "succeeded" | "failed" | "refunded"
+  createdAt: Timestamp(ISO)
 }
 
 struct EnrollmentStruct {
-\_id: String
-userId: User.\_id
-applicationId: Application.\_id
-cohortId: O.Option<Cohort.\_id> // Null until assigned to a cohort
-steps: {
-tuitionPaid: Boolean
-quizPassed: Boolean
-documentsSigned: Boolean
-}
-status: "pending" | "completed"
-completedAt: O.Option<Timestamp(ISO)>
-createdAt: Timestamp(ISO)
-updatedAt: Timestamp(ISO)
+  _id: String
+  userId: User._id
+  applicationId: Application._id
+  cohortId: O.Option<Cohort._id>
+  steps: {
+    tuitionPaid: Boolean
+    quizPassed: Boolean
+    documentsSigned: Boolean
+  }
+  status: "pending" | "completed"
+  completedAt: O.Option<Timestamp(ISO)>
+  createdAt: Timestamp(ISO)
+  updatedAt: Timestamp(ISO)
 }
 
 struct NotificationStruct {
-\_id: String
-userId: User.\_id // Recipient's User.\_id
-type: String // "application_status_change" | "payment_received" | "payment_refunded" | "tuition_payment_received" | "enrollment_step_complete" | "enrollment_completed" | "application_submitted" | "payment_failed" | "payment_disputed" | "application_stalled" | "quiz_failed" | "system_alert"
-title: String
-body: String
-relatedEntityId: O.Option<String>
-relatedEntityType: O.Option<String>
-isRead: Boolean
-isArchived: Boolean
-createdAt: Timestamp(ISO)
+  _id: String
+  userId: User._id
+  type: String
+  title: String
+  body: String
+  relatedEntityId: O.Option<String>
+  relatedEntityType: O.Option<String>
+  isRead: Boolean
+  isArchived: Boolean
+  createdAt: Timestamp(ISO)
 }
 
 struct CohortStruct {
-\_id: String
-name: String // e.g., "Fall 2026 Bootcamp"
-startDate: Timestamp(ISO)
-endDate: Timestamp(ISO)
-capacity: O.Option<Number>
+  _id: String
+  name: String
+  startDate: Timestamp(ISO)
+  endDate: Timestamp(ISO)
+  capacity: O.Option<Number>
+}
+
+struct QuizQuestionStruct {
+  _id: String
+  question: String
+  options: Array<String>
+  correctOptionIndex: Number
+  isActive: Boolean
+  createdAt: Number
+  updatedAt: Number
 }
 
 struct SettingsStruct {
-\_id: String
-isAcceptingApplications: Boolean
-openDate: O.Option<Timestamp(ISO)>
-closeDate: O.Option<Timestamp(ISO)>
-applicationFeeAmount: Number
-tuitionFeeAmount: Number
-updatedAt: Timestamp(ISO)
+  _id: String
+  isAcceptingApplications: Boolean
+  openDate: O.Option<Timestamp(ISO)>
+  closeDate: O.Option<Timestamp(ISO)>
+  applicationFeeAmount: Number
+  tuitionFeeAmount: Number
+  updatedAt: Timestamp(ISO)
 }

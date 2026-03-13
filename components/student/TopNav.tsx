@@ -23,7 +23,9 @@ const applicantNav: NavItem[] = [
   { name: "My Application", href: "/student/application-pending" },
 ];
 
-const enrollmentNav: NavItem[] = [{ name: "Enrollment", href: "/student/enrollment" }];
+const enrollmentNav: NavItem[] = [
+  { name: "Enrollment", href: "/student/enrollment" },
+];
 
 const studentNav: NavItem[] = [
   { name: "Home", href: "/student/dashboard" },
@@ -83,7 +85,7 @@ export function TopNav() {
                     "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-primary/10 text-primary"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
                   )}
                 >
                   {item.name}

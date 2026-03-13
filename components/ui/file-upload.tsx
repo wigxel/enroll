@@ -91,7 +91,10 @@ export function FileUpload({
 
       try {
         // Step 1 — get a short-lived upload URL from Convex
-        const uploadUrl = await generateUploadUrl();
+        const res = await generateUploadUrl();
+        if (!res.success) throw new Error(res.error);
+        const uploadUrl = res.data;
+
         setState({ status: "uploading", progress: 30 });
 
         // Step 2 — POST the file to the upload URL

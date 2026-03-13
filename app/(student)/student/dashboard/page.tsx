@@ -1,17 +1,18 @@
 "use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import {
-  GraduationCap,
+  ArrowRight,
   BookOpen,
   CalendarDays,
   CheckCircle2,
-  User,
+  GraduationCap,
   Loader2,
 } from "lucide-react";
+import Image from "next/image";
+import Link from 'next/link'
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { api } from "@/convex/_generated/api";
 
 const resourceCards = [
   {
@@ -36,13 +37,16 @@ const resourceCards = [
 
 export default function StudentDashboardPage() {
   const router = useRouter();
-  const user = useQuery(api.users.getCurrentUser);
-  const application = useQuery(api.applications.getMyApplication);
-  const enrollment = useQuery(api.enrollments.get);
+  const userResult = useQuery(api.users.getCurrentUser);
+  const user = userResult?.success ? userResult.data : null;
+  const applicationResult = useQuery(api.applications.getMyApplication);
+  const application = applicationResult?.success ? applicationResult.data : null;
+  const enrollmentResult = useQuery(api.enrollments.get);
+  const enrollment = enrollmentResult?.success ? enrollmentResult.data : null;
 
   useEffect(() => {
-    if (application !== undefined && enrollment !== undefined) {
-      // If no application OR application is not 'approved' OR not enrolled, 
+    if (applicationResult?.success && enrollmentResult?.success) {
+      // If no application OR application is not 'approved' OR not enrolled,
       // they should be see the status/pending page instead of the dashboard.
       const isApprovedValue = application?.status === "approved";
       const isEnrolledValue = !!enrollment;
@@ -51,9 +55,13 @@ export default function StudentDashboardPage() {
         router.replace("/student/application-pending");
       }
     }
-  }, [application, enrollment, router]);
+  }, [applicationResult, enrollmentResult, application, enrollment, router]);
 
-  if (user === undefined || application === undefined || enrollment === undefined) {
+  if (
+    userResult === undefined ||
+    applicationResult === undefined ||
+    enrollmentResult === undefined
+  ) {
     return (
       <div className="flex flex-1 items-center justify-center p-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -67,7 +75,6 @@ export default function StudentDashboardPage() {
   }
 
   if (!user) return null;
-
 
   const initials = user.name
     ? user.name
@@ -84,9 +91,11 @@ export default function StudentDashboardPage() {
         <div className="flex items-center gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
             {user.profileImage ? (
-              <img
+              <Image
                 src={user.profileImage}
                 alt={user.name}
+                width={56}
+                height={56}
                 className="h-14 w-14 rounded-full object-cover"
               />
             ) : (
@@ -108,10 +117,17 @@ export default function StudentDashboardPage() {
       </div>
 
       {/* Enrollment Summary */}
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold text-gray-900">
-          Enrollment Summary
-        </h2>
+      {enrollment?.status !== "completed" ? <section className="mt-8">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Enrollment Summary
+          </h2>
+          <Link href="/student/application-pending" className="inline-flex gap-1 items-center">
+            <span>View details</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3">
@@ -120,7 +136,9 @@ export default function StudentDashboardPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-emerald-600">
-                  {enrollment.status === "completed" ? "Enrolled" : "In Progress"}
+                  {enrollment.status === "completed"
+                    ? "Enrolled"
+                    : "In Progress"}
                 </p>
               </div>
             </div>
@@ -146,15 +164,16 @@ export default function StudentDashboardPage() {
               <div>
                 <p className="text-xs text-gray-500">Enrolled On</p>
                 <p className="text-sm font-semibold text-gray-900">
-                  {enrollment.completedAt ? (
-                    new Date(enrollment.completedAt).toLocaleDateString("en-NG", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })
-                  ) : (
-                    "In Progress"
-                  )}
+                  {enrollment.completedAt
+                    ? new Date(enrollment.completedAt).toLocaleDateString(
+                      "en-NG",
+                      {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      },
+                    )
+                    : "In Progress"}
                 </p>
               </div>
             </div>
@@ -185,7 +204,7 @@ export default function StudentDashboardPage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> : null}
 
       {/* Student Resources */}
       <section className="mt-10">
@@ -216,31 +235,6 @@ export default function StudentDashboardPage() {
               </div>
             );
           })}
-        </div>
-      </section>
-
-      {/* Profile Preview */}
-      <section className="mt-10">
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              {user.profileImage ? (
-                <img
-                  src={user.profileImage}
-                  alt={user.name}
-                  className="h-12 w-12 rounded-full object-cover"
-                />
-              ) : (
-                <User className="h-5 w-5 text-primary" />
-              )}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-900">
-                {user.name}
-              </p>
-              <p className="text-xs text-gray-500">{user.email}</p>
-            </div>
-          </div>
         </div>
       </section>
     </div>

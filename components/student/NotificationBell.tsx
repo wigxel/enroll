@@ -21,13 +21,15 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 function useUnreadCount() {
-  const count = useQuery(api.notifications.getUnreadCount);
-  return count ?? 0;
+  const result = useQuery(api.notifications.getUnreadCount);
+  return result?.success ? result.data : 0;
 }
 
 function useRecentNotifications(): (Notification & { _id: string })[] {
-  const data = useQuery(api.notifications.list, { filter: "all" });
-  if (!data) return [];
+  const result = useQuery(api.notifications.list, { filter: "all" });
+  if (!result?.success) return [];
+
+  const data = result.data;
 
   return data.notifications.map((n) => ({
     id: n._id,
@@ -94,7 +96,8 @@ export function NotificationBell() {
   const handleNotificationClick = async (id: string, isRead: boolean) => {
     if (!isRead) {
       try {
-        await markAsRead({ notificationId: id as any });
+        const res = await markAsRead({ notificationId: id as any });
+        if (!res.success) console.error("Failed to mark as read:", res.error);
       } catch (err) {
         console.error("Failed to mark as read:", err);
       }
@@ -144,7 +147,12 @@ export function NotificationBell() {
                 <Link
                   key={notification.id}
                   href={notification.href}
-                  onClick={() => handleNotificationClick(notification._id, notification.isRead)}
+                  onClick={() =>
+                    handleNotificationClick(
+                      notification._id,
+                      notification.isRead,
+                    )
+                  }
                   className={`flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${!notification.isRead ? "bg-primary/[0.02]" : ""
                     }`}
                 >
@@ -155,8 +163,8 @@ export function NotificationBell() {
                     <div className="flex items-start justify-between gap-2">
                       <p
                         className={`text-sm truncate ${!notification.isRead
-                          ? "font-semibold text-gray-900"
-                          : "font-medium text-gray-700"
+                            ? "font-semibold text-gray-900"
+                            : "font-medium text-gray-700"
                           }`}
                       >
                         {notification.title}

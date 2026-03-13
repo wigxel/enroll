@@ -136,4 +136,5 @@ export const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-export const isDevelopment = (): boolean => Object.is(process.env.NODE_ENV, "development");
+export const isDevelopment = (): boolean =>
+  Object.is(process.env.NODE_ENV, "development");

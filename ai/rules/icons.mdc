@@ -1,0 +1,24 @@
+# Rule: Icon Usage
+
+All components and pages must use **Lucide React** (`lucide-react`) icons exclusively.
+
+## Guidelines
+
+1.  **Exclusivity**: Do not import or use icons from other libraries (e.g., Font Awesome, Heroicons, React Icons).
+2.  **Naming Convention**: Use the PascalCase component names provided by `lucide-react`.
+3.  **Styling**: Use Tailwind CSS classes for sizing and coloring icons (e.g., `className="w-4 h-4 text-gray-500"`).
+4.  **Consistency**: Before adding a new icon, check if an existing similar icon is already in use to maintain visual consistency.
+
+## Example
+
+```tsx
+import { Search } from "lucide-react";
+
+export function SearchButton() {
+  return (
+    <button className="p-2 border rounded-lg">
+      <Search className="w-5 h-5 text-indigo-600" />
+    </button>
+  );
+}
+```

@@ -1,6 +1,6 @@
 # Convex Integration Plan for Student Enrollment System
 
-This document outlines the plan for setting up the database schema and business logic in Convex to support the Student Enrollment System, focusing on the applicant-to-student lifecycle, application review, and enrollment steps.
+This document outlines the setup for the database schema and business logic in Convex to support the Student Enrollment System, focusing on the applicant-to-student lifecycle, application review, and enrollment steps.
 
 ## 1. Goal
 
@@ -8,155 +8,150 @@ To establish a robust backend in Convex with a database schema and server-side f
 
 ## 2. Database Schema Design
 
-The following tables will be created in Convex to store the application's data:
+The following tables are defined in `convex/schema.ts`:
 
 ### `users` Table
-
 Stores information about each user (Applicant, Student, Admin).
-
-- `_id`: Convex ID (Primary Key)
-- `clerkId`: String (Unique, for authentication via Clerk)
-- `email`: String (Unique)
+- `clerkId`: String (Index: `by_clerkId`)
+- `email`: String (Index: `by_email`)
 - `name`: String
-- `role`: Reference to `roles._id`
-- `createdAt`: DateTime
-- `updatedAt`: DateTime
+- `role`: Id("roles") (Index: `by_role`)
+- `profileImage`: Optional String
+- `createdAt`: String (ISO Timestamp)
+- `updatedAt`: String (ISO Timestamp)
 
 ### `roles` Table
-
 Defines the roles: "Applicant", "Student", "Admin".
-
-- `_id`: Convex ID (Primary Key)
-- `name`: String (Unique)
+- `name`: String (Index: `by_name`)
 - `description`: String
 - `privileges`: Array of Strings (e.g., `application:create`, `application:review`)
 
 ### `applications` Table
-
-Stores detailed application data submitted by applicants.
-
-- `_id`: Convex ID (Primary Key)
-- `userId`: Reference to `users._id`
-- `status`: String ("draft", "submitted", "under_review", "approved", "declined")
-- `paymentStatus`: String ("unpaid", "paid")
-- `data`: Object (Personal info, educational background, etc.)
-- `submittedAt`: DateTime (Optional)
-- `reviewedAt`: DateTime (Optional)
-- `reviewedBy`: Reference to `users._id` (Admin ID, Optional)
-- `rejectionReason`: String (Optional)
-- `createdAt`: DateTime
-- `updatedAt`: DateTime
+Stores applications submitted by applicants.
+- `userId`: Optional Id("users") (Index: `by_userId`)
+- `status`: "draft" | "submitted" | "under_review" | "approved" | "declined" (Index: `by_status`)
+- `paymentStatus`: "unpaid" | "paid" (Index: `by_paymentStatus`)
+- `data`: Object (firstName, lastName, email, dateOfBirth, gender, address, phoneNumber, educationalBackground, courseId)
+- `submittedAt`: Optional String (ISO Timestamp)
+- `reviewedAt`: Optional String (ISO Timestamp)
+- `reviewedBy`: Optional Id("users")
+- `rejectionReason`: Optional String
+- `createdAt`: String (ISO Timestamp)
+- `updatedAt`: String (ISO Timestamp)
 
 ### `payments` Table
-
 Tracks payments for application fees and tuition.
-
-- `_id`: Convex ID (Primary Key)
-- `userId`: Reference to `users._id`
-- `referenceId`: String (ID of Application or Enrollment)
-- `referenceType`: String ("application", "tuition")
+- `userId`: Optional Id("users") (Index: `by_userId`)
+- `referenceId`: String (Index: `by_referenceId`)
+- `referenceType`: "application" | "tuition"
 - `amount`: Number
 - `currency`: String
 - `stripePaymentIntentId`: String
-- `status`: String ("pending", "succeeded", "failed", "refunded")
-- `refundReason`: String (Optional)
-- `refundedAt`: DateTime (Optional)
-- `createdAt`: DateTime
+- `status`: "pending" | "succeeded" | "failed" | "refunded" (Index: `by_status`)
+- `createdAt`: String (ISO Timestamp)
 
 ### `enrollments` Table
-
-Tracks the post-approval enrollment checklist progress.
-
-- `_id`: Convex ID (Primary Key)
-- `userId`: Reference to `users._id`
-- `applicationId`: Reference to `applications._id`
-- `steps`: Object
-  - `tuitionPaid`: Boolean
-  - `quizPassed`: Boolean
-  - `documentsSigned`: Boolean
-- `status`: String ("pending", "completed")
-- `completedAt`: DateTime (Optional)
-- `createdAt`: DateTime
-- `updatedAt`: DateTime
+Tracks progress for approved applicants finishing the enrollment checklist.
+- `userId`: Id("users") (Index: `by_userId`)
+- `applicationId`: Id("applications") (Index: `by_applicationId`)
+- `cohortId`: Optional Id("cohorts") (Index: `by_cohortId`)
+- `steps`: Object (tuitionPaid, quizPassed, documentsSigned)
+- `status`: "pending" | "completed" (Index: `by_status`)
+- `completedAt`: Optional String (ISO Timestamp)
+- `createdAt`: String (ISO Timestamp)
+- `updatedAt`: String (ISO Timestamp)
 
 ### `notifications` Table
-
-Manages user notifications.
-
-- `_id`: Convex ID (Primary Key)
-- `userId`: Reference to `users._id`
-- `type`: String (e.g., "application_status_change")
+Manages system and user notifications.
+- `userId`: Id("users") (Index: `by_userId`)
+- `type`: String
 - `title`: String
 - `body`: String
-- `relatedEntityId`: String (Optional)
-- `relatedEntityType`: String (Optional)
-- `isRead`: Boolean
-- `isArchived`: Boolean
-- `createdAt`: DateTime
+- `relatedEntityId`: Optional String
+- `relatedEntityType`: Optional String
+- `isRead`: Boolean (Index: `by_userId_isRead`)
+- `isArchived`: Boolean (Index: `by_userId_isArchived`)
+- `createdAt`: String (ISO Timestamp)
+
+### `cohorts` Table
+Defines student cohorts (e.g., specific intake dates).
+- `name`: String (Index: `by_name`)
+- `startDate`: String
+- `endDate`: String
+- `capacity`: Optional Number
+
+### `courses` Table
+Defines available training programs.
+- `name`: String
+- `slug`: String (Index: `by_slug`)
+- `description`: String
+- `duration`: String
+- `certification`: String
+- `coverPhoto`: Optional String
+- `tuitionFee`: Number
+- `order`: Number (Index: `by_order`)
+- `isActive`: Boolean (Index: `by_isActive`)
+- `createdAt`: String
+- `updatedAt`: String
+
+### `quizQuestions` Table
+Stores questions for the orientation quiz.
+- `question`: String
+- `options`: Array of Strings
+- `correctOptionIndex`: Number
+- `isActive`: Boolean (Index: `by_isActive`)
+- `createdAt`: Number
+- `updatedAt`: Number
+
+### `settings` Table
+Global application settings.
+- `isAcceptingApplications`: Boolean
+- `openDate`: Optional String
+- `closeDate`: Optional String
+- `applicationFeeAmount`: Number
+- `tuitionFeeAmount`: Number
+- `updatedAt`: String
 
 ## 3. Convex Functions (Business Logic)
 
-Functions will handle data manipulation and enforce business rules.
+### Authentication & User Management (`convex/auth.ts`, `convex/users.ts`)
+- `auth.getCurrentUserWithRole`: Retrieves current user with role and privileges.
+- `users.createOrGetUser`: Upserts user record on first login.
+- `users.updateProfile`: Updates profile info.
+- `users.list`: Lists users with filtering (Admin).
+- `users.listStudents`: Lists students with enrollment enrichment (Admin).
+- `users.assignRole`: Changes user roles and syncs to Clerk.
+- `users.deleteUser`: Removes user from Convex and Clerk.
 
-### Authentication & User Management
+### Application Management (`convex/applications.ts`)
+- `applications.create`: Initializes a draft application.
+- `applications.update`: Updates draft data.
+- `applications.submit`: Finalizes submission (requires payment).
+- `applications.getMyApplication`: Current user's application.
+- `applications.getById`: Admin view of an application.
+- `applications.listPending`: Active review queue.
+- `applications.approve`: Moves applicant to enrollment phase.
+- `applications.decline`: Rejects application with reason.
 
-- `auth.login`: Handles user authentication via Clerk.
-- `auth.signup`: Registers a new user and assigns the default "Applicant" role.
-- `auth.getCurrentUser`: Retrieves current user details, role, and privileges.
-- `users.updateProfile`: Updates user profile information.
-- `users.assignRole(userId, roleId)`: Assigns a specific role to a user (Admin role).
-- `users.listStudents(filterOptions)`: Lists all users with the "Student" role, supporting search and pagination (Admin only).
+### Payment Processing (`convex/payments.ts`)
+- `payments.createIntent`: Generates a Paystack Payment Intent.
+- `payments.confirm`: Updates records after successful charge.
+- `payments.list`: Transaction history for Admins.
+- `payments.refund`: Processes Paystack refunds.
 
-### Application Management
+### Enrollment Workflow (`convex/enrollments.ts`, `convex/quizzes.ts`)
+- `enrollments.get`: Personal checklist.
+- `enrollments.updateStep`: Updates individual step progress.
+- `enrollments.complete`: Promotes user to "Student" role.
+- `enrollments.submitQuiz`: Grades quiz and updates progress.
 
-- `applications.create`: Creates a new application draft for the current user.
-- `applications.update`: Updates application data (only if status is "draft").
-- `applications.submit`: Submits the application (requires payment confirmation).
-- `applications.getMyApplication`: Retrieves the current user's application.
-- `applications.getById`: Retrieves any application's full details (Admin only).
-- `applications.listPending`: Lists all applications with status "submitted" or "under_review" (Admin only).
-- `applications.approve(applicationId)`: Updates application status to `"approved"`, creates `EnrollmentStruct`, sends notification (Admin only).
-- `applications.decline({ applicationId, rejectionReason })`: Updates application status to `"declined"`, **automatically refunds the application fee** (if paid) via `payments.refund`, and sends notifications (Admin only).
+### Notifications (`convex/notifications.ts`)
+- `notifications.list`: Retrieves user's notifications.
+- `notifications.markAsRead`: Updates read status.
+- `internal.sendNotification`: Creates notifications on system events.
 
-### Payment Processing
+## 4. Integration Details
 
-- `payments.createIntent`: Creates a Paystack payment intent for application fee or tuition.
-- `payments.confirm`: Webhook handler or client confirmation to update payment status in DB.
-- `payments.refund({ paymentId, reason })`: Processes a refund via the Paystack Refunds API. Updates `PaymentStruct.status` to `"refunded"`. Called automatically by `applications.decline`, or manually from the Payments page.
-- `payments.list`: Retrieves a list of all payment logs with filtering by user or status (Admin only).
-
-### Enrollment Workflow
-
-- `enrollments.get`: Retrieves the current user's enrollment checklist.
-- `enrollments.getById`: Retrieves any student's enrollment progress and status (Admin only).
-- `enrollments.updateStep`: Updates the status of a specific step (e.g., quiz passed, document signed).
-- `enrollments.complete`: Finalizes enrollment if all steps are done.
-  - Updates user role from "Applicant" to "Student".
-
-### Notifications
-
-- `notifications.listOwn({ filter, cursor })`: Paginated list of notifications for the current user (Applicant/Student).
-- `notifications.listAdmin({ filter, page })`: Paginated list of admin-targeted notifications (Admin only).
-- `notifications.getUnreadCount()`: Reactive query returning unread notification count for the current user.
-- `notifications.list`: Retrieves notifications for the current user.
-- `notifications.markAsRead`: Marks a notification as read.
-- `notifications.markAllAsRead`: Bulk marks all notifications for the current user as read.
-- `internal.sendNotification`: Internal helper to create notifications on events (e.g., application approved).
-
-## 4. Authentication and Authorization Flow
-
-1.  **Login:** Users authenticate via Clerk.
-2.  **Role Assignment:** New users start as "Applicant".
-3.  **Privilege Check:** Convex functions check `roles.privileges` before executing sensitive actions (e.g., `application:review` requires Admin role).
-4.  **State Transitions:**
-    - Applicant -> (Submit App + Pay Fee) -> Pending Review
-    - Pending Review -> (Admin Approve) -> Approved (Enrollment Starts)
-    - Pending Review -> (Admin Decline) -> Declined + **Automatic Application Fee Refund**
-    - Enrollment (Tuition + Quiz + Sign) -> (Complete) -> Student Role Assigned.
-
-## 5. Next Steps
-
-- Implement schema in `convex/schema.ts`.
-- Develop `auth`, `users`, `applications`, `payments`, and `enrollments` modules.
-- Integrate Stripe for payments.
-- Build frontend forms and dashboards corresponding to these backend functions.
+- **Payments**: Powered by Paystack.
+- **Auth**: Clerk integration with JWT validation.
+- **Roles**: Enforced via RBAC using `roles.privileges`.

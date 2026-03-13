@@ -1,14 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useAction, useQuery } from "convex/react";
+import { Clock, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChangeRoleDialog } from "~/components/admin/dialogs/ChangeRoleDialog";
+import { InviteAdminDialog } from "~/components/admin/dialogs/InviteAdminDialog";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
-import { Plus, Pencil, Trash2, Loader2, X, Clock } from "lucide-react";
-import { InviteAdminDialog } from "~/components/admin/dialogs/InviteAdminDialog";
-import { ChangeRoleDialog } from "~/components/admin/dialogs/ChangeRoleDialog";
-import { useAction } from "convex/react";
-import { useEffect } from "react";
 import { cn } from "~/lib/utils";
 
 const ADMIN_ROLE_NAMES = ["Admin", "Staff", "Auditor"];
@@ -37,8 +35,12 @@ export default function TeamSettingsPage() {
   const fetchInvites = async () => {
     setIsLoadingInvites(true);
     try {
-      const invites = await getPendingInvites();
-      setPendingInvites(invites);
+      const res = await getPendingInvites();
+      if (res.success) {
+        setPendingInvites(res.data);
+      } else {
+        console.error("Failed to load invites:", res.error);
+      }
     } catch (err) {
       console.error("Failed to load invites:", err);
     } finally {
@@ -46,27 +48,28 @@ export default function TeamSettingsPage() {
     }
   };
 
-  useEffect(() => {
-    fetchInvites();
-  }, []);
 
   const roles = useQuery(api.auth.listRoles);
-  const adminRoleIds = roles
-    ?.filter((r) => ADMIN_ROLE_NAMES.includes(r.name))
-    .map((r) => r._id);
+  const adminRoleIds = roles?.success
+    ? roles.data.filter((r) => ADMIN_ROLE_NAMES.includes(r.name)).map((r) => r._id)
+    : []
 
   // We query all users and filter admin roles client-side, since we need
   // multiple role filters and the backend `list` supports one at a time.
   const usersResult = useQuery(api.users.list, {});
   const assignRole = useAction(api.users.assignRole);
 
-  const adminUsers = usersResult?.users?.filter((u) =>
-    adminRoleIds?.includes(u.role),
-  );
+  const adminUsers = usersResult?.success
+    ? (usersResult.data.users as any[]).filter((u) =>
+      adminRoleIds?.includes(u.role),
+    )
+    : [];
 
   const handleRemoveAdmin = async (userId: Id<"users">) => {
     // "Removing" an admin means downgrading them to Applicant
-    const applicantRole = roles?.find((r) => r.name === "Applicant");
+    const applicantRole = roles?.success
+      ? (roles.data as any[]).find((r: any) => r.name === "Applicant")
+      : null;
     if (!applicantRole) return;
 
     if (
@@ -77,13 +80,19 @@ export default function TeamSettingsPage() {
       return;
     }
 
-    await assignRole({ userId, newRoleId: applicantRole._id });
+    const res = await assignRole({ userId, newRoleId: applicantRole._id });
+    if (res && !res.success) {
+      alert(res.error);
+    }
   };
 
   const handleRevokeInvite = async (invitationId: string) => {
     if (!confirm("Are you sure you want to revoke this invitation?")) return;
     try {
-      await revokeInvite({ invitationId });
+      const res = await revokeInvite({ invitationId });
+      if (!res.success) {
+        throw new Error(res.error);
+      }
       await fetchInvites();
     } catch (err) {
       console.error("Failed to revoke invite:", err);
@@ -91,7 +100,11 @@ export default function TeamSettingsPage() {
     }
   };
 
-  const isLoading = !roles || !usersResult;
+  const isLoading = roles === undefined || usersResult === undefined;
+
+  useEffect(() => {
+    fetchInvites();
+  }, []);
 
   return (
     <>
@@ -165,7 +178,8 @@ export default function TeamSettingsPage() {
                       <span
                         className={cn(
                           "inline-flex rounded-full px-2 text-xs font-semibold leading-5",
-                          roleBadgeStyles[admin.roleName ?? ""] ?? "bg-gray-100 text-gray-800"
+                          roleBadgeStyles[admin.roleName ?? ""] ??
+                          "bg-gray-100 text-gray-800",
                         )}
                       >
                         {admin.roleName}
@@ -275,7 +289,8 @@ export default function TeamSettingsPage() {
                         <span
                           className={cn(
                             "inline-flex rounded-full px-2 text-xs font-semibold leading-5",
-                            roleBadgeStyles[roleName] ?? "bg-gray-100 text-gray-800"
+                            roleBadgeStyles[roleName] ??
+                            "bg-gray-100 text-gray-800",
                           )}
                         >
                           {roleName}

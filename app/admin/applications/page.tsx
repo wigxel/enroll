@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "~/convex/_generated/api";
+import { safeArray } from "@/lib/data.helpers";
 import { Search, ArrowRight, Filter, Loader2 } from "lucide-react";
 
 type ApplicationStatus =
@@ -31,21 +32,23 @@ export default function ApplicationsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
-  const result = useQuery(api.applications.listAll, {
+  const resultRaw = useQuery(api.applications.listAll, {
     statusFilter: statusFilter === "all" ? undefined : statusFilter,
     search: search || undefined,
   });
 
-  const isLoading = result === undefined;
-  const applications = result?.applications ?? [];
-  const counts = result?.counts ?? {
-    all: 0,
-    submitted: 0,
-    under_review: 0,
-    approved: 0,
-    declined: 0,
-    draft: 0,
-  };
+  const isLoading = resultRaw === undefined;
+  const applications = resultRaw?.success ? resultRaw.data.applications : [];
+  const counts = resultRaw?.success
+    ? resultRaw.data.counts
+    : {
+      all: 0,
+      submitted: 0,
+      under_review: 0,
+      approved: 0,
+      declined: 0,
+      draft: 0,
+    };
 
   return (
     <div className="py-8">
@@ -74,11 +77,10 @@ export default function ApplicationsPage() {
               key={status}
               type="button"
               onClick={() => setStatusFilter(status)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                statusFilter === status
-                  ? "bg-primary text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${statusFilter === status
+                ? "bg-primary text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
             >
               {status === "all"
                 ? "All"
@@ -110,6 +112,10 @@ export default function ApplicationsPage() {
         {isLoading ? (
           <div className="mt-12 flex justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        ) : (resultRaw.success === false) ? (
+          <div className="mt-12 p-4 text-center text-red-600 bg-red-50 rounded-lg">
+            {resultRaw.error}
           </div>
         ) : applications.length === 0 ? (
           <div className="mt-12 flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white px-6 py-12 text-center">

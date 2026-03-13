@@ -30,6 +30,7 @@ const navigation = [
   { name: "Applications", href: "/admin/applications", icon: FileText },
   { name: "Students", href: "/admin/users", icon: GraduationCap },
   { name: "Courses", href: "/admin/courses", icon: BookOpen },
+  { name: "Quizzes", href: "/admin/quizzes", icon: BookOpen },
   { name: "Cohorts", href: "/admin/cohorts", icon: Layers },
   { name: "Payments", href: "/admin/payments", icon: CreditCard },
   { name: "Notifications", href: "/admin/notifications", icon: Bell },
@@ -52,7 +53,8 @@ export function Sidebar() {
   const avatarUrl = user?.imageUrl;
 
   // Retrieve user object from Convex to show their assigned role
-  const currentUser = useQuery(api.users.getCurrentUser);
+  const currentUserResult = useQuery(api.users.getCurrentUser);
+  const currentUser = currentUserResult?.success ? currentUserResult.data : null;
   const role = currentUser?.role ?? "User";
 
   return (
@@ -74,7 +76,7 @@ export function Sidebar() {
                   "group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary/10 text-primary"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                 )}
               >
                 <item.icon
@@ -82,7 +84,7 @@ export function Sidebar() {
                     "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
                     isActive
                       ? "text-primary"
-                      : "text-gray-400 group-hover:text-gray-500"
+                      : "text-gray-400 group-hover:text-gray-500",
                   )}
                   aria-hidden="true"
                 />
@@ -149,7 +151,7 @@ export function Sidebar() {
             <button
               type="button"
               className={cn(
-                "group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                "group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900",
               )}
               onClick={() => router.push("/logout")}
             >

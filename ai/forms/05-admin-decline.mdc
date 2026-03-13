@@ -35,17 +35,15 @@ z.object({
 2. Modal opens with the form.
 3. On submit:
    - Calls `applications.decline({ applicationId, rejectionReason })`.
-   - Convex mutation sets `ApplicationStruct.status` to `"declined"` and `rejectionReason` to the provided value.
-   - **Automatic Refund:** If the applicant has a `succeeded` application fee payment, the mutation automatically calls `payments.refund({ paymentId, reason: rejectionReason })` to refund the application fee via the Paystack Refunds API. The `PaymentStruct.status` is updated to `"refunded"`.
-   - Creates a `NotificationStruct` for the applicant with `type: "application_status_change"`.
-   - Creates an additional `NotificationStruct` with `type: "payment_refunded"` informing the applicant their application fee has been refunded.
+   - Convex mutation sets `ApplicationStruct.status` to `"declined"`.
+   - **Automatic Refund:** If the applicant has a `succeeded` application fee payment, the system processes a refund via the Paystack API.
+   - Creates a `NotificationStruct` for the applicant.
 4. On success: modal closes, application list refreshes, success toast shown ("Application declined and fee refunded").
 
 ## Error Handling
 - Inline validation on `rejectionReason`.
-- Convex mutation errors caught and shown as an error toast.
-- If refund fails (e.g., Paystack API error), the decline still proceeds but a warning notification is created for admins to manually process the refund from the Payments page.
+- If refund fails, the decline still proceeds but a warning is flagged for admins to manually process the refund.
 
 ## Related Convex Functions
-- `applications.decline({ applicationId, rejectionReason })` — updates status, triggers automatic refund, and creates notifications.
-- `payments.refund({ paymentId, reason })` — called internally to process the refund via Paystack.
+- `applications.decline({ applicationId, rejectionReason })` — updates status and triggers automatic refund.
+- `payments.refund({ paymentId, reason })` — processes the refund via Paystack.

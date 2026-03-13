@@ -12,7 +12,7 @@ import { Input } from "~/components/ui/input";
 // To submit the final form, they just need to confirm.
 export const reviewSubmissionSchema = z.object({
   confirm: z.literal(true, {
-    message: "You must confirm the information is accurate"
+    message: "You must confirm the information is accurate",
   }),
 });
 
@@ -74,9 +74,7 @@ export const ReviewSubmission = React.forwardRef<
             </div>
             <div className="grid grid-cols-3 gap-2 border-b pb-2">
               <span className="font-medium text-gray-500">Email:</span>
-              <span className="col-span-2 text-gray-900">
-                {formData.email}
-              </span>
+              <span className="col-span-2 text-gray-900">{formData.email}</span>
             </div>
             <div className="grid grid-cols-3 gap-2 border-b pb-2">
               <span className="font-medium text-gray-500">Gender:</span>

@@ -1,16 +1,46 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "~/convex/_generated/api";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 export default function FeesSettingsPage() {
-  const [applicationFee, setApplicationFee] = useState("15000");
-  const [saved, setSaved] = useState(false);
+  const settingsResult = useQuery(api.settings.get);
+  const updateSettings = useMutation(api.settings.update);
 
-  const handleSave = () => {
-    // TODO: call config.updateFees({ applicationFee })
-    console.log("Save fee settings", { applicationFee });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const [applicationFee, setApplicationFee] = useState("0");
+  const [isAccepting, setIsAccepting] = useState(true);
+  const [saved, setSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (settingsResult?.success && settingsResult.data) {
+      setApplicationFee(settingsResult.data.applicationFeeAmount.toString());
+      setIsAccepting(settingsResult.data.isAcceptingApplications);
+    }
+  }, [settingsResult]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const res = await updateSettings({
+        isAcceptingApplications: isAccepting,
+        applicationFeeAmount: parseInt(applicationFee) || 0,
+      });
+      if (res.success) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+        toast.success("Fee settings saved successfully");
+      } else {
+        toast.error(res.error);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save fees");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -56,9 +86,10 @@ export default function FeesSettingsPage() {
         <button
           type="button"
           onClick={handleSave}
-          className="rounded-md bg-primary px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90"
+          disabled={isSaving || settingsResult === undefined}
+          className="rounded-md bg-primary px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 disabled:opacity-50"
         >
-          Save Changes
+          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
         </button>
       </div>
     </div>

@@ -52,7 +52,7 @@ async function verifyWebhook(request: Request): Promise<unknown> {
   const computedSig = btoa(
     Array.from(new Uint8Array(signature))
       .map((b) => String.fromCharCode(b))
-      .join("")
+      .join(""),
   );
 
   // Svix may send multiple signatures (comma-separated "v1,<base64>")
@@ -137,7 +137,9 @@ async function verifyPaystackWebhook(request: Request): Promise<unknown> {
   const secret = process.env.PAYSTACK_SECRET_KEY;
 
   if (!secret) {
-    throw new Error("PAYSTACK_SECRET_KEY is not set in the Convex environment variables.");
+    throw new Error(
+      "PAYSTACK_SECRET_KEY is not set in the Convex environment variables.",
+    );
   }
 
   // 2. Signature Validation
@@ -164,7 +166,9 @@ async function verifyPaystackWebhook(request: Request): Promise<unknown> {
 
   // Convert ArrayBuffer to hex string
   const hashArray = Array.from(new Uint8Array(signature));
-  const computedHash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  const computedHash = hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 
   if (computedHash !== paystackSignature) {
     throw new Error("Invalid Paystack webhook signature.");

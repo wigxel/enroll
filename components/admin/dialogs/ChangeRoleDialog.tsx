@@ -34,10 +34,12 @@ export function ChangeRoleDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const roles = useQuery(api.auth.listRoles);
+  const rolesResult = useQuery(api.auth.listRoles);
   const assignRole = useAction(api.users.assignRole);
 
-  const adminRoles = roles?.filter((r) => ADMIN_ROLE_NAMES.includes(r.name));
+  const adminRoles = rolesResult?.success
+    ? rolesResult.data.filter((r: any) => ADMIN_ROLE_NAMES.includes(r.name))
+    : [];
 
   useEffect(() => {
     setSelectedRoleId(user.roleId);
@@ -47,7 +49,8 @@ export function ChangeRoleDialog({
     setError(null);
     setIsSubmitting(true);
     try {
-      await assignRole({ userId: user.id, newRoleId: selectedRoleId });
+      const res = await assignRole({ userId: user.id, newRoleId: selectedRoleId });
+      if (!res.success) throw new Error(res.error);
       onOpenChange(false);
       onSuccess?.();
     } catch (err) {

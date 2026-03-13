@@ -32,10 +32,11 @@ export function RefundDialog({
     if (!payment) return;
     setIsProcessing(true);
     try {
-      await refundPayment({
+      const res = await refundPayment({
         paymentId: payment._id as Id<"payments">,
         reason,
       });
+      if (!res.success) throw new Error(res.error);
       setReason("");
       onOpenChange(false);
     } catch (error) {

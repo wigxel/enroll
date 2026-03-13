@@ -1,12 +1,12 @@
-import { query, mutation, action, internalMutation } from "./_generated/server";
-import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { requireAuth, requirePrivilege, now } from "./utils";
-import { Id } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
+import { action, internalMutation, mutation, query } from "./_generated/server";
+import { now, type Result, requireAuth, requirePrivilege } from "./utils";
 
 /**
  * Creates a payment intent stub.
- * In production, this would call Stripe/Paystack to create a real payment intent.
+ * In production, this would call Paystack to create a real payment intent.
  */
 export const createIntent = action({
   args: {
@@ -15,10 +15,10 @@ export const createIntent = action({
     amount: v.number(),
     currency: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Result<any>> => {
     const identity = await ctx.auth.getUserIdentity();
 
-    // In production: call Stripe/Paystack API to create a payment intent
+    // In production: call Paystack API to create a payment intent
     // const paymentIntent = await stripe.paymentIntents.create({ ... });
     const stripePaymentIntentId = `pi_stub_${Date.now()}`;
 
@@ -32,7 +32,7 @@ export const createIntent = action({
       stripePaymentIntentId,
     });
 
-    return { stripePaymentIntentId };
+    return { success: true, data: { stripePaymentIntentId } };
   },
 });
 
@@ -49,7 +49,7 @@ export const createPaymentRecord = internalMutation({
     stripePaymentIntentId: v.string(),
   },
   handler: async (ctx, args) => {
-    let userId: Id<"users"> | undefined = undefined;
+    let userId: Id<"users"> | undefined;
 
     if (args.clerkId) {
       const user = await ctx.db
@@ -84,14 +84,14 @@ export const confirm = mutation({
     stripePaymentIntentId: v.string(),
     status: v.union(v.literal("succeeded"), v.literal("failed")),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Result<null>> => {
     const payments = await ctx.db.query("payments").collect();
     const payment = payments.find(
       (p) => p.stripePaymentIntentId === args.stripePaymentIntentId,
     );
 
     if (!payment) {
-      throw new Error("Payment record not found.");
+      return { success: false, error: "Payment record not found." };
     }
 
     await ctx.db.patch(payment._id, {
@@ -132,7 +132,7 @@ export const confirm = mutation({
     // If tuition payment succeeded, update the enrollment step
     if (args.status === "succeeded" && payment.referenceType === "tuition") {
       if (!payment.userId) {
-        throw new Error("Tuition payments must be associated with a user.");
+        return { success: false, error: "Tuition payments must be associated with a user." };
       }
       const enrollment = await ctx.db
         .query("enrollments")
@@ -146,6 +146,8 @@ export const confirm = mutation({
         });
       }
     }
+
+    return { success: true, data: null };
   },
 });
 
@@ -168,8 +170,9 @@ export const list = query({
     search: v.optional(v.string()),
     page: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "payment:read:all");
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "payment:read:all");
+    if (!privResult.success) return privResult;
 
     let payments;
 
@@ -236,60 +239,220 @@ export const list = query({
     const paginated = filtered.slice(start, start + pageSize);
 
     return {
-      payments: paginated,
-      total: filtered.length,
-      page,
-      totalPages: Math.ceil(filtered.length / pageSize),
+      success: true,
+      data: {
+        payments: paginated,
+        total: filtered.length,
+        page,
+        totalPages: Math.ceil(filtered.length / pageSize),
+      }
     };
   },
 });
+
+/**
+ * Internal helper to calculate overall financial statistics.
+ */
+async function calculateOverallStats(ctx: any) {
+  const payments = await ctx.db.query("payments").collect();
+  const succeeded = payments.filter((p: any) => p.status === "succeeded");
+
+  const totalCollected = succeeded.reduce((sum: number, p: any) => sum + p.amount, 0);
+  const applicationFees = succeeded
+    .filter((p: any) => p.referenceType === "application")
+    .reduce((sum: number, p: any) => sum + p.amount, 0);
+  const tuitionCollected = succeeded
+    .filter((p: any) => p.referenceType === "tuition")
+    .reduce((sum: number, p: any) => sum + p.amount, 0);
+
+  return {
+    totalCollected,
+    applicationFees,
+    tuitionCollected,
+  };
+}
 
 /**
  * Admin: Returns aggregate revenue statistics.
+ * Prioritizes pre-calculated data from analytics_cache.
  */
 export const getStats = query({
   args: {},
-  handler: async (ctx) => {
-    await requirePrivilege(ctx, "payment:read:all");
+  handler: async (ctx): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "payment:read:all");
+    if (!privResult.success) return privResult;
 
-    const payments = await ctx.db.query("payments").collect();
-    const succeeded = payments.filter((p) => p.status === "succeeded");
+    const cacheKey = "revenue_stats_summary";
+    const cached = await ctx.db
+      .query("analytics_cache")
+      .withIndex("by_key", (q) => q.eq("key", cacheKey))
+      .unique();
 
-    const totalCollected = succeeded.reduce((sum, p) => sum + p.amount, 0);
-    const applicationFees = succeeded
-      .filter((p) => p.referenceType === "application")
-      .reduce((sum, p) => sum + p.amount, 0);
-    const tuitionCollected = succeeded
-      .filter((p) => p.referenceType === "tuition")
-      .reduce((sum, p) => sum + p.amount, 0);
+    if (cached) {
+      return {
+        success: true,
+        data: cached.data,
+      };
+    }
+
+    const data = await calculateOverallStats(ctx);
 
     return {
-      totalCollected,
-      applicationFees,
-      tuitionCollected,
+      success: true,
+      data,
     };
   },
 });
 
 /**
- * Admin: Processes a refund. In production, this would call the payment provider's refund API.
+ * Internal helper to calculate revenue trends.
+ */
+async function calculateTrends(ctx: any, days: number) {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+  const cutoffStr = cutoffDate.toISOString();
+
+  const payments = await ctx.db
+    .query("payments")
+    .withIndex("by_status", (q: any) => q.eq("status", "succeeded"))
+    .filter((q: any) => q.gte(q.field("createdAt"), cutoffStr))
+    .collect();
+
+  // Group by date (YYYY-MM-DD)
+  const grouped: Record<string, { date: string; Total: number; "App Fees": number; Tuition: number }> = {};
+
+  // Initialize map with all dates in range to ensure zero-point visibility
+  for (let i = 0; i < days; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const ds = d.toISOString().split("T")[0];
+    grouped[ds] = { date: ds, Total: 0, "App Fees": 0, Tuition: 0 };
+  }
+
+  payments.forEach((p: any) => {
+    const day = p.createdAt.split("T")[0];
+    if (grouped[day]) {
+      grouped[day].Total += p.amount;
+      if (p.referenceType === "application") {
+        grouped[day]["App Fees"] += p.amount;
+      } else {
+        grouped[day].Tuition += p.amount;
+      }
+    }
+  });
+
+  return Object.values(grouped).sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/**
+ * Admin: Returns revenue data points for charting.
+ * Prioritizes pre-calculated data from analytics_cache.
+ */
+export const getRevenueTrends = query({
+  args: {
+    days: v.optional(v.number()), // Defaults to 30 days
+  },
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "payment:read:all");
+    if (!privResult.success) return privResult;
+
+    const days = args.days ?? 30;
+    const cacheKey = `revenue_trends_${days}d`;
+
+    // Try reading from cache first
+    const cached = await ctx.db
+      .query("analytics_cache")
+      .withIndex("by_key", (q) => q.eq("key", cacheKey))
+      .unique();
+
+    if (cached) {
+      return {
+        success: true,
+        data: cached.data,
+      };
+    }
+
+    // Fallback to calculation if cache is missing (first run or expired)
+    const data = await calculateTrends(ctx, days);
+
+    return {
+      success: true,
+      data,
+    };
+  },
+});
+
+/**
+ * Internal: Aggregates revenue trends and updates the cache.
+ * Designed to be called by a cron job.
+ */
+export const refreshRevenueCache = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const timeframes = [7, 30, 90];
+    const now = new Date().toISOString();
+
+    // 1. Refresh Timeframe Trends
+    for (const days of timeframes) {
+      const data = await calculateTrends(ctx, days);
+      const cacheKey = `revenue_trends_${days}d`;
+
+      const existing = await ctx.db
+        .query("analytics_cache")
+        .withIndex("by_key", (q) => q.eq("key", cacheKey))
+        .unique();
+
+      if (existing) {
+        await ctx.db.patch(existing._id, { data, updatedAt: now });
+      } else {
+        await ctx.db.insert("analytics_cache", {
+          key: cacheKey,
+          data,
+          updatedAt: now,
+        });
+      }
+    }
+
+    // 2. Refresh Overall Summary Stats
+    const summaryData = await calculateOverallStats(ctx);
+    const summaryCacheKey = "revenue_stats_summary";
+
+    const existingSummary = await ctx.db
+      .query("analytics_cache")
+      .withIndex("by_key", (q) => q.eq("key", summaryCacheKey))
+      .unique();
+
+    if (existingSummary) {
+      await ctx.db.patch(existingSummary._id, { data: summaryData, updatedAt: now });
+    } else {
+      await ctx.db.insert("analytics_cache", {
+        key: summaryCacheKey,
+        data: summaryData,
+        updatedAt: now,
+      });
+    }
+  },
+});
+
+/**
+ * Admin: Processes a refund. In production, this would call Paystack's refund API.
  */
 export const refund = action({
   args: {
     paymentId: v.id("payments"),
     reason: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Result<null>> => {
     // --- AUTH BYPASSED FOR DEVELOPMENT ---
     // const identity = await ctx.auth.getUserIdentity();
     // if (!identity) {
-    //     throw new Error("Authentication required.");
+    //     return { success: false, error: "Authentication required." };
     // }
 
-    // In production: call Stripe/Paystack refund API
+    // In production: call Paystack refund API
     // const refund = await stripe.refunds.create({ payment_intent: payment.stripePaymentIntentId });
 
-    await ctx.runMutation(internal.payments.processRefund, {
+    return await ctx.runMutation(internal.payments.processRefund, {
       paymentId: args.paymentId,
       reason: args.reason,
     });
@@ -304,15 +467,16 @@ export const processRefund = internalMutation({
     paymentId: v.id("payments"),
     reason: v.string(),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "payment:refund");
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const privResult = await requirePrivilege(ctx, "payment:refund");
+    if (!privResult.success) return privResult;
 
     const payment = await ctx.db.get(args.paymentId);
     if (!payment) {
-      throw new Error("Payment not found.");
+      return { success: false, error: "Payment not found." };
     }
     if (payment.status !== "succeeded") {
-      throw new Error("Only succeeded payments can be refunded.");
+      return { success: false, error: "Only succeeded payments can be refunded." };
     }
 
     await ctx.db.patch(args.paymentId, {
@@ -328,5 +492,7 @@ export const processRefund = internalMutation({
       relatedEntityType: "payment",
       targetUserId: payment.userId,
     });
+
+    return { success: true, data: null };
   },
 });

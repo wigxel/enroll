@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requirePrivilege, now } from "./utils";
+import { requirePrivilege, now, type Result } from "./utils";
 import { Id } from "./_generated/dataModel";
 
 /**
@@ -8,15 +8,16 @@ import { Id } from "./_generated/dataModel";
  */
 export const listAll = query({
   args: {},
-  handler: async (ctx) => {
-    await requirePrivilege(ctx, "course:read:all");
+  handler: async (ctx): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "course:read:all");
+    if (!privResult.success) return privResult;
 
     const courses = await ctx.db
       .query("courses")
       .withIndex("by_order")
       .collect();
 
-    return courses;
+    return { success: true, data: courses };
   },
 });
 
@@ -26,7 +27,7 @@ export const listAll = query({
  */
 export const listActive = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<Result<any>> => {
     const courses = await ctx.db
       .query("courses")
       .withIndex("by_isActive", (q) => q.eq("isActive", true))
@@ -55,7 +56,7 @@ export const listActive = query({
       }),
     );
 
-    return coursesWithUrls;
+    return { success: true, data: coursesWithUrls };
   },
 });
 
@@ -64,14 +65,14 @@ export const listActive = query({
  */
 export const getBySlug = query({
   args: { slug: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Result<any>> => {
     const course = await ctx.db
       .query("courses")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
 
     if (!course || !course.isActive) {
-      return null;
+      return { success: false, error: "Course not found or inactive." };
     }
 
     let coverPhotoUrl: string | undefined = undefined;
@@ -81,8 +82,11 @@ export const getBySlug = query({
     }
 
     return {
-      ...course,
-      coverPhoto: coverPhotoUrl,
+      success: true,
+      data: {
+        ...course,
+        coverPhoto: coverPhotoUrl,
+      }
     };
   },
 });
@@ -102,8 +106,9 @@ export const create = mutation({
     tuitionFee: v.number(),
     isActive: v.boolean(),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "course:manage");
+  handler: async (ctx, args): Promise<Result<Id<"courses">>> => {
+    const privResult = await requirePrivilege(ctx, "course:manage");
+    if (!privResult.success) return privResult as any;
 
     // Determine the next order value
     const allCourses = await ctx.db.query("courses").collect();
@@ -127,7 +132,7 @@ export const create = mutation({
       updatedAt: timestamp,
     });
 
-    return courseId;
+    return { success: true, data: courseId };
   },
 });
 
@@ -146,12 +151,13 @@ export const update = mutation({
     tuitionFee: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "course:manage");
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const privResult = await requirePrivilege(ctx, "course:manage");
+    if (!privResult.success) return privResult;
 
     const course = await ctx.db.get(args.courseId);
     if (!course) {
-      throw new Error("Course not found.");
+      return { success: false, error: "Course not found." };
     }
 
     await ctx.db.patch(args.courseId, {
@@ -167,6 +173,8 @@ export const update = mutation({
       ...(args.isActive !== undefined && { isActive: args.isActive }),
       updatedAt: now(),
     });
+
+    return { success: true, data: null };
   },
 });
 
@@ -182,8 +190,9 @@ export const updateOrder = mutation({
       }),
     ),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "course:manage");
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const privResult = await requirePrivilege(ctx, "course:manage");
+    if (!privResult.success) return privResult;
 
     const timestamp = now();
     await Promise.all(
@@ -194,6 +203,8 @@ export const updateOrder = mutation({
         }),
       ),
     );
+
+    return { success: true, data: null };
   },
 });
 
@@ -202,8 +213,11 @@ export const updateOrder = mutation({
  */
 export const generateUploadUrl = mutation({
   args: {},
-  handler: async (ctx) => {
-    await requirePrivilege(ctx, "course:manage");
-    return await ctx.storage.generateUploadUrl();
+  handler: async (ctx): Promise<Result<string>> => {
+    const privResult = await requirePrivilege(ctx, "course:manage");
+    if (!privResult.success) return privResult as any;
+
+    const url = await ctx.storage.generateUploadUrl();
+    return { success: true, data: url };
   },
 });

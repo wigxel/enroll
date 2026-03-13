@@ -1,21 +1,26 @@
-import { query } from "./_generated/server";
 import { v } from "convex/values";
-import { getCurrentUser, getUserRole } from "./utils";
+import { safeArray } from '../lib/data.helpers'
+import { query } from "./_generated/server";
+import { getCurrentUser, getUserRole, type Result } from "./utils";
 
 /**
  * Get the current authenticated user with their role information.
  */
 export const getCurrentUserWithRole = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<Result<any>> => {
     const user = await getCurrentUser(ctx);
-    if (!user) return null;
+    if (!user) return { success: false, error: "Not authenticated" };
 
     const role = await getUserRole(ctx, user.role);
+
     return {
-      ...user,
-      roleName: role?.name ?? null,
-      privileges: role?.privileges ?? [],
+      success: true,
+      data: {
+        ...user,
+        roleName: role?.name ?? null,
+        privileges: role?.privileges ?? [],
+      }
     };
   },
 });
@@ -25,8 +30,9 @@ export const getCurrentUserWithRole = query({
  */
 export const listRoles = query({
   args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("roles").collect();
+  handler: async (ctx): Promise<Result<any[]>> => {
+    const roles = await ctx.db.query("roles").collect();
+    return { success: true, data: safeArray(roles) };
   },
 });
 
@@ -35,8 +41,10 @@ export const listRoles = query({
  */
 export const getRole = query({
   args: { roleId: v.id("roles") },
-  handler: async (ctx, args) => {
-    return await ctx.db.get(args.roleId);
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const role = await ctx.db.get(args.roleId);
+    if (!role) return { success: false, error: "Role not found" };
+    return { success: true, data: role };
   },
 });
 
@@ -46,14 +54,14 @@ export const getRole = query({
  */
 export const hasPrivilege = query({
   args: { privilege: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Result<boolean>> => {
     const user = await getCurrentUser(ctx);
-    if (!user) return false;
+    if (!user) return { success: true, data: false };
 
     const role = await ctx.db.get(user.role);
-    if (!role) return false;
+    if (!role) return { success: true, data: false };
 
-    return role.privileges.includes(args.privilege);
+    return { success: true, data: role.privileges.includes(args.privilege) };
   },
 });
 
@@ -63,15 +71,18 @@ export const hasPrivilege = query({
  */
 export const getUserWithRole = query({
   args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Result<any>> => {
     const user = await ctx.db.get(args.userId);
-    if (!user) return null;
+    if (!user) return { success: false, error: "User not found" };
 
     const role = await getUserRole(ctx, user.role);
     return {
-      ...user,
-      roleName: role?.name ?? null,
-      privileges: role?.privileges ?? [],
+      success: true,
+      data: {
+        ...user,
+        roleName: role?.name ?? null,
+        privileges: role?.privileges ?? [],
+      }
     };
   },
 });

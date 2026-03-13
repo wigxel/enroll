@@ -1,29 +1,71 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "~/convex/_generated/api";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 export default function ApplicationWindowSettingsPage() {
-  const [isAccepting, setIsAccepting] = useState(true);
-  const [openDate, setOpenDate] = useState("2026-03-01T00:00");
-  const [closeDate, setCloseDate] = useState("2026-06-30T23:59");
-  const [saved, setSaved] = useState(false);
+  const settingsResult = useQuery(api.settings.get);
+  const updateSettings = useMutation(api.settings.update);
 
-  const handleSave = () => {
-    // TODO: call config.updateSettings({ isAcceptingApplications, openDate, closeDate })
-    console.log("Save application window settings", {
-      isAccepting,
-      openDate,
-      closeDate,
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const [isAccepting, setIsAccepting] = useState(true);
+  const [openDate, setOpenDate] = useState("");
+  const [closeDate, setCloseDate] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (settingsResult?.success && settingsResult.data) {
+      setIsAccepting(settingsResult.data.isAcceptingApplications);
+      setOpenDate(settingsResult.data.openDate || "");
+      setCloseDate(settingsResult.data.closeDate || "");
+    }
+  }, [settingsResult]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const res = await updateSettings({
+        isAcceptingApplications: isAccepting,
+        openDate,
+        closeDate,
+      });
+      if (res.success) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+        toast.success("Settings saved successfully");
+      } else {
+        toast.error(res.error);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save settings");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleCloseImmediately = () => {
+  const handleCloseImmediately = async () => {
     setIsAccepting(false);
-    // TODO: call config.updateSettings({ isAcceptingApplications: false })
-    console.log("Close applications immediately");
+    setIsSaving(true);
+    try {
+      const res = await updateSettings({
+        isAcceptingApplications: false,
+        openDate,
+        closeDate,
+      });
+      if (res.success) {
+        toast.success("Applications closed immediately");
+      } else {
+        toast.error(res.error);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to close applications");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -109,9 +151,10 @@ export default function ApplicationWindowSettingsPage() {
         <button
           type="button"
           onClick={handleSave}
-          className="rounded-md bg-primary px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90"
+          disabled={isSaving || settingsResult === undefined}
+          className="rounded-md bg-primary px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 disabled:opacity-50"
         >
-          Save Changes
+          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
         </button>
       </div>
     </div>

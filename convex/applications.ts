@@ -1,7 +1,7 @@
 import { query, mutation, internalMutation } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { v } from "convex/values";
-import { requireAuth, requirePrivilege, now } from "./utils";
+import { requireAuth, requirePrivilege, now, type Result } from "./utils";
 import type { Doc } from "./_generated/dataModel";
 
 /**
@@ -23,7 +23,7 @@ export const create = mutation({
       courseId: v.id("courses"),
     }),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Result<any>> => {
     // Attempt to identify the user (optional for guests)
     const identity = await ctx.auth.getUserIdentity();
     let userId;
@@ -43,9 +43,10 @@ export const create = mutation({
       .first();
 
     if (existing) {
-      throw new Error(
-        "An application already exists for this email address. Please use a different email or log in to view your application.",
-      );
+      return {
+        success: false,
+        error: "An application already exists for this email address. Please use a different email or log in to view your application.",
+      };
     }
 
     const timestamp = now();
@@ -58,7 +59,7 @@ export const create = mutation({
       updatedAt: timestamp,
     });
 
-    return applicationId;
+    return { success: true, data: applicationId };
   },
 });
 
@@ -80,29 +81,34 @@ export const update = mutation({
       courseId: v.id("courses"),
     }),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Result<null>> => {
     const application = await ctx.db.get(args.applicationId);
 
     if (!application) {
-      throw new Error("Application not found.");
+      return { success: false, error: "Application not found." };
     }
 
     // If the application is linked to a user, enforce authentication
     if (application.userId) {
-      const user = await requireAuth(ctx);
+      const authResult = await requireAuth(ctx);
+      if (!authResult.success) return authResult;
+
+      const user = authResult.data;
       if (application.userId !== user._id) {
-        throw new Error("You can only edit your own application.");
+        return { success: false, error: "You can only edit your own application." };
       }
     }
 
     if (application.status !== "draft") {
-      throw new Error("Only draft applications can be edited.");
+      return { success: false, error: "Only draft applications can be edited." };
     }
 
     await ctx.db.patch(args.applicationId, {
       data: args.data,
       updatedAt: now(),
     });
+
+    return { success: true, data: null };
   },
 });
 
@@ -113,26 +119,29 @@ export const submit = mutation({
   args: {
     applicationId: v.id("applications"),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Result<null>> => {
     const application = await ctx.db.get(args.applicationId);
 
     if (!application) {
-      throw new Error("Application not found.");
+      return { success: false, error: "Application not found." };
     }
 
     // If the application is linked to a user, enforce authentication
     if (application.userId) {
-      const user = await requireAuth(ctx);
+      const authResult = await requireAuth(ctx);
+      if (!authResult.success) return authResult;
+
+      const user = authResult.data;
       if (application.userId !== user._id) {
-        throw new Error("You can only submit your own application.");
+        return { success: false, error: "You can only submit your own application." };
       }
     }
 
     if (application.status !== "draft") {
-      throw new Error("This application has already been submitted.");
+      return { success: false, error: "This application has already been submitted." };
     }
     if (application.paymentStatus !== "paid") {
-      throw new Error("Application fee must be paid before submitting.");
+      return { success: false, error: "Application fee must be paid before submitting." };
     }
 
     const timestamp = now();
@@ -163,6 +172,8 @@ export const submit = mutation({
         targetUserId: application.userId,
       });
     }
+
+    return { success: true, data: null };
   },
 });
 
@@ -171,16 +182,20 @@ export const submit = mutation({
  */
 export const getMyApplication = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<Result<any>> => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
+    if (!identity) {
+      return { success: false, error: "Authentication required." };
+    }
 
     const user = await ctx.db
       .query("users")
       .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
       .unique();
 
-    if (!user) return null;
+    if (!user) {
+      return { success: false, error: "User record not found." };
+    }
 
     const application =
       (await ctx.db
@@ -192,14 +207,19 @@ export const getMyApplication = query({
         .filter((q) => q.eq(q.field("data.email"), user.email))
         .first());
 
-    if (!application) return null;
+    if (!application) {
+      return { success: false, error: "Application not found." };
+    }
 
     // Resolve course name
     const course = await ctx.db.get(application.data.courseId);
 
     return {
-      ...application,
-      courseName: course?.name ?? "Unknown Course",
+      success: true,
+      data: {
+        ...application,
+        courseName: course?.name ?? "Unknown Course",
+      }
     };
   },
 });
@@ -210,11 +230,13 @@ export const getMyApplication = query({
  */
 export const getByIdPublic = query({
   args: { applicationId: v.id("applications") },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Result<Doc<"applications">>> => {
     const application = await ctx.db.get(args.applicationId);
-    if (!application) return null;
+    if (!application) {
+      return { success: false, error: "Application not found." };
+    }
 
-    return application;
+    return { success: true, data: application };
   },
 });
 
@@ -223,11 +245,14 @@ export const getByIdPublic = query({
  */
 export const getById = query({
   args: { applicationId: v.id("applications") },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "application:view:details");
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "application:view:details");
+    if (!privResult.success) return privResult;
 
     const application = await ctx.db.get(args.applicationId);
-    if (!application) return null;
+    if (!application) {
+      return { success: false, error: "Application not found." };
+    }
 
     const applicant = application.userId
       ? await ctx.db.get(application.userId)
@@ -245,10 +270,13 @@ export const getById = query({
     const course = await ctx.db.get(application.data.courseId);
 
     return {
-      ...application,
-      applicant,
-      payment,
-      courseName: course?.name ?? "Unknown Course",
+      success: true,
+      data: {
+        ...application,
+        applicant,
+        payment,
+        courseName: course?.name ?? "Unknown Course",
+      }
     };
   },
 });
@@ -263,8 +291,9 @@ export const listPending = query({
     ),
     page: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "application:read:all");
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "application:read:all");
+    if (!privResult.success) return privResult;
 
     let applications: Doc<"applications">[];
 
@@ -314,10 +343,13 @@ export const listPending = query({
     );
 
     return {
-      applications: withApplicants,
-      total: applications.length,
-      page,
-      totalPages: Math.ceil(applications.length / pageSize),
+      success: true,
+      data: {
+        applications: withApplicants,
+        total: applications.length,
+        page,
+        totalPages: Math.ceil(applications.length / pageSize),
+      }
     };
   },
 });
@@ -340,8 +372,9 @@ export const listAll = query({
     search: v.optional(v.string()),
     page: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "application:read:all");
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "application:read:all");
+    if (!privResult.success) return privResult;
 
     const statusFilter = args.statusFilter ?? "all";
 
@@ -408,11 +441,14 @@ export const listAll = query({
     const paginated = filtered.slice(start, start + pageSize);
 
     return {
-      applications: paginated,
-      total: filtered.length,
-      page,
-      totalPages: Math.ceil(filtered.length / pageSize),
-      counts,
+      success: true,
+      data: {
+        applications: paginated,
+        total: filtered.length,
+        page,
+        totalPages: Math.ceil(filtered.length / pageSize),
+        counts,
+      }
     };
   },
 });
@@ -423,20 +459,24 @@ export const listAll = query({
  */
 export const approve = mutation({
   args: { applicationId: v.id("applications") },
-  handler: async (ctx, args) => {
-    const admin = await requirePrivilege(ctx, "application:update:status");
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const privResult = await requirePrivilege(ctx, "application:update:status");
+    if (!privResult.success) return privResult;
+
+    const admin = privResult.data;
     const application = await ctx.db.get(args.applicationId);
 
     if (!application) {
-      throw new Error("Application not found.");
+      return { success: false, error: "Application not found." };
     }
     if (
       application.status !== "submitted" &&
       application.status !== "under_review"
     ) {
-      throw new Error(
-        "Only submitted or under-review applications can be approved.",
-      );
+      return {
+        success: false,
+        error: "Only submitted or under-review applications can be approved.",
+      };
     }
 
     const timestamp = now();
@@ -484,6 +524,8 @@ export const approve = mutation({
       });
       // The enrollment record will be created when they accept the invite and `user.created` webhook fires.
     }
+
+    return { success: true, data: null };
   },
 });
 
@@ -495,20 +537,24 @@ export const decline = mutation({
     applicationId: v.id("applications"),
     rejectionReason: v.string(),
   },
-  handler: async (ctx, args) => {
-    const admin = await requirePrivilege(ctx, "application:update:status");
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const privResult = await requirePrivilege(ctx, "application:update:status");
+    if (!privResult.success) return privResult;
+
+    const admin = privResult.data;
     const application = await ctx.db.get(args.applicationId);
 
     if (!application) {
-      throw new Error("Application not found.");
+      return { success: false, error: "Application not found." };
     }
     if (
       application.status !== "submitted" &&
       application.status !== "under_review"
     ) {
-      throw new Error(
-        "Only submitted or under-review applications can be declined.",
-      );
+      return {
+        success: false,
+        error: "Only submitted or under-review applications can be declined.",
+      };
     }
 
     const timestamp = now();
@@ -530,6 +576,24 @@ export const decline = mutation({
       relatedEntityType: "application",
       targetUserId: application.userId,
     });
+
+    // Automatically refund application fee if paid
+    const payment = await ctx.db
+      .query("payments")
+      .withIndex("by_referenceId", (q) =>
+        q.eq("referenceId", args.applicationId),
+      )
+      .filter((q) => q.eq(q.field("status"), "succeeded"))
+      .first();
+
+    if (payment) {
+      await ctx.scheduler.runAfter(0, api.payments.refund, {
+        paymentId: payment._id,
+        reason: `Automatic refund: Application declined. Reason: ${args.rejectionReason}`,
+      });
+    }
+
+    return { success: true, data: null };
   },
 });
 
@@ -541,8 +605,9 @@ export const getDashboardStats = query({
     from: v.optional(v.string()),
     to: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
-    await requirePrivilege(ctx, "report:view:dashboard");
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "report:view:dashboard");
+    if (!privResult.success) return privResult;
 
     let allApplications = await ctx.db.query("applications").collect();
 
@@ -583,10 +648,13 @@ export const getDashboardStats = query({
     ).length;
 
     return {
-      total,
-      pendingReview,
-      approved,
-      declined,
+      success: true,
+      data: {
+        total,
+        pendingReview,
+        approved,
+        declined,
+      }
     };
   },
 });
@@ -604,9 +672,7 @@ export const checkExisting = query({
     // Check globally across all applications by email.
     const byEmail = await ctx.db
       .query("applications")
-      .withIndex("by_email", (q) =>
-        q.eq("data.email", args.email)
-      )
+      .withIndex("by_email", (q) => q.eq("data.email", args.email))
       .first();
 
     if (byEmail) {
@@ -621,7 +687,7 @@ export const checkExisting = query({
     const byPhone = await ctx.db
       .query("applications")
       .withIndex("by_phoneNumber", (q) =>
-        q.eq("data.phoneNumber", args.phoneNumber)
+        q.eq("data.phoneNumber", args.phoneNumber),
       )
       .first();
 
@@ -642,16 +708,21 @@ export const checkExisting = query({
  */
 export const getApplicationForPayment = query({
   args: { applicationId: v.id("applications") },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Result<any>> => {
     const application = await ctx.db.get(args.applicationId);
-    if (!application) return null;
+    if (!application) {
+      return { success: false, error: "Application not found." };
+    }
 
     return {
-      _id: application._id,
-      status: application.status,
-      paymentStatus: application.paymentStatus,
-      applicantName: `${application.data.firstName} ${application.data.lastName}`,
-      applicantEmail: application.data.email,
+      success: true,
+      data: {
+        _id: application._id,
+        status: application.status,
+        paymentStatus: application.paymentStatus,
+        applicantName: `${application.data.firstName} ${application.data.lastName}`,
+        applicantEmail: application.data.email,
+      }
     };
   },
 });

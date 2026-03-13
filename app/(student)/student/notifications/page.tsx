@@ -18,10 +18,10 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 function useNotifications(): (Notification & { _id: string })[] {
-  const data = useQuery(api.notifications.list, { filter: "all" });
-  if (!data) return [];
+  const result = useQuery(api.notifications.list, { filter: "all" });
+  if (!result || !result.success) return [];
 
-  return data.notifications.map((n) => ({
+  return result.data.notifications.map((n: any) => ({
     id: n._id,
     _id: n._id,
     title: n.title,
@@ -101,7 +101,8 @@ export default function NotificationsPage() {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await markAllAsRead();
+      const res = await markAllAsRead();
+      if (!res.success) throw new Error(res.error);
     } catch (err) {
       console.error("Failed to mark all as read:", err);
     }
@@ -110,7 +111,8 @@ export default function NotificationsPage() {
   const handleNotificationClick = async (id: string, isRead: boolean) => {
     if (!isRead) {
       try {
-        await markAsRead({ notificationId: id as any });
+        const res = await markAsRead({ notificationId: id as any });
+        if (!res.success) throw new Error(res.error);
       } catch (err) {
         console.error("Failed to mark as read:", err);
       }
@@ -152,8 +154,8 @@ export default function NotificationsPage() {
             type="button"
             onClick={() => setActiveTab(tab)}
             className={`flex-1 rounded-md px-3 py-2 text-sm font-medium capitalize transition-colors ${activeTab === tab
-              ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-500 hover:text-gray-700"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
               }`}
           >
             {tab}
@@ -184,10 +186,12 @@ export default function NotificationsPage() {
               <Link
                 key={notification.id}
                 href={notification.href}
-                onClick={() => handleNotificationClick(notification._id, notification.isRead)}
+                onClick={() =>
+                  handleNotificationClick(notification._id, notification.isRead)
+                }
                 className={`flex gap-3 rounded-xl border p-4 transition-all hover:shadow-sm ${!notification.isRead
-                  ? "border-primary/20 bg-primary/[0.02] hover:bg-primary/[0.04]"
-                  : "border-gray-200 bg-white hover:bg-gray-50"
+                    ? "border-primary/20 bg-primary/[0.02] hover:bg-primary/[0.04]"
+                    : "border-gray-200 bg-white hover:bg-gray-50"
                   }`}
               >
                 <span className="mt-0.5 text-lg leading-none">
@@ -197,8 +201,8 @@ export default function NotificationsPage() {
                   <div className="flex items-start justify-between gap-2">
                     <p
                       className={`text-sm ${!notification.isRead
-                        ? "font-semibold text-gray-900"
-                        : "font-medium text-gray-700"
+                          ? "font-semibold text-gray-900"
+                          : "font-medium text-gray-700"
                         }`}
                     >
                       {notification.title}

@@ -69,12 +69,13 @@ export function CourseFormDialog({
   const isEditing = !!course;
 
   // Resolve existing cover photo storage ID → URL for preview in edit mode
-  const existingCoverPhotoUrl = useQuery(
+  const photoResult = useQuery(
     api.storage.getFileUrl,
     course?.coverPhoto
       ? { storageId: course.coverPhoto as Id<"_storage"> }
       : "skip",
   );
+  const existingCoverPhotoUrl = photoResult?.success ? photoResult.data : null;
 
   useEffect(() => {
     if (course) {
@@ -131,7 +132,7 @@ export function CourseFormDialog({
           .replace(/(^-|-$)/g, "");
 
       if (isEditing && course) {
-        await updateCourse({
+        const res = await updateCourse({
           courseId: course._id,
           name: formData.name,
           slug: finalSlug,
@@ -142,8 +143,9 @@ export function CourseFormDialog({
           tuitionFee,
           isActive: formData.isActive,
         });
+        if (!res.success) throw new Error(res.error);
       } else {
-        await createCourse({
+        const res = await createCourse({
           name: formData.name,
           slug: finalSlug,
           description: formData.description,
@@ -153,6 +155,7 @@ export function CourseFormDialog({
           tuitionFee,
           isActive: formData.isActive,
         });
+        if (!res.success) throw new Error(res.error);
       }
 
       setFormData(emptyForm);
@@ -298,14 +301,12 @@ export function CourseFormDialog({
               onClick={() =>
                 setFormData({ ...formData, isActive: !formData.isActive })
               }
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                formData.isActive ? "bg-primary" : "bg-gray-200"
-              }`}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${formData.isActive ? "bg-primary" : "bg-gray-200"
+                }`}
             >
               <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  formData.isActive ? "translate-x-5" : "translate-x-0"
-                }`}
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.isActive ? "translate-x-5" : "translate-x-0"
+                  }`}
               />
             </button>
             <span className="text-sm text-gray-700">Active</span>

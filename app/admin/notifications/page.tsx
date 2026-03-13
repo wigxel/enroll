@@ -1,19 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "~/convex/_generated/api";
-import type { Id } from "~/convex/_generated/dataModel";
+import { useMutation, useQuery } from "convex/react";
+import { formatDistanceToNow } from "date-fns";
 import {
-  ArrowRight,
-  Info,
-  AlertTriangle,
-  CheckCircle,
   AlertCircle,
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle,
+  Info,
   Loader2,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
+import type React from "react";
+import { useState } from "react";
+import { safeArray } from "@/lib/data.helpers";
+import { api } from "~/convex/_generated/api";
+import type { Id } from "~/convex/_generated/dataModel";
 
 type NotificationType =
   | "application_submitted"
@@ -56,17 +58,19 @@ function getNotificationLink(n: {
 export default function NotificationsPage() {
   const [filter, setFilter] = useState<"all" | "unread" | "archived">("all");
 
-  const result = useQuery(api.notifications.listAdmin, { filter });
-  const unreadCount = useQuery(api.notifications.getUnreadCount, {});
+  const resultRaw = useQuery(api.notifications.listAdmin, { filter });
+  const unreadCountResult = useQuery(api.notifications.getUnreadCount, {});
   const markAsRead = useMutation(api.notifications.markAsRead);
   const markAllAsRead = useMutation(api.notifications.markAllAsRead);
   const archiveNotification = useMutation(api.notifications.archive);
 
-  const notifications = result?.notifications ?? [];
-  const isLoading = result === undefined;
+  const notifications = safeArray((resultRaw as any)?.data?.notifications);
+  const unreadCount = unreadCountResult?.success ? unreadCountResult.data : 0;
+  const isLoading = resultRaw === undefined;
 
   const handleMarkAllAsRead = async () => {
-    await markAllAsRead({});
+    const res = await markAllAsRead({});
+    if (!res.success) console.error("Failed to mark all as read:", res.error);
   };
 
   const handleMarkAsRead = async (id: Id<"notifications">) => {
@@ -74,7 +78,8 @@ export default function NotificationsPage() {
   };
 
   const handleArchive = async (id: Id<"notifications">) => {
-    await archiveNotification({ notificationId: id });
+    const res = await archiveNotification({ notificationId: id });
+    if (!res.success) console.error("Failed to archive:", res.error);
   };
 
   return (
@@ -107,11 +112,10 @@ export default function NotificationsPage() {
               key={f}
               type="button"
               onClick={() => setFilter(f)}
-              className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                filter === f
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
+              className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${filter === f
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+                }`}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
             </button>
@@ -139,9 +143,8 @@ export default function NotificationsPage() {
               return (
                 <div
                   key={notification._id}
-                  className={`rounded-md px-4 py-3 transition ${
-                    !notification.isRead ? "bg-primary/5" : "hover:bg-gray-50"
-                  }`}
+                  className={`rounded-md px-4 py-3 transition ${!notification.isRead ? "bg-primary/5" : "hover:bg-gray-50"
+                    }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5 flex-shrink-0">
@@ -152,11 +155,10 @@ export default function NotificationsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between">
                         <h3
-                          className={`text-sm ${
-                            !notification.isRead
-                              ? "font-semibold text-gray-900"
-                              : "font-medium text-gray-700"
-                          }`}
+                          className={`text-sm ${!notification.isRead
+                            ? "font-semibold text-gray-900"
+                            : "font-medium text-gray-700"
+                            }`}
                         >
                           {notification.title}
                         </h3>

@@ -78,20 +78,22 @@ export function CohortFormDialog({
         : undefined;
 
       if (isEditing && cohort) {
-        await updateCohort({
+        const res = await updateCohort({
           cohortId: cohort._id,
           name: formData.name,
           startDate: formData.startDate,
           endDate: formData.endDate,
           capacity,
         });
+        if (!res.success) throw new Error(res.error);
       } else {
-        await createCohort({
+        const res = await createCohort({
           name: formData.name,
           startDate: formData.startDate,
           endDate: formData.endDate,
           capacity,
         });
+        if (!res.success) throw new Error(res.error);
       }
 
       setFormData(emptyForm);

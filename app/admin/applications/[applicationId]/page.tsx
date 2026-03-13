@@ -14,7 +14,8 @@ export default function ApplicationDetailPage() {
   const router = useRouter();
   const applicationId = params.applicationId as Id<"applications">;
 
-  const application = useQuery(api.applications.getById, { applicationId });
+  const applicationResult = useQuery(api.applications.getById, { applicationId });
+  const application = applicationResult?.success ? applicationResult.data : null;
   const approveMutation = useMutation(api.applications.approve);
 
   const [showDeclineDialog, setShowDeclineDialog] = useState(false);
@@ -32,16 +33,20 @@ export default function ApplicationDetailPage() {
   const handleApprove = async () => {
     setIsApproving(true);
     try {
-      await approveMutation({ applicationId });
-    } catch (error) {
+      const res = await approveMutation({ applicationId });
+      if (!res.success) {
+        throw new Error(res.error);
+      }
+    } catch (error: any) {
       console.error("Failed to approve application:", error);
+      alert(error.message || "Failed to approve application");
     } finally {
       setIsApproving(false);
     }
   };
 
   // Loading state
-  if (application === undefined) {
+  if (applicationResult === undefined) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -50,7 +55,7 @@ export default function ApplicationDetailPage() {
   }
 
   // Not found state
-  if (application === null) {
+  if (!application) {
     return (
       <div className="py-8">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
@@ -58,8 +63,9 @@ export default function ApplicationDetailPage() {
             Application Not Found
           </h1>
           <p className="mt-2 text-sm text-gray-500">
-            The application you are looking for does not exist or has been
-            removed.
+            {applicationResult?.success === false
+              ? applicationResult.error
+              : "The application you are looking for does not exist or has been removed."}
           </p>
           <Link
             href="/admin/applications"
@@ -100,9 +106,7 @@ export default function ApplicationDetailPage() {
               <h1 className="text-2xl font-semibold text-gray-900">
                 {applicantName}
               </h1>
-              <p className="text-sm text-gray-500">
-                {application.data.email}
-              </p>
+              <p className="text-sm text-gray-500">{application.data.email}</p>
               <p className="mt-1 text-xs text-gray-400">
                 Course: {application.courseName} • Submitted:{" "}
                 {application.submittedAt

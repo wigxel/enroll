@@ -1,6 +1,6 @@
 import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuth, requirePrivilege, now } from "./utils";
+import { requireAuth, requirePrivilege, now, type Result } from "./utils";
 
 /**
  * Retrieves notifications for the currently authenticated user.
@@ -12,8 +12,11 @@ export const list = query({
     ),
     page: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    const user = await requireAuth(ctx);
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+    const user = authResult.data;
+
     const filter = args.filter ?? "all";
 
     let notifications;
@@ -53,10 +56,13 @@ export const list = query({
     const paginated = notifications.slice(start, start + pageSize);
 
     return {
-      notifications: paginated,
-      total: notifications.length,
-      page,
-      totalPages: Math.ceil(notifications.length / pageSize),
+      success: true,
+      data: {
+        notifications: paginated,
+        total: notifications.length,
+        page,
+        totalPages: Math.ceil(notifications.length / pageSize),
+      }
     };
   },
 });
@@ -71,8 +77,11 @@ export const listAdmin = query({
     ),
     page: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    const user = await requirePrivilege(ctx, "notification:read:admin");
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "notification:read:admin");
+    if (!privResult.success) return privResult;
+    const user = privResult.data;
+
     const filter = args.filter ?? "all";
 
     let notifications;
@@ -110,10 +119,13 @@ export const listAdmin = query({
     const paginated = notifications.slice(start, start + pageSize);
 
     return {
-      notifications: paginated,
-      total: notifications.length,
-      page,
-      totalPages: Math.ceil(notifications.length / pageSize),
+      success: true,
+      data: {
+        notifications: paginated,
+        total: notifications.length,
+        page,
+        totalPages: Math.ceil(notifications.length / pageSize),
+      }
     };
   },
 });
@@ -123,8 +135,10 @@ export const listAdmin = query({
  */
 export const getUnreadCount = query({
   args: {},
-  handler: async (ctx) => {
-    const user = await requireAuth(ctx);
+  handler: async (ctx): Promise<Result<number>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult as any;
+    const user = authResult.data;
 
     const unread = await ctx.db
       .query("notifications")
@@ -135,7 +149,7 @@ export const getUnreadCount = query({
 
     // Exclude archived
     const count = unread.filter((n) => !n.isArchived).length;
-    return count;
+    return { success: true, data: count };
   },
 });
 
@@ -144,18 +158,22 @@ export const getUnreadCount = query({
  */
 export const markAsRead = mutation({
   args: { notificationId: v.id("notifications") },
-  handler: async (ctx, args) => {
-    const user = await requireAuth(ctx);
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+    const user = authResult.data;
+
     const notification = await ctx.db.get(args.notificationId);
 
     if (!notification) {
-      throw new Error("Notification not found.");
+      return { success: false, error: "Notification not found." };
     }
     if (notification.userId !== user._id) {
-      throw new Error("You can only mark your own notifications as read.");
+      return { success: false, error: "You can only mark your own notifications as read." };
     }
 
     await ctx.db.patch(args.notificationId, { isRead: true });
+    return { success: true, data: null };
   },
 });
 
@@ -164,8 +182,10 @@ export const markAsRead = mutation({
  */
 export const markAllAsRead = mutation({
   args: {},
-  handler: async (ctx) => {
-    const user = await requireAuth(ctx);
+  handler: async (ctx): Promise<Result<null>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+    const user = authResult.data;
 
     const unread = await ctx.db
       .query("notifications")
@@ -175,6 +195,7 @@ export const markAllAsRead = mutation({
       .collect();
 
     await Promise.all(unread.map((n) => ctx.db.patch(n._id, { isRead: true })));
+    return { success: true, data: null };
   },
 });
 
@@ -183,18 +204,22 @@ export const markAllAsRead = mutation({
  */
 export const archive = mutation({
   args: { notificationId: v.id("notifications") },
-  handler: async (ctx, args) => {
-    const user = await requireAuth(ctx);
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+    const user = authResult.data;
+
     const notification = await ctx.db.get(args.notificationId);
 
     if (!notification) {
-      throw new Error("Notification not found.");
+      return { success: false, error: "Notification not found." };
     }
     if (notification.userId !== user._id) {
-      throw new Error("You can only archive your own notifications.");
+      return { success: false, error: "You can only archive your own notifications." };
     }
 
     await ctx.db.patch(args.notificationId, { isArchived: true });
+    return { success: true, data: null };
   },
 });
 

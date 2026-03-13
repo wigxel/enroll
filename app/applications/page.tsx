@@ -6,12 +6,18 @@ import { Card, Button, Badge } from "@tremor/react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
+import { safeArray } from "@/lib/data.helpers";
 
 export default function CourseCatalogPage() {
-  const courses = useQuery(api.courses.listActive);
-  const appStatus = useQuery(api.settings.getAppStatus);
+  const coursesResult = useQuery(api.courses.listActive);
+  const appStatusResult = useQuery(api.settings.getAppStatus);
 
-  if (courses === undefined || appStatus === undefined) {
+  const courses = coursesResult?.success ? (coursesResult.data as any[]) : [];
+  const appStatus = appStatusResult?.success
+    ? appStatusResult.data
+    : { isOpen: false, message: "" };
+
+  if (coursesResult === undefined || appStatusResult === undefined) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center p-8 text-center sm:p-20">
         <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
