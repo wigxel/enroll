@@ -59,6 +59,7 @@ export function safeDict<const T>(opt: { map: T; default?: Values<T> }) {
         throw new Error("A `default` must be provided when using `strict()`");
       }
 
+      // @ts-expect-error Handled typing manually
       return this.get(key);
     },
   };
