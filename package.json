@@ -9,6 +9,7 @@
     "svg:convert": "npx @svgr/cli --icon --typescript --ignore-existing --memo --out-dir ./components/Icons -- public/assets/icons",
     "watch": "watch 'clear && npm run -s lint' pages components",
     "lint": "biome lint . && tsc --noEmit && echo 'Lint complete.'",
+    "lint:convex": "bunx tsc --project ./convex/tsconfig.json",
     "lint:fix": "eslint --fix . && biome lint --write .",
     "format": "npm run format:prettier && npm run format:biome",
     "format:prettier": "prettier --write .",
