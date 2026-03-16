@@ -44,11 +44,15 @@ function StudentsContent() {
 
   const cohortsResultRaw = useQuery(api.cohorts.list, {});
 
-  const students = studentsResultRaw?.success ? studentsResultRaw.data.users : [];
+  const students = studentsResultRaw?.success
+    ? studentsResultRaw.data.users
+    : [];
   const totalStudents = studentsResultRaw?.success
     ? studentsResultRaw.data.total
     : 0;
-  const cohorts = cohortsResultRaw?.success ? cohortsResultRaw.data.cohorts : [];
+  const cohorts = cohortsResultRaw?.success
+    ? cohortsResultRaw.data.cohorts
+    : [];
 
   return (
     <>
@@ -98,8 +102,9 @@ function StudentsContent() {
         <div className="mt-12 flex items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-primary" />
         </div>
-      ) : (studentsResultRaw.success === false) ? (
+      ) : studentsResultRaw.success === false ? (
         <div className="mt-12 p-4 text-center text-red-600 bg-red-50 rounded-lg">
+          {/*@ts-expect-error Temporary fix*/}
           {studentsResultRaw.error}
         </div>
       ) : students.length === 0 ? (
@@ -188,11 +193,13 @@ export default function StudentsPage() {
   return (
     <div className="py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <React.Suspense fallback={
-          <div className="mt-12 flex items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-primary" />
-          </div>
-        }>
+        <React.Suspense
+          fallback={
+            <div className="mt-12 flex items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-primary" />
+            </div>
+          }
+        >
           <StudentsContent />
         </React.Suspense>
       </div>
