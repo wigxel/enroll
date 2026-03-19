@@ -14,6 +14,8 @@ export const getCurrentUser = async (
 ): Promise<Doc<"users"> | null> => {
   const identity = await ctx.auth.getUserIdentity();
 
+  console.log(">>> identity", { identity });
+
   if (!identity) return null;
 
   const user = await ctx.db
