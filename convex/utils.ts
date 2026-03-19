@@ -36,7 +36,10 @@ export const requireAuth = async (
   const user = await getCurrentUser(ctx);
 
   if (!user) {
-    return { success: false, error: "Authentication required. Please sign in." };
+    return {
+      success: false,
+      error: "Authentication required. Please sign in.",
+    };
   }
   return { success: true, data: user };
 };
@@ -66,7 +69,10 @@ export const requirePrivilege = async (
   const role = await ctx.db.get(user.role);
 
   if (!role || !role.privileges.includes(privilege)) {
-    return { success: false, error: `Access denied. Required privilege: "${privilege}".` };
+    return {
+      success: false,
+      error: `Access denied. Required privilege: "${privilege}".`,
+    };
   }
 
   return { success: true, data: user };
