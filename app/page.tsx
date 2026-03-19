@@ -40,7 +40,7 @@ export default async function Home() {
                 >
                   Dashboard
                 </Link>
-                <UserButton afterSignOutUrl="/" />
+                <UserButton />
               </div>
             ) : (
               <div className="ml-2 flex items-center gap-2">
