@@ -1,72 +1,9 @@
-import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-import { auth } from "@clerk/nextjs/server";
-import { ArrowRight, BookOpen, GraduationCap, LogIn } from "lucide-react";
+import { ArrowRight, GraduationCap } from "lucide-react";
 import Link from "next/link";
 
 export default async function Home() {
-  const { userId } = await auth();
-  const isSignedIn = !!userId;
-
   return (
     <div className="flex min-h-screen flex-col bg-white dark:bg-zinc-950">
-      {/* Nav */}
-      <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/80">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
-            Enroll
-          </span>
-
-          <nav className="flex items-center gap-1">
-            <Link
-              href="/applications"
-              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-800 dark:hover:text-white"
-            >
-              <BookOpen className="h-4 w-4" />
-              Programs
-            </Link>
-            <Link
-              href="/alumni"
-              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-800 dark:hover:text-white"
-            >
-              <GraduationCap className="h-4 w-4" />
-              Alumni
-            </Link>
-
-            {isSignedIn ? (
-              <div className="ml-2 flex items-center gap-3">
-                <Link
-                  href="/dashboard"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-800 dark:hover:text-white"
-                >
-                  Dashboard
-                </Link>
-                <UserButton />
-              </div>
-            ) : (
-              <div className="ml-2 flex items-center gap-2">
-                <SignInButton mode="redirect">
-                  <button
-                    type="button"
-                    className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50 dark:border-zinc-700 dark:text-gray-200 dark:hover:bg-zinc-800"
-                  >
-                    <LogIn className="h-4 w-4" />
-                    Log in
-                  </button>
-                </SignInButton>
-                <SignUpButton mode="redirect">
-                  <button
-                    type="button"
-                    className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
-                  >
-                    Sign up
-                  </button>
-                </SignUpButton>
-              </div>
-            )}
-          </nav>
-        </div>
-      </header>
-
       {/* Hero */}
       <main className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center">
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-700 dark:border-indigo-900 dark:bg-indigo-950/50 dark:text-indigo-300">
@@ -106,11 +43,6 @@ export default async function Home() {
           </Link>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-100 py-6 text-center text-sm text-gray-400 dark:border-zinc-800 dark:text-gray-600">
-        &copy; {new Date().getFullYear()} Enroll. All rights reserved.
-      </footer>
     </div>
   );
 }

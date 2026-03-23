@@ -1,7 +1,8 @@
 "use client";
 
-import { Badge, Button, Card } from "@tremor/react";
+import { RiCertificate2Line } from "@remixicon/react";
 import { useQuery } from "convex/react";
+import { Loader2, LucideUsers } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { api } from "@/convex/_generated/api";
@@ -20,26 +21,7 @@ export default function CourseCatalogPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center p-8 text-center sm:p-20">
         <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
-          <svg
-            className="animate-spin -ml-1 mr-3 h-5 w-5"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
+          <Loader2 className="animate-spin -ml-1 mr-3 size-5" />
           Loading available programs...
         </div>
       </div>
@@ -47,14 +29,15 @@ export default function CourseCatalogPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center p-8 sm:p-20 bg-gray-50 dark:bg-zinc-950">
-      <main className="flex w-full max-w-6xl flex-col items-center gap-12">
+    <div className="flex min-h-screen flex-col items-center p-8">
+      <main className="flex container flex-col items-center gap-12">
         {/* Header Section */}
-        <div className="space-y-6 text-center max-w-2xl px-4">
+        <div className="space-y-6 flex flex-col md:flex-row justify-between w-full">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl text-gray-900 dark:text-white">
             Available Programs
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
+
+          <p className="text-sm text-gray-600 dark:text-gray-400 max-w-[40ch]">
             Browse our catalog of world-class programs. Find the perfect course
             to advance your career and start your application today.
           </p>
@@ -101,101 +84,95 @@ export default function CourseCatalogPage() {
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 w-full">
             {courses.map((course) => (
-              <Card
+              <CourseCard
+                data={course}
                 key={course._id}
-                className="flex flex-col overflow-hidden p-0 transition-all hover:shadow-lg dark:hover:shadow-black/50 hover:-translate-y-1"
-              >
-                {/* Cover Photo */}
-                <div className="relative h-48 w-full bg-gray-200 dark:bg-zinc-800 border-b dark:border-zinc-800">
-                  {course.coverPhoto ? (
-                    <Image
-                      src={course.coverPhoto}
-                      alt={course.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
-                      <span className="text-3xl font-bold text-white/50">
-                        {course.name.substring(0, 2).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  {/* Floating badges */}
-                  <div className="absolute top-4 right-4 flex gap-2">
-                    <Badge color="indigo" className="font-medium shadow-sm">
-                      {course.duration}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="flex flex-1 flex-col p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-50 line-clamp-1 mb-2">
-                    {course.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-1">
-                    {course.description}
-                  </p>
-
-                  <div className="mb-6 flex items-center justify-between border-t dark:border-zinc-800 pt-4">
-                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-zinc-700 rounded-md px-2 py-1 bg-gray-50 dark:bg-zinc-800/50">
-                      {course.certification}
-                    </span>
-                    <span className="text-lg font-bold text-gray-900 dark:text-white">
-                      {course.tuitionFee
-                        ? formatCurrency(course.tuitionFee)
-                        : "Free"}
-                    </span>
-                  </div>
-
-                  {/* CTA */}
-                  <div className="mt-auto">
-                    {appStatus.isOpen ? (
-                      <Link
-                        href={`/applications/${course.slug}`}
-                        className="w-full"
-                      >
-                        <Button
-                          className="w-full relative overflow-hidden group font-medium"
-                          size="md"
-                        >
-                          <span className="relative z-10 flex items-center justify-center">
-                            Enroll Now
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1 lg:ml-2"
-                            >
-                              <path d="M5 12h14"></path>
-                              <path d="m12 5 7 7-7 7"></path>
-                            </svg>
-                          </span>
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Button
-                        disabled
-                        variant="secondary"
-                        className="w-full opacity-70"
-                      >
-                        Applications Closed
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </Card>
+                closed={appStatus.isOpen}
+              />
             ))}
           </div>
         )}
       </main>
     </div>
+  );
+}
+
+function CourseCard({
+  data: course,
+  closed = true,
+}: {
+  data: any;
+  closed: boolean;
+}) {
+  return (
+    <Link href={`/applications/${course.slug}`} draggable={false}>
+      <div className="flex flex-col overflow-hidden p-0 transition-all bg-background select-none rounded-2xl hover:shadow-xl transition-default hover:-translate-y-2 shadow-black/6">
+        {/* Cover Photo */}
+        <div className="relative h-48 bg-gray-200 rounded-xl m-2 overflow-hidden">
+          {course.coverPhoto ? (
+            <Image
+              src={course.coverPhoto}
+              alt={course.name}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-red-500 to-orange-200">
+              <span className="text-3xl font-bold text-white/50">
+                {course.name.substring(0, 2).toUpperCase()}
+              </span>
+            </div>
+          )}
+
+          {/* Floating badges */}
+          <div className="absolute top-0 right-4 flex gap-2">
+            <span className="text-foreground bg-background text-xs rounded-b-lg p-2">
+              {course.duration}
+            </span>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-1 flex-col p-6">
+          <h3 className="text-2xl font-semibold font-heading text-gray-900 dark:text-gray-50 line-clamp-1 mb-2">
+            {course.name}
+          </h3>
+
+          <ul className="flex flex-col font-body gap-1 mb-6 text-sm">
+            <div className="flex gap-2 items-center">
+              <RiCertificate2Line size="1em" className="text-gray-500" />
+              <span className="">{course.certification}</span>
+            </div>
+
+            <div className="flex gap-2 items-center">
+              <LucideUsers size="1em" className="text-gray-500" />
+              <span className="">{(18).toLocaleString()} Enrolled</span>
+            </div>
+
+            <div className="flex gap-2 items-center">
+              <LucideUsers size="1em" className="text-gray-500" />
+              <span className="">{(5000).toLocaleString()} Alumni</span>
+            </div>
+          </ul>
+
+          <div className="flex justify-between items-end">
+            <div className="text-base uppercase font-cnd text-primary font-medium text-start text-foreground">
+              Culinary
+            </div>
+
+            <div className="text-4xl font-medium font-cnd text-end tracking-tight text-gray-900">
+              {course.tuitionFee ? (
+                <>
+                  <span className="text-gray-500 text-base">NGN</span>
+                  {formatCurrency(course.tuitionFee).replace("NGN", "")}
+                </>
+              ) : (
+                "Free"
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 }
