@@ -62,7 +62,7 @@ export const list = query({
         total: notifications.length,
         page,
         totalPages: Math.ceil(notifications.length / pageSize),
-      }
+      },
     };
   },
 });
@@ -125,7 +125,7 @@ export const listAdmin = query({
         total: notifications.length,
         page,
         totalPages: Math.ceil(notifications.length / pageSize),
-      }
+      },
     };
   },
 });
@@ -169,7 +169,10 @@ export const markAsRead = mutation({
       return { success: false, error: "Notification not found." };
     }
     if (notification.userId !== user._id) {
-      return { success: false, error: "You can only mark your own notifications as read." };
+      return {
+        success: false,
+        error: "You can only mark your own notifications as read.",
+      };
     }
 
     await ctx.db.patch(args.notificationId, { isRead: true });
@@ -215,7 +218,10 @@ export const archive = mutation({
       return { success: false, error: "Notification not found." };
     }
     if (notification.userId !== user._id) {
-      return { success: false, error: "You can only archive your own notifications." };
+      return {
+        success: false,
+        error: "You can only archive your own notifications.",
+      };
     }
 
     await ctx.db.patch(args.notificationId, { isArchived: true });

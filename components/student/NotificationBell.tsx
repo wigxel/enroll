@@ -153,8 +153,9 @@ export function NotificationBell() {
                       notification.isRead,
                     )
                   }
-                  className={`flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${!notification.isRead ? "bg-primary/[0.02]" : ""
-                    }`}
+                  className={`flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
+                    !notification.isRead ? "bg-primary/[0.02]" : ""
+                  }`}
                 >
                   <span className="text-base leading-none mt-0.5">
                     {getNotificationIcon(notification.type)}
@@ -162,10 +163,11 @@ export function NotificationBell() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <p
-                        className={`text-sm truncate ${!notification.isRead
+                        className={`text-sm truncate ${
+                          !notification.isRead
                             ? "font-semibold text-gray-900"
                             : "font-medium text-gray-700"
-                          }`}
+                        }`}
                       >
                         {notification.title}
                       </p>

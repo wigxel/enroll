@@ -156,20 +156,23 @@ export default function ApplicationForm({
           {steps.map((step) => (
             <div
               key={step.id}
-              className={`relative z-10 flex flex-col items-center gap-2 ${currentStep > step.id ? "text-primary" : "text-gray-400"
-                }`}
+              className={`relative z-10 flex flex-col items-center gap-2 ${
+                currentStep > step.id ? "text-primary" : "text-gray-400"
+              }`}
             >
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${currentStep >= step.id
-                  ? "bg-primary text-primary-foreground font-semibold shadow-sm"
-                  : "bg-gray-100 text-gray-500"
-                  }`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                  currentStep >= step.id
+                    ? "bg-primary text-primary-foreground font-semibold shadow-sm"
+                    : "bg-gray-100 text-gray-500"
+                }`}
               >
                 {step.id}
               </div>
               <span
-                className={`text-xs font-medium hidden sm:block ${currentStep >= step.id ? "text-gray-900" : "text-gray-400"
-                  }`}
+                className={`text-xs font-medium hidden sm:block ${
+                  currentStep >= step.id ? "text-gray-900" : "text-gray-400"
+                }`}
               >
                 {step.name}
               </span>

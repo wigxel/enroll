@@ -93,12 +93,14 @@ export default function ApplicationWindowSettingsPage() {
             <button
               type="button"
               onClick={() => setIsAccepting(!isAccepting)}
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${isAccepting ? "bg-primary" : "bg-gray-200"
-                }`}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                isAccepting ? "bg-primary" : "bg-gray-200"
+              }`}
             >
               <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isAccepting ? "translate-x-5" : "translate-x-0"
-                  }`}
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  isAccepting ? "translate-x-5" : "translate-x-0"
+                }`}
               />
             </button>
           </div>
@@ -153,7 +155,11 @@ export default function ApplicationWindowSettingsPage() {
           disabled={isSaving || settingsResult === undefined}
           className="rounded-md bg-primary px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 disabled:opacity-50"
         >
-          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
+          {isSaving ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            "Save Changes"
+          )}
         </button>
       </div>
     </div>

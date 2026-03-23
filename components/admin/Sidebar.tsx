@@ -53,7 +53,9 @@ export function Sidebar() {
 
   // Retrieve user object from Convex to show their assigned role
   const currentUserResult = useQuery(api.users.getCurrentUser);
-  const currentUser = currentUserResult?.success ? currentUserResult.data : null;
+  const currentUser = currentUserResult?.success
+    ? currentUserResult.data
+    : null;
   const role = currentUser?.role ?? "User";
 
   return (

@@ -40,7 +40,9 @@ const DEFAULT_FORM_DATA: QuestionFormData = {
 
 export default function AdminQuizzesPage() {
   const questionsResult = useQuery(api.quizzes.list);
-  const questions = safeArray<Doc<'quizQuestions'>>((questionsResult as any)?.data);
+  const questions = safeArray<Doc<"quizQuestions">>(
+    (questionsResult as any)?.data,
+  );
   const createQuestion = useMutation(api.quizzes.create);
   const updateQuestion = useMutation(api.quizzes.update);
   const toggleActive = useMutation(api.quizzes.toggleActive);
@@ -84,7 +86,11 @@ export default function AdminQuizzesPage() {
       } else if (newCorrectIndex > indexToRemove) {
         newCorrectIndex -= 1;
       }
-      setFormData({ ...formData, options: newOptions, correctOptionIndex: newCorrectIndex });
+      setFormData({
+        ...formData,
+        options: newOptions,
+        correctOptionIndex: newCorrectIndex,
+      });
     }
   };
 
@@ -132,7 +138,10 @@ export default function AdminQuizzesPage() {
     }
   };
 
-  const handleToggleActive = async (id: Id<"quizQuestions">, currentStatus: boolean) => {
+  const handleToggleActive = async (
+    id: Id<"quizQuestions">,
+    currentStatus: boolean,
+  ) => {
     try {
       const res = await toggleActive({ id, isActive: !currentStatus });
       if (!res.success) throw new Error(res.error);
@@ -228,13 +237,19 @@ export default function AdminQuizzesPage() {
                         >
                           <div className="flex flex-col items-center justify-center gap-2">
                             <AlertCircle className="h-8 w-8 text-gray-400" />
-                            <p>No questions found. Add your first question to get started.</p>
+                            <p>
+                              No questions found. Add your first question to get
+                              started.
+                            </p>
                           </div>
                         </td>
                       </tr>
                     ) : (
                       questions.map((q) => (
-                        <tr key={q._id} className="hover:bg-gray-50/50 transition-colors">
+                        <tr
+                          key={q._id}
+                          className="hover:bg-gray-50/50 transition-colors"
+                        >
                           <td className="whitespace-normal py-4 pl-4 pr-3 text-sm text-gray-900 sm:pl-6 max-w-sm">
                             <div className="font-medium">{q.question}</div>
                             <div className="mt-1 text-xs text-gray-500 line-clamp-2">
@@ -253,11 +268,14 @@ export default function AdminQuizzesPage() {
                           <td className="whitespace-nowrap px-3 py-4 text-sm">
                             <button
                               type="button"
-                              onClick={() => handleToggleActive(q._id, q.isActive)}
-                              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold hover:opacity-80 transition-opacity ${q.isActive
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                                }`}
+                              onClick={() =>
+                                handleToggleActive(q._id, q.isActive)
+                              }
+                              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold hover:opacity-80 transition-opacity ${
+                                q.isActive
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}
                             >
                               {q.isActive ? (
                                 <>
@@ -348,7 +366,8 @@ export default function AdminQuizzesPage() {
                 Options
               </label>
               <p className="text-xs text-gray-500 -mt-2 mb-4">
-                Provide between 2 and 5 options. Select the radio button next to the correct answer.
+                Provide between 2 and 5 options. Select the radio button next to
+                the correct answer.
               </p>
 
               {formData.options.map((option, index) => (

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { safeArray } from '../lib/data.helpers'
+import { safeArray } from "../lib/data.helpers";
 import { query } from "./_generated/server";
 import { getCurrentUser, getUserRole, type Result } from "./utils";
 
@@ -20,7 +20,7 @@ export const getCurrentUserWithRole = query({
         ...user,
         roleName: role?.name ?? null,
         privileges: role?.privileges ?? [],
-      }
+      },
     };
   },
 });
@@ -82,7 +82,7 @@ export const getUserWithRole = query({
         ...user,
         roleName: role?.name ?? null,
         privileges: role?.privileges ?? [],
-      }
+      },
     };
   },
 });

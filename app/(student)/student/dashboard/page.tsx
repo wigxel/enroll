@@ -9,7 +9,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Image from "next/image";
-import Link from 'next/link'
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { api } from "@/convex/_generated/api";
@@ -40,7 +40,9 @@ export default function StudentDashboardPage() {
   const userResult = useQuery(api.users.getCurrentUser);
   const user = userResult?.success ? userResult.data : null;
   const applicationResult = useQuery(api.applications.getMyApplication);
-  const application = applicationResult?.success ? applicationResult.data : null;
+  const application = applicationResult?.success
+    ? applicationResult.data
+    : null;
   const enrollmentResult = useQuery(api.enrollments.get);
   const enrollment = enrollmentResult?.success ? enrollmentResult.data : null;
 
@@ -78,10 +80,10 @@ export default function StudentDashboardPage() {
 
   const initials = user.name
     ? user.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
     : "U";
 
   return (
@@ -117,94 +119,99 @@ export default function StudentDashboardPage() {
       </div>
 
       {/* Enrollment Summary */}
-      {enrollment?.status !== "completed" ? <section className="mt-8">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Enrollment Summary
-          </h2>
-          <Link href="/student/application-pending" className="inline-flex gap-1 items-center">
-            <span>View details</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+      {enrollment?.status !== "completed" ? (
+        <section className="mt-8">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Enrollment Summary
+            </h2>
+            <Link
+              href="/student/application-pending"
+              className="inline-flex gap-1 items-center"
+            >
+              <span>View details</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-emerald-600">
+                    {enrollment.status === "completed"
+                      ? "Enrolled"
+                      : "In Progress"}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-emerald-600">
-                  {enrollment.status === "completed"
-                    ? "Enrolled"
-                    : "In Progress"}
-                </p>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100">
+                  <GraduationCap className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Cohort</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {enrollment.cohortName}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-100">
+                  <CalendarDays className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Enrolled On</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {enrollment.completedAt
+                      ? new Date(enrollment.completedAt).toLocaleDateString(
+                          "en-NG",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          },
+                        )
+                      : "In Progress"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100">
-                <GraduationCap className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Cohort</p>
-                <p className="text-sm font-semibold text-gray-900">
-                  {enrollment.cohortName}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-100">
-                <CalendarDays className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Enrolled On</p>
-                <p className="text-sm font-semibold text-gray-900">
-                  {enrollment.completedAt
-                    ? new Date(enrollment.completedAt).toLocaleDateString(
-                      "en-NG",
-                      {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      },
-                    )
-                    : "In Progress"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Completion checklist */}
-        <div className="mt-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">
-            All Steps Completed
-          </h3>
-          <div className="flex flex-wrap gap-3">
-            {[
-              { label: "Tuition Paid", done: enrollment.steps.tuitionPaid },
-              { label: "Quiz Passed", done: enrollment.steps.quizPassed },
-              {
-                label: "Documents Signed",
-                done: enrollment.steps.documentsSigned,
-              },
-            ].map((step) => (
-              <div
-                key={step.label}
-                className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700"
-              >
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                {step.label}
-              </div>
-            ))}
+          {/* Completion checklist */}
+          <div className="mt-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">
+              All Steps Completed
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              {[
+                { label: "Tuition Paid", done: enrollment.steps.tuitionPaid },
+                { label: "Quiz Passed", done: enrollment.steps.quizPassed },
+                {
+                  label: "Documents Signed",
+                  done: enrollment.steps.documentsSigned,
+                },
+              ].map((step) => (
+                <div
+                  key={step.label}
+                  className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700"
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  {step.label}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section> : null}
+        </section>
+      ) : null}
 
       {/* Student Resources */}
       <section className="mt-10">

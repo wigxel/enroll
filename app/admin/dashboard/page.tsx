@@ -29,7 +29,9 @@ export default function AdminDashboardPage() {
   const pendingResultRaw = useQuery(api.applications.listPending, {});
 
   const stats = statsResult?.success ? statsResult.data : null;
-  const pendingResult = pendingResultRaw?.success ? pendingResultRaw.data : { applications: [] };
+  const pendingResult = pendingResultRaw?.success
+    ? pendingResultRaw.data
+    : { applications: [] };
 
   const isLoading = statsResult === undefined || pendingResultRaw === undefined;
 

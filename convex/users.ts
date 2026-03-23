@@ -43,9 +43,9 @@ export const createOrGetUser = mutation({
     // Try to find the pending role, fall back to "Applicant"
     let roleRecord = pendingRoleName
       ? await ctx.db
-        .query("roles")
-        .withIndex("by_name", (q) => q.eq("name", pendingRoleName))
-        .unique()
+          .query("roles")
+          .withIndex("by_name", (q) => q.eq("name", pendingRoleName))
+          .unique()
       : null;
 
     if (!roleRecord) {
@@ -58,7 +58,8 @@ export const createOrGetUser = mutation({
     if (!roleRecord) {
       return {
         success: false,
-        error: "Default 'Applicant' role not found. Please seed the roles table.",
+        error:
+          "Default 'Applicant' role not found. Please seed the roles table.",
       };
     }
 
@@ -95,7 +96,7 @@ export const getCurrentUser = query({
       data: {
         ...user,
         role: roleRecord?.name ?? "User",
-      }
+      },
     };
   },
 });
@@ -142,12 +143,11 @@ export const list = query({
 
     const pageSize = 20;
 
-    const usersQuery = (args.roleFilter)
+    const usersQuery = args.roleFilter
       ? ctx.db
-        .query("users")
-        .withIndex("by_role", (q) => q.eq("role", args.roleFilter!))
+          .query("users")
+          .withIndex("by_role", (q) => q.eq("role", args.roleFilter!))
       : ctx.db.query("users");
-
 
     const allUsers = await usersQuery.collect();
     const search_ = safeStr(args.search);
@@ -155,10 +155,10 @@ export const list = query({
     // Apply search filter in memory (Convex doesn't support full-text search on queries)
     const filtered = args.search
       ? allUsers.filter(
-        (u) =>
-          u.name.toLowerCase().includes(search_.toLowerCase()) ||
-          u.email.toLowerCase().includes(search_.toLowerCase()),
-      )
+          (u) =>
+            u.name.toLowerCase().includes(search_.toLowerCase()) ||
+            u.email.toLowerCase().includes(search_.toLowerCase()),
+        )
       : allUsers;
 
     // Pagination
@@ -181,7 +181,7 @@ export const list = query({
         total: filtered.length,
         page,
         totalPages: Math.ceil(filtered.length / pageSize),
-      }
+      },
     };
   },
 });
@@ -207,7 +207,7 @@ export const getUser = query({
       data: {
         ...user,
         roleName: role?.name ?? null,
-      }
+      },
     };
   },
 });
@@ -237,11 +237,11 @@ export const listStudents = query({
     if (!studentRole) {
       return {
         success: true,
-        data: { users: [], total: 0, page: 0, totalPages: 0 }
+        data: { users: [], total: 0, page: 0, totalPages: 0 },
       };
     }
 
-    let studentUsers: Doc<'users'>[]
+    let studentUsers: Doc<"users">[];
 
     if (args.cohortId) {
       // Filter by cohort: query enrollments first, then resolve users
@@ -269,10 +269,10 @@ export const listStudents = query({
     // Apply search filter
     const filtered = args.search
       ? studentUsers.filter(
-        (u) =>
-          u.name.toLowerCase().includes(search_) ||
-          u.email.toLowerCase().includes(search_),
-      )
+          (u) =>
+            u.name.toLowerCase().includes(search_) ||
+            u.email.toLowerCase().includes(search_),
+        )
       : studentUsers;
 
     // Enrich with enrollment data (courseName, cohortName, enrolledAt)
@@ -335,7 +335,7 @@ export const listStudents = query({
         total: filtered.length,
         page,
         totalPages: Math.ceil(filtered.length / pageSize),
-      }
+      },
     };
   },
 });
@@ -372,9 +372,12 @@ export const deleteUser = action({
   handler: async (ctx, args) => {
     try {
       // 1. Delete from Convex & fetch clerkId
-      const { clerkId } = await ctx.runMutation(internal.users.deleteUserRecord, {
-        userId: args.userId,
-      });
+      const { clerkId } = await ctx.runMutation(
+        internal.users.deleteUserRecord,
+        {
+          userId: args.userId,
+        },
+      );
 
       // 2. Delete from Clerk (if it's a real clerkId)
       if (clerkId?.startsWith("user_")) {
@@ -386,7 +389,10 @@ export const deleteUser = action({
       }
       return { success: true, data: null };
     } catch (error: any) {
-      return { success: false, error: error.message || "Failed to delete user." };
+      return {
+        success: false,
+        error: error.message || "Failed to delete user.",
+      };
     }
   },
 });
@@ -453,13 +459,19 @@ export const assignRole = action({
           console.error("Failed to sync new role to Clerk:", err);
           // Return success anyway because Convex is updated?
           // Or return error? Let's return error if syncing is critical.
-          return { success: false, error: `Role assigned in DB but Clerk sync failed: ${err.message}` };
+          return {
+            success: false,
+            error: `Role assigned in DB but Clerk sync failed: ${err.message}`,
+          };
         }
       }
 
       return { success: true, data: null };
     } catch (error: any) {
-      return { success: false, error: error.message || "Failed to assign role." };
+      return {
+        success: false,
+        error: error.message || "Failed to assign role.",
+      };
     }
   },
 });

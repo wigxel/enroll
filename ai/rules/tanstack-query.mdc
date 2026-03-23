@@ -1,0 +1,118 @@
+## TanStack Query — Usage Rules
+
+TanStack Query (`@tanstack/react-query` v5) is the standard for all **non-Convex** async data: Clerk invitation endpoints, third-party APIs, and any imperative `fetch` calls that need caching, de-duplication, or background refresh.
+
+**Convex** continues to own all reactive database queries and mutations via `useQuery` / `useMutation` / `useAction` from `convex/react`. Do **not** wrap Convex hooks in TanStack Query.
+
+---
+
+## When to use TanStack Query vs Convex
+
+| Data source | Hook to use |
+|---|---|
+| Convex tables (reactive) | `useQuery(api.*)`, `useMutation(api.*)` |
+| Convex actions that hit **external services** (Clerk, Paystack…) | `useQuery` / `useMutation` from `@tanstack/react-query` |
+| Any plain `fetch` / REST endpoint | `useQuery` / `useMutation` from `@tanstack/react-query` |
+
+---
+
+## Provider
+
+`QueryProvider` is exported from `~/providers/react-query.tsx` and is already mounted in the root layout. Do **not** create additional `QueryClient` instances or nest another `QueryClientProvider`.
+
+```tsx
+// providers/react-query.tsx  (single source of truth)
+export const queryClient = new QueryClient();
+export const QueryProvider = ({ children }) => (
+  <QueryClientProvider client={queryClient}>
+    {children}
+    <ReactQueryDevtools initialIsOpen={false} />
+  </QueryClientProvider>
+);
+```
+
+---
+
+## Query key conventions
+
+Use a structured tuple so keys are predictable and easy to invalidate.
+
+```ts
+// Format: [domain, sub-resource, ...params]
+["invitations", "pending"]
+["invitations", "pending", userId]
+```
+
+Export key factories from the relevant hook file so every consumer stays in sync:
+
+```ts
+export const invitationKeys = {
+  all:     () => ["invitations"] as const,
+  pending: () => ["invitations", "pending"] as const,
+};
+```
+
+---
+
+## Fetching (useQuery)
+
+Wrap Convex action calls in a plain async function — **do not** call `useAction` inside TanStack Query's `queryFn`. Instead, call the Convex action imperatively via the shared `convexClient`.
+
+```tsx
+import { useQuery } from "@tanstack/react-query";
+import { useConvex } from "convex/react";
+import { api } from "~/convex/_generated/api";
+
+export function usePendingInvitations() {
+  const convex = useConvex();
+
+  return useQuery({
+    queryKey: invitationKeys.pending(),
+    queryFn: () => convex.action(api.invitations.getPendingInvites, {}),
+  });
+}
+```
+
+---
+
+## Mutations + invalidation (useMutation)
+
+```tsx
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useConvex } from "convex/react";
+import { api } from "~/convex/_generated/api";
+
+export function useRevokeInvitation() {
+  const convex = useConvex();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (invitationId: string) =>
+      convex.action(api.invitations.revokeInvite, { invitationId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: invitationKeys.pending() });
+    },
+  });
+}
+```
+
+---
+
+## Error handling
+
+TanStack Query surfaces errors via the `error` field. Prefer displaying inline errors in the component rather than `alert()` or `console.error` alone.
+
+```tsx
+const { data, error, isLoading } = usePendingInvitations();
+if (error) return <p className="text-red-600">{error.message}</p>;
+```
+
+---
+
+## File placement
+
+| Concern | Location |
+|---|---|
+| Query key factories + hooks | `hooks/use-<resource>.ts` |
+| Provider setup | `providers/react-query.tsx` |
+| Component consuming the hook | co-located with the feature |

@@ -45,7 +45,8 @@ export const create = mutation({
     if (existing) {
       return {
         success: false,
-        error: "An application already exists for this email address. Please use a different email or log in to view your application.",
+        error:
+          "An application already exists for this email address. Please use a different email or log in to view your application.",
       };
     }
 
@@ -95,12 +96,18 @@ export const update = mutation({
 
       const user = authResult.data;
       if (application.userId !== user._id) {
-        return { success: false, error: "You can only edit your own application." };
+        return {
+          success: false,
+          error: "You can only edit your own application.",
+        };
       }
     }
 
     if (application.status !== "draft") {
-      return { success: false, error: "Only draft applications can be edited." };
+      return {
+        success: false,
+        error: "Only draft applications can be edited.",
+      };
     }
 
     await ctx.db.patch(args.applicationId, {
@@ -133,15 +140,24 @@ export const submit = mutation({
 
       const user = authResult.data;
       if (application.userId !== user._id) {
-        return { success: false, error: "You can only submit your own application." };
+        return {
+          success: false,
+          error: "You can only submit your own application.",
+        };
       }
     }
 
     if (application.status !== "draft") {
-      return { success: false, error: "This application has already been submitted." };
+      return {
+        success: false,
+        error: "This application has already been submitted.",
+      };
     }
     if (application.paymentStatus !== "paid") {
-      return { success: false, error: "Application fee must be paid before submitting." };
+      return {
+        success: false,
+        error: "Application fee must be paid before submitting.",
+      };
     }
 
     const timestamp = now();
@@ -219,7 +235,7 @@ export const getMyApplication = query({
       data: {
         ...application,
         courseName: course?.name ?? "Unknown Course",
-      }
+      },
     };
   },
 });
@@ -276,7 +292,7 @@ export const getById = query({
         applicant,
         payment,
         courseName: course?.name ?? "Unknown Course",
-      }
+      },
     };
   },
 });
@@ -349,7 +365,7 @@ export const listPending = query({
         total: applications.length,
         page,
         totalPages: Math.ceil(applications.length / pageSize),
-      }
+      },
     };
   },
 });
@@ -416,10 +432,10 @@ export const listAll = query({
     const searchTerm = (args.search ?? "").toLowerCase();
     const filtered = searchTerm
       ? enriched.filter(
-        (app) =>
-          app.applicantName.toLowerCase().includes(searchTerm) ||
-          app.applicantEmail.toLowerCase().includes(searchTerm),
-      )
+          (app) =>
+            app.applicantName.toLowerCase().includes(searchTerm) ||
+            app.applicantEmail.toLowerCase().includes(searchTerm),
+        )
       : enriched;
 
     // Compute counts across ALL applications (before pagination)
@@ -448,7 +464,7 @@ export const listAll = query({
         page,
         totalPages: Math.ceil(filtered.length / pageSize),
         counts,
-      }
+      },
     };
   },
 });
@@ -654,7 +670,7 @@ export const getDashboardStats = query({
         pendingReview,
         approved,
         declined,
-      }
+      },
     };
   },
 });
@@ -722,7 +738,7 @@ export const getApplicationForPayment = query({
         paymentStatus: application.paymentStatus,
         applicantName: `${application.data.firstName} ${application.data.lastName}`,
         applicantEmail: application.data.email,
-      }
+      },
     };
   },
 });

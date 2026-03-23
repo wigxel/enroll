@@ -80,7 +80,7 @@ export const getAppStatus = query({
           isOpen: false,
           applicationFeeAmount: 0,
           message: "Application settings have not been configured yet.",
-        }
+        },
       };
     }
 
@@ -92,7 +92,7 @@ export const getAppStatus = query({
           isOpen: false,
           applicationFeeAmount: settings.applicationFeeAmount,
           message: "Applications are currently closed.",
-        }
+        },
       };
     }
 
@@ -106,7 +106,7 @@ export const getAppStatus = query({
           isOpen: false,
           applicationFeeAmount: settings.applicationFeeAmount,
           message: `Applications will open on ${settings.openDate}.`,
-        }
+        },
       };
     }
 
@@ -117,7 +117,7 @@ export const getAppStatus = query({
           isOpen: false,
           applicationFeeAmount: settings.applicationFeeAmount,
           message: "The application window has closed.",
-        }
+        },
       };
     }
 
@@ -127,7 +127,7 @@ export const getAppStatus = query({
         isOpen: true,
         applicationFeeAmount: settings.applicationFeeAmount,
         message: "Applications are open.",
-      }
+      },
     };
   },
 });

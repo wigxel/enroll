@@ -153,10 +153,11 @@ export default function NotificationsPage() {
             key={tab}
             type="button"
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium capitalize transition-colors ${activeTab === tab
+            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium capitalize transition-colors ${
+              activeTab === tab
                 ? "bg-white text-gray-900 shadow-sm"
                 : "text-gray-500 hover:text-gray-700"
-              }`}
+            }`}
           >
             {tab}
             {tab === "unread" && unreadCount > 0 && (
@@ -189,10 +190,11 @@ export default function NotificationsPage() {
                 onClick={() =>
                   handleNotificationClick(notification._id, notification.isRead)
                 }
-                className={`flex gap-3 rounded-xl border p-4 transition-all hover:shadow-sm ${!notification.isRead
+                className={`flex gap-3 rounded-xl border p-4 transition-all hover:shadow-sm ${
+                  !notification.isRead
                     ? "border-primary/20 bg-primary/[0.02] hover:bg-primary/[0.04]"
                     : "border-gray-200 bg-white hover:bg-gray-50"
-                  }`}
+                }`}
               >
                 <span className="mt-0.5 text-lg leading-none">
                   {getNotificationIcon(notification.type)}
@@ -200,10 +202,11 @@ export default function NotificationsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <p
-                      className={`text-sm ${!notification.isRead
+                      className={`text-sm ${
+                        !notification.isRead
                           ? "font-semibold text-gray-900"
                           : "font-medium text-gray-700"
-                        }`}
+                      }`}
                     >
                       {notification.title}
                     </p>

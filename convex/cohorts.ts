@@ -25,7 +25,6 @@ export const list = query({
       );
     }
 
-
     // Sort by start date (newest first)
     cohorts.sort((a, b) => b.startDate.localeCompare(a.startDate));
 
@@ -68,7 +67,7 @@ export const list = query({
         total: cohorts.length,
         page,
         totalPages: Math.ceil(cohorts.length / pageSize),
-      }
+      },
     };
   },
 });
@@ -197,7 +196,10 @@ export const assignStudent = mutation({
         .collect();
 
       if (currentStudents.length >= cohort.capacity) {
-        return { success: false, error: "Cohort has reached its maximum capacity." };
+        return {
+          success: false,
+          error: "Cohort has reached its maximum capacity.",
+        };
       }
     }
 

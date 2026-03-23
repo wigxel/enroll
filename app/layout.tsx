@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import { ConvexClientProvider } from "~/components/providers/ConvexClientProvider";
 import { Toaster } from "~/components/ui/sonner";
+import { QueryProvider } from "~/providers/react-query";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,7 +29,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <ConvexClientProvider>{children}</ConvexClientProvider>
+          <QueryProvider>
+            <ConvexClientProvider>{children}</ConvexClientProvider>
+          </QueryProvider>
           <Toaster />
         </body>
       </html>

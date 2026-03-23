@@ -21,7 +21,9 @@ export default function PaymentComponent() {
     explicitAppId ? { applicationId: explicitAppId as any } : "skip",
   );
 
-  const application = applicationResult?.success ? applicationResult.data : null;
+  const application = applicationResult?.success
+    ? applicationResult.data
+    : null;
 
   const createIntent = useAction(api.payments.createIntent);
   const confirmPayment = useMutation(api.payments.confirm);
@@ -46,7 +48,10 @@ export default function PaymentComponent() {
   }
 
   // Not found
-  if (applicationResult?.success === false || (applicationResult !== undefined && !application)) {
+  if (
+    applicationResult?.success === false ||
+    (applicationResult !== undefined && !application)
+  ) {
     return (
       <div className="flex flex-1 items-center justify-center p-12 text-gray-500">
         {applicationResult?.success === false

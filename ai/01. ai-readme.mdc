@@ -12,6 +12,7 @@ prd.md is the source of all truths. If they are decrepancies in the other .md fi
 4. interfaces.md
 5. typescript.md
 6. convex.md
+7. rules/tanstack-query.mdc
 
 ## Change propagation flow:
 

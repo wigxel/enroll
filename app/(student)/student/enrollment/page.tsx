@@ -75,7 +75,9 @@ export default function EnrollmentChecklistPage() {
   if (!enrollment) {
     return (
       <div className="flex flex-1 items-center justify-center p-12 text-gray-500">
-        {enrollmentResult?.success === false ? enrollmentResult.error : "No enrollment record found."}
+        {enrollmentResult?.success === false
+          ? enrollmentResult.error
+          : "No enrollment record found."}
       </div>
     );
   }
@@ -96,7 +98,9 @@ export default function EnrollmentChecklistPage() {
       if (enrollment.steps.tuitionPaid && enrollment.steps.quizPassed) {
         toast.promise(
           async () => {
-            const res = await completeEnrollment({ enrollmentId: enrollment._id });
+            const res = await completeEnrollment({
+              enrollmentId: enrollment._id,
+            });
             if (!res.success) throw new Error(res.error);
             return res.data;
           },
@@ -107,7 +111,7 @@ export default function EnrollmentChecklistPage() {
               return "Enrollment complete! Welcome aboard 🎉";
             },
             error: (err) => err.message || "Failed to finalize enrollment.",
-          }
+          },
         );
       } else {
         toast.success("Documents signed successfully!");
@@ -196,22 +200,24 @@ export default function EnrollmentChecklistPage() {
           return (
             <div
               key={step.id}
-              className={`rounded-xl border p-5 transition-all ${isCompleted
-                ? "border-emerald-200 bg-emerald-50/50"
-                : isCurrent
-                  ? "border-primary/30 bg-white shadow-sm ring-1 ring-primary/10"
-                  : "border-gray-200 bg-gray-50/50 opacity-60"
-                }`}
+              className={`rounded-xl border p-5 transition-all ${
+                isCompleted
+                  ? "border-emerald-200 bg-emerald-50/50"
+                  : isCurrent
+                    ? "border-primary/30 bg-white shadow-sm ring-1 ring-primary/10"
+                    : "border-gray-200 bg-gray-50/50 opacity-60"
+              }`}
             >
               <div className="flex items-start gap-4">
                 {/* Icon */}
                 <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isCompleted
-                    ? "bg-emerald-100 text-emerald-600"
-                    : isCurrent
-                      ? "bg-primary/10 text-primary"
-                      : "bg-gray-200 text-gray-400"
-                    }`}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                    isCompleted
+                      ? "bg-emerald-100 text-emerald-600"
+                      : isCurrent
+                        ? "bg-primary/10 text-primary"
+                        : "bg-gray-200 text-gray-400"
+                  }`}
                 >
                   {isCompleted ? (
                     <CheckCircle2 className="h-5 w-5" />
@@ -245,40 +251,41 @@ export default function EnrollmentChecklistPage() {
                     )}
                   </div>
                   <h3
-                    className={`mt-1 text-sm font-semibold ${isLocked ? "text-gray-400" : "text-gray-900"
-                      }`}
+                    className={`mt-1 text-sm font-semibold ${
+                      isLocked ? "text-gray-400" : "text-gray-900"
+                    }`}
                   >
                     {step.title}
                   </h3>
                   <p
-                    className={`mt-0.5 text-xs ${isLocked ? "text-gray-400" : "text-gray-500"
-                      }`}
+                    className={`mt-0.5 text-xs ${
+                      isLocked ? "text-gray-400" : "text-gray-500"
+                    }`}
                   >
                     {step.description}
                   </p>
                 </div>
 
                 {/* CTA */}
-                {isCurrent && (
-                  step.id === "documents" ? (
-                      <button
-                        type="button"
-                        onClick={() => setIsSignModalOpen(true)}
-                        className="flex shrink-0 items-center gap-1 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-                      >
-                        Sign Now
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
-                    ) : (
-                      <Link
-                        href={step.href}
-                        className="flex shrink-0 items-center gap-1 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-                      >
-                        Continue
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
-                    )
-                )}
+                {isCurrent &&
+                  (step.id === "documents" ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsSignModalOpen(true)}
+                      className="flex shrink-0 items-center gap-1 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                    >
+                      Sign Now
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  ) : (
+                    <Link
+                      href={step.href}
+                      className="flex shrink-0 items-center gap-1 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                    >
+                      Continue
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  ))}
               </div>
             </div>
           );
@@ -292,31 +299,47 @@ export default function EnrollmentChecklistPage() {
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4">
               <ScrollText className="h-6 w-6 text-primary" />
             </div>
-            <DialogTitle className="text-center text-xl">Enrollment Agreement</DialogTitle>
+            <DialogTitle className="text-center text-xl">
+              Enrollment Agreement
+            </DialogTitle>
             <DialogDescription className="text-center">
               Please review the terms and conditions carefully before signing.
             </DialogDescription>
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50/50 p-6 my-4 text-sm text-gray-600 space-y-4">
-            <h4 className="font-semibold text-gray-900">1. Program Commitment</h4>
+            <h4 className="font-semibold text-gray-900">
+              1. Program Commitment
+            </h4>
             <p>
-              By signing this agreement, you commit to actively participating in the Enrolled curriculum, including all mandatory sessions, assessments, and capstone projects.
+              By signing this agreement, you commit to actively participating in
+              the Enrolled curriculum, including all mandatory sessions,
+              assessments, and capstone projects.
             </p>
 
             <h4 className="font-semibold text-gray-900">2. Code of Conduct</h4>
             <p>
-              We maintain a rigorous standard of academic integrity. Plagiarism, cheating, or disruptive behavior may result in immediate termination from the program without refund.
+              We maintain a rigorous standard of academic integrity. Plagiarism,
+              cheating, or disruptive behavior may result in immediate
+              termination from the program without refund.
             </p>
 
-            <h4 className="font-semibold text-gray-900">3. Tuition & Refund Policy</h4>
+            <h4 className="font-semibold text-gray-900">
+              3. Tuition & Refund Policy
+            </h4>
             <p>
-              Tuition is non-refundable after the first 14 days of the cohort start date. If you opt for an installments plan, failure to meet deadlines will result in temporary suspension of LMS access.
+              Tuition is non-refundable after the first 14 days of the cohort
+              start date. If you opt for an installments plan, failure to meet
+              deadlines will result in temporary suspension of LMS access.
             </p>
 
-            <h4 className="font-semibold text-gray-900">4. Intellectual Property</h4>
+            <h4 className="font-semibold text-gray-900">
+              4. Intellectual Property
+            </h4>
             <p>
-              Any curriculum materials, LMS access, and recorded lectures are the intellectual property of Enrollment Platform. You may not distribute or replicate them externally.
+              Any curriculum materials, LMS access, and recorded lectures are
+              the intellectual property of Enrollment Platform. You may not
+              distribute or replicate them externally.
             </p>
           </div>
 

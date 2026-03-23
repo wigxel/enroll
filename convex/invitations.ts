@@ -34,7 +34,10 @@ export const sendInvite = action({
 
       return { success: true, data: null };
     } catch (error: any) {
-      return { success: false, error: error.message || "Failed to send invitation." };
+      return {
+        success: false,
+        error: error.message || "Failed to send invitation.",
+      };
     }
   },
 });
@@ -49,7 +52,10 @@ export const getPendingInvites = action({
       const invites = await getPendingInvitations();
       return { success: true, data: invites };
     } catch (error: any) {
-      return { success: false, error: error.message || "Failed to fetch pending invitations." };
+      return {
+        success: false,
+        error: error.message || "Failed to fetch pending invitations.",
+      };
     }
   },
 });
@@ -66,7 +72,10 @@ export const revokeInvite = action({
       await revokeInvitation(args.invitationId);
       return { success: true, data: null };
     } catch (error: any) {
-      return { success: false, error: error.message || "Failed to revoke invitation." };
+      return {
+        success: false,
+        error: error.message || "Failed to revoke invitation.",
+      };
     }
   },
 });

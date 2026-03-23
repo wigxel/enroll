@@ -89,6 +89,7 @@ export default function CoursesPage() {
           <h1 className="text-2xl font-semibold text-gray-900">
             Manage Courses
           </h1>
+
           <button
             type="button"
             onClick={openCreateDialog}
@@ -134,7 +135,7 @@ export default function CoursesPage() {
                     <Loader2 className="mx-auto h-5 w-5 animate-spin text-gray-400" />
                   </td>
                 </tr>
-              ) : (coursesResult.success === false) ? (
+              ) : coursesResult.success === false ? (
                 <tr>
                   <td
                     colSpan={6}
@@ -185,10 +186,11 @@ export default function CoursesPage() {
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm">
                       <span
-                        className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${course.isActive
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-600"
-                          }`}
+                        className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                          course.isActive
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
                       >
                         {course.isActive ? "Active" : "Inactive"}
                       </span>

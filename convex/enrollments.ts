@@ -31,8 +31,8 @@ export const get = query({
       success: true,
       data: {
         ...enrollment,
-        cohortName: cohort?.name ?? "—"
-      }
+        cohortName: cohort?.name ?? "—",
+      },
     };
   },
 });
@@ -60,7 +60,7 @@ export const getById = query({
         ...enrollment,
         user,
         application,
-      }
+      },
     };
   },
 });
@@ -215,7 +215,10 @@ export const updateStep = mutation({
       // If not the owner, check for admin privilege
       const role = await ctx.db.get(user.role);
       if (!role || !role.privileges.includes("enrollment:update")) {
-        return { success: false, error: "You can only update your own enrollment steps." };
+        return {
+          success: false,
+          error: "You can only update your own enrollment steps.",
+        };
       }
     }
 
@@ -254,7 +257,10 @@ export const complete = mutation({
       return { success: false, error: "Enrollment not found." };
     }
     if (enrollment.userId !== user._id) {
-      return { success: false, error: "You can only complete your own enrollment." };
+      return {
+        success: false,
+        error: "You can only complete your own enrollment.",
+      };
     }
     if (enrollment.status === "completed") {
       return { success: false, error: "Enrollment is already completed." };
@@ -326,7 +332,10 @@ export const submitQuiz = mutation({
     }
 
     if (!enrollment.steps.tuitionPaid) {
-      return { success: false, error: "You must complete the 'Pay Tuition' step first." };
+      return {
+        success: false,
+        error: "You must complete the 'Pay Tuition' step first.",
+      };
     }
 
     // Fetch all active questions to grade against
@@ -344,7 +353,10 @@ export const submitQuiz = mutation({
 
     for (const question of activeQuestions) {
       const studentAnswerIndex = args.answers[question._id];
-      if (studentAnswerIndex !== undefined && studentAnswerIndex === question.correctOptionIndex) {
+      if (
+        studentAnswerIndex !== undefined &&
+        studentAnswerIndex === question.correctOptionIndex
+      ) {
         correctCount++;
       }
     }
@@ -394,7 +406,7 @@ export const submitQuiz = mutation({
         passed,
         score,
         requiredScore,
-      }
+      },
     };
   },
 });

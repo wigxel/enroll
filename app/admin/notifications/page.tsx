@@ -27,7 +27,7 @@ type NotificationType =
   | "system_alert"
   | "payment_refund";
 
-type Notification = Doc<"notifications">
+type Notification = Doc<"notifications">;
 
 const typeIcon: Record<string, React.ReactNode> = {
   application_submitted: <Info className="h-5 w-5 text-blue-500" />,
@@ -66,7 +66,9 @@ export default function NotificationsPage() {
   const markAllAsRead = useMutation(api.notifications.markAllAsRead);
   const archiveNotification = useMutation(api.notifications.archive);
 
-  const notifications: Notification[] = safeArray((resultRaw as any)?.data?.notifications);
+  const notifications: Notification[] = safeArray(
+    (resultRaw as any)?.data?.notifications,
+  );
   const unreadCount = unreadCountResult?.success ? unreadCountResult.data : 0;
   const isLoading = resultRaw === undefined;
 
@@ -114,10 +116,11 @@ export default function NotificationsPage() {
               key={f}
               type="button"
               onClick={() => setFilter(f)}
-              className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${filter === f
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-                }`}
+              className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                filter === f
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
             </button>
@@ -146,8 +149,9 @@ export default function NotificationsPage() {
               return (
                 <div
                   key={notification._id}
-                  className={`rounded-md px-4 py-3 transition ${!notification.isRead ? "bg-primary/5" : "hover:bg-gray-50"
-                    }`}
+                  className={`rounded-md px-4 py-3 transition ${
+                    !notification.isRead ? "bg-primary/5" : "hover:bg-gray-50"
+                  }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5 shrink-0">
@@ -158,10 +162,11 @@ export default function NotificationsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between">
                         <h3
-                          className={`text-sm ${!notification.isRead
-                            ? "font-semibold text-gray-900"
-                            : "font-medium text-gray-700"
-                            }`}
+                          className={`text-sm ${
+                            !notification.isRead
+                              ? "font-semibold text-gray-900"
+                              : "font-medium text-gray-700"
+                          }`}
                         >
                           {notification.title}
                         </h3>

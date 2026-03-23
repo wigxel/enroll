@@ -97,7 +97,7 @@ export default function CohortsPage() {
                     <Loader2 className="mx-auto h-5 w-5 animate-spin text-gray-400" />
                   </td>
                 </tr>
-              ) : (resultRaw.success === false) ? (
+              ) : resultRaw.success === false ? (
                 <tr>
                   <td
                     colSpan={6}

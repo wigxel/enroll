@@ -133,7 +133,10 @@ export const confirm = mutation({
     // If tuition payment succeeded, update the enrollment step
     if (args.status === "succeeded" && payment.referenceType === "tuition") {
       if (!payment.userId) {
-        return { success: false, error: "Tuition payments must be associated with a user." };
+        return {
+          success: false,
+          error: "Tuition payments must be associated with a user.",
+        };
       }
       const enrollment = await ctx.db
         .query("enrollments")
@@ -225,11 +228,11 @@ export const list = query({
     // Apply search filter
     const filtered = args.search
       ? withUser.filter(
-        (p) =>
-          p.userName.toLowerCase().includes(search_.toLowerCase()) ||
-          p.userEmail.toLowerCase().includes(search_.toLowerCase()) ||
-          p.stripePaymentIntentId.includes(search_),
-      )
+          (p) =>
+            p.userName.toLowerCase().includes(search_.toLowerCase()) ||
+            p.userEmail.toLowerCase().includes(search_.toLowerCase()) ||
+            p.stripePaymentIntentId.includes(search_),
+        )
       : withUser;
 
     // Sort by date (newest first)
@@ -248,7 +251,7 @@ export const list = query({
         total: filtered.length,
         page,
         totalPages: Math.ceil(filtered.length / pageSize),
-      }
+      },
     };
   },
 });
@@ -260,7 +263,10 @@ async function calculateOverallStats(ctx: any) {
   const payments = await ctx.db.query("payments").collect();
   const succeeded = payments.filter((p: any) => p.status === "succeeded");
 
-  const totalCollected = succeeded.reduce((sum: number, p: any) => sum + p.amount, 0);
+  const totalCollected = succeeded.reduce(
+    (sum: number, p: any) => sum + p.amount,
+    0,
+  );
   const applicationFees = succeeded
     .filter((p: any) => p.referenceType === "application")
     .reduce((sum: number, p: any) => sum + p.amount, 0);
@@ -322,7 +328,10 @@ async function calculateTrends(ctx: any, days: number) {
     .collect();
 
   // Group by date (YYYY-MM-DD)
-  const grouped: Record<string, { date: string; Total: number; "App Fees": number; Tuition: number }> = {};
+  const grouped: Record<
+    string,
+    { date: string; Total: number; "App Fees": number; Tuition: number }
+  > = {};
 
   // Initialize map with all dates in range to ensure zero-point visibility
   for (let i = 0; i < days; i++) {
@@ -426,7 +435,10 @@ export const refreshRevenueCache = internalMutation({
       .unique();
 
     if (existingSummary) {
-      await ctx.db.patch(existingSummary._id, { data: summaryData, updatedAt: now });
+      await ctx.db.patch(existingSummary._id, {
+        data: summaryData,
+        updatedAt: now,
+      });
     } else {
       await ctx.db.insert("analytics_cache", {
         key: summaryCacheKey,
@@ -479,7 +491,10 @@ export const processRefund = internalMutation({
       return { success: false, error: "Payment not found." };
     }
     if (payment.status !== "succeeded") {
-      return { success: false, error: "Only succeeded payments can be refunded." };
+      return {
+        success: false,
+        error: "Only succeeded payments can be refunded.",
+      };
     }
 
     await ctx.db.patch(args.paymentId, {

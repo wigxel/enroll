@@ -146,7 +146,7 @@ export const getStats = query({
         totalAlumni: uniqueAlumni.size,
         totalCourses: courses.filter((c) => c.isActive).length,
         totalCohorts: cohorts.length,
-      }
+      },
     };
   },
 });

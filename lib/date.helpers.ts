@@ -29,7 +29,9 @@ export const DateParse = {
       return DateParse.format(date, "do MMM yy • hh:mm:ss aaa");
     },
     toNow(date: string) {
-      return DateParse.parse(date).pipe(O.map((v) => formatDistanceToNow(v, { addSuffix: false })));
+      return DateParse.parse(date).pipe(
+        O.map((v) => formatDistanceToNow(v, { addSuffix: false })),
+      );
     },
   },
 };

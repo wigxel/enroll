@@ -14,8 +14,12 @@ export default function ApplicationDetailPage() {
   const _router = useRouter();
   const applicationId = params.applicationId as Id<"applications">;
 
-  const applicationResult = useQuery(api.applications.getById, { applicationId });
-  const application = applicationResult?.success ? applicationResult.data : null;
+  const applicationResult = useQuery(api.applications.getById, {
+    applicationId,
+  });
+  const application = applicationResult?.success
+    ? applicationResult.data
+    : null;
   const approveMutation = useMutation(api.applications.approve);
 
   const [showDeclineDialog, setShowDeclineDialog] = useState(false);
@@ -218,10 +222,11 @@ export default function ApplicationDetailPage() {
                 <dt className="text-sm font-medium text-gray-500">Status</dt>
                 <dd className="mt-1">
                   <span
-                    className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${application.paymentStatus === "paid"
+                    className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                      application.paymentStatus === "paid"
                         ? "bg-green-100 text-green-800"
                         : "bg-yellow-100 text-yellow-800"
-                      }`}
+                    }`}
                   >
                     {application.paymentStatus.charAt(0).toUpperCase() +
                       application.paymentStatus.slice(1)}

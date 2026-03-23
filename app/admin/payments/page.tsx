@@ -1,6 +1,17 @@
 "use client";
 
-import { AreaChart, Badge, Card, Flex, Grid, Metric, Tab, TabGroup, TabList, Text } from "@tremor/react";
+import {
+  AreaChart,
+  Badge,
+  Card,
+  Flex,
+  Grid,
+  Metric,
+  Tab,
+  TabGroup,
+  TabList,
+  Text,
+} from "@tremor/react";
 import { useQuery } from "convex/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CreditCard, Loader2, Search, TrendingUp, Wallet } from "lucide-react";
@@ -21,7 +32,9 @@ const statusBadge: Record<PaymentStatus, { color: any; text: string }> = {
 
 export default function PaymentsPage() {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"All" | PaymentStatus>("All");
+  const [statusFilter, setStatusFilter] = useState<"All" | PaymentStatus>(
+    "All",
+  );
   const [typeFilter, setTypeFilter] = useState<"All" | PaymentType>("All");
   const [detailPayment, setDetailPayment] = useState<any | null>(null);
   const [refundPayment, setRefundPayment] = useState<any | null>(null);
@@ -34,15 +47,19 @@ export default function PaymentsPage() {
   });
 
   const statsResult = useQuery(api.payments.getStats, {});
-  const trendsResult = useQuery(api.payments.getRevenueTrends, { days: chartDays });
+  const trendsResult = useQuery(api.payments.getRevenueTrends, {
+    days: chartDays,
+  });
 
-  const payments = paymentsResultRaw?.success ? paymentsResultRaw.data.payments : [];
+  const payments = paymentsResultRaw?.success
+    ? paymentsResultRaw.data.payments
+    : [];
   const stats = statsResult?.success ? statsResult.data : null;
   const trends = trendsResult?.success ? trendsResult.data : [];
   const isLoading = paymentsResultRaw === undefined;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -51,38 +68,70 @@ export default function PaymentsPage() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Financial Overview</h1>
-            <p className="text-gray-500 mt-1">Monitor revenue, track transactions, and manage refunds.</p>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+              Financial Overview
+            </h1>
+            <p className="text-gray-500 mt-1">
+              Monitor revenue, track transactions, and manage refunds.
+            </p>
           </div>
         </div>
 
         {/* Revenue Summary Cards */}
         <Grid numItemsSm={2} numItemsLg={3} className="mt-8 gap-6">
-          <Card decoration="top" decorationColor="indigo" className="hover:shadow-lg transition-shadow">
+          <Card
+            decoration="top"
+            decorationColor="indigo"
+            className="hover:shadow-lg transition-shadow"
+          >
             <Flex alignItems="start">
               <div className="space-y-2">
                 <Text className="text-gray-500 font-medium">Total Revenue</Text>
-                <Metric className="text-indigo-600 font-bold">₦{(stats?.totalCollected ?? 0).toLocaleString()}</Metric>
+                <Metric className="text-indigo-600 font-bold">
+                  ₦{(stats?.totalCollected ?? 0).toLocaleString()}
+                </Metric>
               </div>
-              <Badge icon={TrendingUp} color="indigo" size="sm">Overall</Badge>
+              <Badge icon={TrendingUp} color="indigo" size="sm">
+                Overall
+              </Badge>
             </Flex>
           </Card>
-          <Card decoration="top" decorationColor="blue" className="hover:shadow-lg transition-shadow">
+          <Card
+            decoration="top"
+            decorationColor="blue"
+            className="hover:shadow-lg transition-shadow"
+          >
             <Flex alignItems="start">
               <div className="space-y-2">
-                <Text className="text-gray-500 font-medium">Application Fees</Text>
-                <Metric className="text-blue-600 font-bold">₦{(stats?.applicationFees ?? 0).toLocaleString()}</Metric>
+                <Text className="text-gray-500 font-medium">
+                  Application Fees
+                </Text>
+                <Metric className="text-blue-600 font-bold">
+                  ₦{(stats?.applicationFees ?? 0).toLocaleString()}
+                </Metric>
               </div>
-              <Badge icon={Wallet} color="blue" size="sm">Enrollment</Badge>
+              <Badge icon={Wallet} color="blue" size="sm">
+                Enrollment
+              </Badge>
             </Flex>
           </Card>
-          <Card decoration="top" decorationColor="purple" className="hover:shadow-lg transition-shadow">
+          <Card
+            decoration="top"
+            decorationColor="purple"
+            className="hover:shadow-lg transition-shadow"
+          >
             <Flex alignItems="start">
               <div className="space-y-2">
-                <Text className="text-gray-500 font-medium">Tuition Collected</Text>
-                <Metric className="text-purple-600 font-bold">₦{(stats?.tuitionCollected ?? 0).toLocaleString()}</Metric>
+                <Text className="text-gray-500 font-medium">
+                  Tuition Collected
+                </Text>
+                <Metric className="text-purple-600 font-bold">
+                  ₦{(stats?.tuitionCollected ?? 0).toLocaleString()}
+                </Metric>
               </div>
-              <Badge icon={CreditCard} color="purple" size="sm">Academic</Badge>
+              <Badge icon={CreditCard} color="purple" size="sm">
+                Academic
+              </Badge>
             </Flex>
           </Card>
         </Grid>
@@ -91,10 +140,17 @@ export default function PaymentsPage() {
         <Card className="mt-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <Text className="text-lg font-bold text-gray-900">Revenue Trends</Text>
+              <Text className="text-lg font-bold text-gray-900">
+                Revenue Trends
+              </Text>
               <Text className="text-gray-500">Daily revenue breakdown</Text>
             </div>
-            <TabGroup index={chartDays === 7 ? 0 : chartDays === 30 ? 1 : 2} onIndexChange={(i) => setChartDays(i === 0 ? 7 : i === 1 ? 30 : 90)}>
+            <TabGroup
+              index={chartDays === 7 ? 0 : chartDays === 30 ? 1 : 2}
+              onIndexChange={(i) =>
+                setChartDays(i === 0 ? 7 : i === 1 ? 30 : 90)
+              }
+            >
               <TabList variant="solid">
                 <Tab>7D</Tab>
                 <Tab>30D</Tab>
@@ -128,7 +184,9 @@ export default function PaymentsPage() {
           </div>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as "All" | PaymentStatus)}
+            onChange={(e) =>
+              setStatusFilter(e.target.value as "All" | PaymentStatus)
+            }
             className="rounded-lg border-gray-200 py-2.5 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all"
           >
             <option value="All">All Statuses</option>
@@ -139,7 +197,9 @@ export default function PaymentsPage() {
           </select>
           <select
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value as "All" | PaymentType)}
+            onChange={(e) =>
+              setTypeFilter(e.target.value as "All" | PaymentType)
+            }
             className="rounded-lg border-gray-200 py-2.5 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all"
           >
             <option value="All">All Types</option>
@@ -153,12 +213,24 @@ export default function PaymentsPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50/50">
               <tr>
-                <th className="py-4 pl-6 pr-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Date</th>
-                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">User</th>
-                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Type</th>
-                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Reference</th>
-                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest text-right">Amount</th>
-                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Status</th>
+                <th className="py-4 pl-6 pr-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
+                  Date
+                </th>
+                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
+                  User
+                </th>
+                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
+                  Type
+                </th>
+                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
+                  Reference
+                </th>
+                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest text-right">
+                  Amount
+                </th>
+                <th className="px-3 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">
+                  Status
+                </th>
                 <th className="relative py-4 pl-3 pr-6 text-right">
                   <span className="sr-only">Actions</span>
                 </th>
@@ -167,35 +239,46 @@ export default function PaymentsPage() {
             <tbody className="divide-y divide-gray-100">
               <AnimatePresence mode="popLayout">
                 {isLoading ? (
-                  <motion.tr 
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }} 
+                  <motion.tr
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <td colSpan={7} className="py-12 text-center text-sm text-gray-500">
+                    <td
+                      colSpan={7}
+                      className="py-12 text-center text-sm text-gray-500"
+                    >
                       <div className="flex flex-col items-center gap-3">
                         <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-                        <span className="font-medium">Loading transactions...</span>
+                        <span className="font-medium">
+                          Loading transactions...
+                        </span>
                       </div>
                     </td>
                   </motion.tr>
-                ) : (paymentsResultRaw.success === false) ? (
-                  <motion.tr 
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }} 
+                ) : paymentsResultRaw.success === false ? (
+                  <motion.tr
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <td colSpan={7} className="py-12 text-center text-sm text-red-600 font-medium">
+                    <td
+                      colSpan={7}
+                      className="py-12 text-center text-sm text-red-600 font-medium"
+                    >
                       {paymentsResultRaw.error}
                     </td>
                   </motion.tr>
                 ) : payments.length === 0 ? (
-                  <motion.tr 
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }} 
+                  <motion.tr
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <td colSpan={7} className="py-12 text-center text-sm text-gray-500">
+                    <td
+                      colSpan={7}
+                      className="py-12 text-center text-sm text-gray-500"
+                    >
                       No transactions found for the selected filters.
                     </td>
                   </motion.tr>
@@ -210,17 +293,31 @@ export default function PaymentsPage() {
                       className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
                     >
                       <td className="whitespace-nowrap py-5 pl-6 pr-3 text-sm text-gray-600">
-                        {new Date(payment.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {new Date(payment.createdAt).toLocaleDateString(
+                          undefined,
+                          { month: "short", day: "numeric", year: "numeric" },
+                        )}
                       </td>
                       <td className="whitespace-nowrap px-3 py-5 text-sm">
                         <div className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
                           {payment.userName}
                         </div>
-                        <div className="text-gray-400 text-xs">{payment.userEmail}</div>
+                        <div className="text-gray-400 text-xs">
+                          {payment.userEmail}
+                        </div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-5 text-sm">
-                        <Badge color={payment.referenceType === "application" ? "blue" : "purple"} size="xs">
-                          {payment.referenceType === "application" ? "Application" : "Tuition"}
+                        <Badge
+                          color={
+                            payment.referenceType === "application"
+                              ? "blue"
+                              : "purple"
+                          }
+                          size="xs"
+                        >
+                          {payment.referenceType === "application"
+                            ? "Application"
+                            : "Tuition"}
                         </Badge>
                       </td>
                       <td className="whitespace-nowrap px-3 py-5 text-sm font-mono text-gray-400 text-xs">
@@ -230,7 +327,12 @@ export default function PaymentsPage() {
                         ₦{payment.amount.toLocaleString()}
                       </td>
                       <td className="whitespace-nowrap px-3 py-5 text-sm">
-                        <Badge color={statusBadge[payment.status as PaymentStatus].color} size="xs">
+                        <Badge
+                          color={
+                            statusBadge[payment.status as PaymentStatus].color
+                          }
+                          size="xs"
+                        >
                           {statusBadge[payment.status as PaymentStatus].text}
                         </Badge>
                       </td>

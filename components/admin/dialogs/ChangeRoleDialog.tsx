@@ -49,7 +49,10 @@ export function ChangeRoleDialog({
     setError(null);
     setIsSubmitting(true);
     try {
-      const res = await assignRole({ userId: user.id, newRoleId: selectedRoleId });
+      const res = await assignRole({
+        userId: user.id,
+        newRoleId: selectedRoleId,
+      });
       if (!res.success) throw new Error(res.error);
       onOpenChange(false);
       onSuccess?.();

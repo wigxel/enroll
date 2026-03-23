@@ -1,14 +1,19 @@
 "use client";
 
 import { Badge, Flex, Text } from "@tremor/react";
-import { Activity, Calendar, Check, Copy, CreditCard, Hash, Mail, User } from "lucide-react";
+import {
+  Activity,
+  Calendar,
+  Check,
+  Copy,
+  CreditCard,
+  Hash,
+  Mail,
+  User,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-} from "~/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "~/components/ui/dialog";
 
 interface Payment {
   _id: string;
@@ -44,15 +49,30 @@ export function TransactionDetailDialog({
   };
 
   const details = [
-    { label: "Reference ID", value: payment.stripePaymentIntentId, icon: Hash, copyable: true },
+    {
+      label: "Reference ID",
+      value: payment.stripePaymentIntentId,
+      icon: Hash,
+      copyable: true,
+    },
     { label: "Customer Name", value: payment.userName, icon: User },
     { label: "Customer Email", value: payment.userEmail, icon: Mail },
-    { 
-      label: "Payment Type", 
-      value: payment.referenceType === "application" ? "Application Fee" : "Tuition Fee", 
-      icon: CreditCard 
+    {
+      label: "Payment Type",
+      value:
+        payment.referenceType === "application"
+          ? "Application Fee"
+          : "Tuition Fee",
+      icon: CreditCard,
     },
-    { label: "Date & Time", value: new Date(payment.createdAt).toLocaleString(undefined, { dateStyle: 'long', timeStyle: 'short' }), icon: Calendar },
+    {
+      label: "Date & Time",
+      value: new Date(payment.createdAt).toLocaleString(undefined, {
+        dateStyle: "long",
+        timeStyle: "short",
+      }),
+      icon: Calendar,
+    },
   ];
 
   return (
@@ -61,37 +81,56 @@ export function TransactionDetailDialog({
         <div className="bg-indigo-600 px-6 py-8 text-white relative overflow-hidden">
           <div className="relative z-10">
             <Text className="text-indigo-100 font-medium">Amount Received</Text>
-            <div className="text-4xl font-black mt-1">₦{payment.amount.toLocaleString()}</div>
+            <div className="text-4xl font-black mt-1">
+              ₦{payment.amount.toLocaleString()}
+            </div>
           </div>
           <CreditCard className="absolute -right-4 -bottom-4 w-32 h-32 text-white/10 rotate-12" />
         </div>
 
         <div className="px-6 py-6 border-b border-gray-50 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-100 rounded-lg">
-                    <Activity className="w-5 h-5 text-gray-500" />
-                </div>
-                <div>
-                    <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest">Status</Text>
-                    <Text className="text-indigo-600 font-bold capitalize">{payment.status}</Text>
-                </div>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <Activity className="w-5 h-5 text-gray-500" />
             </div>
-            <Badge color={payment.status === "succeeded" ? "emerald" : "amber"}>
-                {payment.status.toUpperCase()}
-            </Badge>
+            <div>
+              <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest">
+                Status
+              </Text>
+              <Text className="text-indigo-600 font-bold capitalize">
+                {payment.status}
+              </Text>
+            </div>
+          </div>
+          <Badge color={payment.status === "succeeded" ? "emerald" : "amber"}>
+            {payment.status.toUpperCase()}
+          </Badge>
         </div>
 
         <div className="p-6 space-y-6">
           <div className="grid gap-6">
             {details.map((item: any) => (
-              <Flex key={item.label} justifyContent="between" alignItems="center" className="gap-4">
-                <Flex justifyContent="start" alignItems="center" className="gap-4">
+              <Flex
+                key={item.label}
+                justifyContent="between"
+                alignItems="center"
+                className="gap-4"
+              >
+                <Flex
+                  justifyContent="start"
+                  alignItems="center"
+                  className="gap-4"
+                >
                   <div className="p-2 bg-gray-50 rounded-lg">
-                      <item.icon className="w-4 h-4 text-gray-400" />
+                    <item.icon className="w-4 h-4 text-gray-400" />
                   </div>
                   <div className="space-y-0.5">
-                    <Text className="text-xs font-medium text-gray-400">{item.label}</Text>
-                    <Text className="text-sm font-semibold text-gray-900">{item.value}</Text>
+                    <Text className="text-xs font-medium text-gray-400">
+                      {item.label}
+                    </Text>
+                    <Text className="text-sm font-semibold text-gray-900">
+                      {item.value}
+                    </Text>
                   </div>
                 </Flex>
                 {item.copyable && (

@@ -41,13 +41,13 @@ export default function ApplicationsPage() {
   const counts = resultRaw?.success
     ? resultRaw.data.counts
     : {
-      all: 0,
-      submitted: 0,
-      under_review: 0,
-      approved: 0,
-      declined: 0,
-      draft: 0,
-    };
+        all: 0,
+        submitted: 0,
+        under_review: 0,
+        approved: 0,
+        declined: 0,
+        draft: 0,
+      };
 
   return (
     <div className="py-8">
@@ -76,10 +76,11 @@ export default function ApplicationsPage() {
               key={status}
               type="button"
               onClick={() => setStatusFilter(status)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${statusFilter === status
-                ? "bg-primary text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                statusFilter === status
+                  ? "bg-primary text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
             >
               {status === "all"
                 ? "All"
@@ -112,7 +113,7 @@ export default function ApplicationsPage() {
           <div className="mt-12 flex justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
           </div>
-        ) : (resultRaw.success === false) ? (
+        ) : resultRaw.success === false ? (
           <div className="mt-12 p-4 text-center text-red-600 bg-red-50 rounded-lg">
             {resultRaw.error}
           </div>

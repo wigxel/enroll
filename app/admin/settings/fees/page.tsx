@@ -89,7 +89,11 @@ export default function FeesSettingsPage() {
           disabled={isSaving || settingsResult === undefined}
           className="rounded-md bg-primary px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 disabled:opacity-50"
         >
-          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
+          {isSaving ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            "Save Changes"
+          )}
         </button>
       </div>
     </div>

@@ -14,14 +14,18 @@ export const safeNum = (a: unknown, fallback = 0): number => {
 };
 
 export const safeArray = <T>(a: Array<T> | null | undefined) =>
-  Array.isArray(a) ? (a as NonNullable<T>[]) : (EmptyPrimitives.Array as never[]);
+  Array.isArray(a)
+    ? (a as NonNullable<T>[])
+    : (EmptyPrimitives.Array as never[]);
 
 export const safeStr = (a: unknown, fallback = ""): string =>
   typeof a === "string" ? a : fallback;
 
 const EmptyObject: Record<string, never> = Object.freeze({});
 
-export const safeObj = <T>(obj: T): T extends Record<string, unknown> ? T : typeof EmptyObject => {
+export const safeObj = <T>(
+  obj: T,
+): T extends Record<string, unknown> ? T : typeof EmptyObject => {
   // @ts-expect-error I know what I'm doing
   return isObject(obj) ? obj : EmptyObject;
 };
@@ -41,11 +45,13 @@ export function safeDict<const T>(opt: { map: T; default?: Values<T> }) {
   type InferSafeDict<TKey, TRecord, TFallback> = TKey extends keyof TRecord
     ? TRecord[TKey]
     : TFallback extends keyof TRecord
-    ? TRecord[TFallback]
-    : null;
+      ? TRecord[TFallback]
+      : null;
 
   return {
-    get: <TKey extends keyof T>(key: TKey): InferSafeDict<TKey, T, TFallback> | null => {
+    get: <TKey extends keyof T>(
+      key: TKey,
+    ): InferSafeDict<TKey, T, TFallback> | null => {
       if (key === null || key === undefined) {
         // @ts-expect-error Handled typing manually
         return fallback;
