@@ -1,11 +1,12 @@
 import { ArrowRight, GraduationCap } from "lucide-react";
 import Link from "next/link";
+import { PartnersMarquee } from "~/components/ui/partners-marquee";
 
 export default async function Home() {
   return (
-    <div className="flex min-h-screen flex-col bg-white dark:bg-zinc-950">
+    <main className="flex flex-col bg-white dark:bg-zinc-950">
       {/* Hero */}
-      <main className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center">
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center min-h-[70svh]">
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-700 dark:border-indigo-900 dark:bg-indigo-950/50 dark:text-indigo-300">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75" />
@@ -15,8 +16,8 @@ export default async function Home() {
         </div>
 
         <h1 className="max-w-3xl text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-6xl">
-          Launch your tech career with{" "}
-          <span className="bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
+          Launch your Culinary career with{" "}
+          <span className="bg-linear-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
             world-class training
           </span>
         </h1>
@@ -42,7 +43,10 @@ export default async function Home() {
             Meet Our Alumni
           </Link>
         </div>
-      </main>
-    </div>
+      </div>
+
+      {/* Partners Marquee */}
+      <PartnersMarquee />
+    </main>
   );
 }

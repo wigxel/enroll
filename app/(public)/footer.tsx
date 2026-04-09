@@ -2,7 +2,7 @@ export function Footer() {
   return (
     <footer className="py-4 z-0 relative">
       <div className="container flex relative z-20 items-center mx-auto text-muted-foreground text-sm justify-between">
-        <span className="text-xs py-4 border border-primary/10 fixed bottom-0 bg-primary/20 rounded-t-2xl  px-4">
+        <span className="text-xs py-4 border border-primary/10 fixed bottom-0 bg-red-200 rounded-t-2xl  px-4">
           <span className="">
             Powered by{" "}
             <a

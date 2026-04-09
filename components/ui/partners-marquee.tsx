@@ -18,9 +18,9 @@ const track = [...partners, ...partners];
 
 export function PartnersMarquee() {
   return (
-    <div className="border-b dark:border-zinc-800 bg-white dark:bg-zinc-900 py-8 overflow-hidden">
+    <div className="container overflow-hidden mx-auto">
       <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-6">
-        Trusted by graduates working at
+        Trusted by Industry leaders
       </p>
 
       <div className="relative flex">
@@ -29,31 +29,31 @@ export function PartnersMarquee() {
         <div className="absolute right-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-l from-white dark:from-zinc-900 to-transparent pointer-events-none" />
 
         {/* Scrolling track */}
-        <div
-          className="flex gap-6 whitespace-nowrap"
+        <button type="button"
+          className="appearance-none flex gap-6 whitespace-nowrap"
           style={{
             animation: "partners-marquee 28s linear infinite",
             willChange: "transform",
           }}
           onMouseEnter={(e) =>
-            ((e.currentTarget as HTMLDivElement).style.animationPlayState =
-              "paused")
+          ((e.currentTarget as HTMLDivElement).style.animationPlayState =
+            "paused")
           }
           onMouseLeave={(e) =>
-            ((e.currentTarget as HTMLDivElement).style.animationPlayState =
-              "running")
+          ((e.currentTarget as HTMLDivElement).style.animationPlayState =
+            "running")
           }
         >
           {track.map((partner, i) => (
             <div
-              key={`${partner.name}-${i}`}
+              key={`${partner.name}`}
               className="inline-flex items-center justify-center rounded-lg px-6 py-3 min-w-[140px] h-12 shrink-0 font-semibold text-sm tracking-tight shadow-sm select-none"
               style={{ backgroundColor: partner.color, color: partner.text }}
             >
               {partner.name}
             </div>
           ))}
-        </div>
+        </button>
       </div>
 
       <style>{`

@@ -116,6 +116,11 @@ export const onUserCreated = internalMutation({
             // Unlikely to happen, but safety check to update userId if there was a placeholder
             await ctx.db.patch(existingEnrollment._id, { userId: newUserId });
           }
+
+          // Create student record with auto-generated code
+          await ctx.runMutation(internal.students.createStudentRecord, {
+            userId: newUserId,
+          });
         }
       }
     }

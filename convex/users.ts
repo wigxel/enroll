@@ -2,8 +2,18 @@ import { v } from "convex/values";
 import { safeStr } from "../lib/data.helpers";
 import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
-import { action, internalMutation, mutation, query } from "./_generated/server";
-import { deleteUser as deleteClerkUser, updateUserMetadata } from "./clerk";
+import {
+  action,
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
+import {
+  createUser as createClerkUser,
+  deleteUser as deleteClerkUser,
+  updateUserMetadata,
+} from "./clerk";
 import {
   getCurrentUser as getAuthUser,
   getUserRole,
@@ -11,6 +21,55 @@ import {
   requireAuth,
   requirePrivilege,
 } from "./utils";
+
+/**
+ * Internal: Get current user by clerkId.
+ */
+export const getUserByClerkId = internalQuery({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
+      .unique();
+  },
+});
+
+/**
+ * Internal: Check if user exists by email.
+ */
+export const getUserByEmail = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .unique();
+  },
+});
+
+/**
+ * Internal: Get student role.
+ */
+export const getStudentRole = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("roles")
+      .withIndex("by_name", (q) => q.eq("name", "Student"))
+      .unique();
+  },
+});
+
+/**
+ * Internal: Get role by ID.
+ */
+export const getRoleById = internalQuery({
+  args: { roleId: v.id("roles") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.roleId);
+  },
+});
 
 /**
  * Creates or retrieves a user from the database based on Clerk identity.
@@ -26,7 +85,6 @@ export const createOrGetUser = mutation({
     profileImage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Return early if user already exists
     const existing = await ctx.db
       .query("users")
       .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
@@ -34,13 +92,11 @@ export const createOrGetUser = mutation({
 
     if (existing) return { success: true, data: existing._id };
 
-    // Check for a pre-assigned role from an admin invitation
     const identity = await ctx.auth.getUserIdentity();
     const pendingRoleName = (
       identity?.publicMetadata as Record<string, unknown> | undefined
     )?.pendingRole as string | undefined;
 
-    // Try to find the pending role, fall back to "Applicant"
     let roleRecord = pendingRoleName
       ? await ctx.db
           .query("roles")
@@ -152,7 +208,6 @@ export const list = query({
     const allUsers = await usersQuery.collect();
     const search_ = safeStr(args.search);
 
-    // Apply search filter in memory (Convex doesn't support full-text search on queries)
     const filtered = args.search
       ? allUsers.filter(
           (u) =>
@@ -161,12 +216,10 @@ export const list = query({
         )
       : allUsers;
 
-    // Pagination
     const page = args.page ?? 0;
     const start = page * pageSize;
     const paginated = filtered.slice(start, start + pageSize);
 
-    // Attach role info
     const usersWithRoles = await Promise.all(
       paginated.map(async (user) => {
         const role = await getUserRole(ctx, user.role);
@@ -228,7 +281,6 @@ export const listStudents = query({
     const privResult = await requirePrivilege(ctx, "student:read:list");
     if (!privResult.success) return privResult;
 
-    // Find the "Student" role
     const studentRole = await ctx.db
       .query("roles")
       .withIndex("by_name", (q) => q.eq("name", "Student"))
@@ -244,7 +296,6 @@ export const listStudents = query({
     let studentUsers: Doc<"users">[];
 
     if (args.cohortId) {
-      // Filter by cohort: query enrollments first, then resolve users
       const enrollments = await ctx.db
         .query("enrollments")
         .withIndex("by_cohortId", (q) => q.eq("cohortId", args.cohortId!))
@@ -252,7 +303,6 @@ export const listStudents = query({
 
       const userIds = enrollments.map((e) => e.userId);
       const users = await Promise.all(userIds.map((id) => ctx.db.get(id)));
-      // Only include users that exist and have the Student role
       studentUsers = users.filter(
         (u): u is NonNullable<typeof u> =>
           u !== null && u.role === studentRole._id,
@@ -266,7 +316,6 @@ export const listStudents = query({
 
     const search_ = safeStr(args.search)?.toLowerCase();
 
-    // Apply search filter
     const filtered = args.search
       ? studentUsers.filter(
           (u) =>
@@ -275,11 +324,15 @@ export const listStudents = query({
         )
       : studentUsers;
 
-    // Enrich with enrollment data (courseName, cohortName, enrolledAt)
     const enriched = await Promise.all(
       filtered.map(async (user) => {
         const enrollment = await ctx.db
           .query("enrollments")
+          .withIndex("by_userId", (q) => q.eq("userId", user._id))
+          .first();
+
+        const student = await ctx.db
+          .query("students")
           .withIndex("by_userId", (q) => q.eq("userId", user._id))
           .first();
 
@@ -290,14 +343,12 @@ export const listStudents = query({
         if (enrollment) {
           enrolledAt = enrollment.completedAt ?? enrollment.createdAt;
 
-          // Resolve course name via application → courseId
           const application = await ctx.db.get(enrollment.applicationId);
           if (application) {
             const course = await ctx.db.get(application.data.courseId);
             if (course) courseName = course.name;
           }
 
-          // Resolve cohort name
           if (enrollment.cohortId) {
             const cohort = await ctx.db.get(enrollment.cohortId);
             if (cohort) cohortName = cohort.name;
@@ -306,6 +357,7 @@ export const listStudents = query({
 
         return {
           ...user,
+          studentCode: student?.code ?? null,
           courseName,
           cohortName,
           enrolledAt,
@@ -313,16 +365,13 @@ export const listStudents = query({
       }),
     );
 
-    // Apply sorting
     const sorted = [...enriched].sort((a, b) => {
       if (args.sort === "name") {
         return a.name.localeCompare(b.name);
       }
-      // Default: sort by enrolled date (newest first)
       return b.enrolledAt.localeCompare(a.enrolledAt);
     });
 
-    // Pagination
     const pageSize = 20;
     const page = args.page ?? 0;
     const start = page * pageSize;
@@ -354,7 +403,6 @@ export const deleteUserRecord = internalMutation({
       throw new Error("User not found.");
     }
 
-    // Capture clerkId before deleting
     const clerkId = user.clerkId;
     await ctx.db.delete(args.userId);
 
@@ -371,7 +419,6 @@ export const deleteUser = action({
   },
   handler: async (ctx, args) => {
     try {
-      // 1. Delete from Convex & fetch clerkId
       const { clerkId } = await ctx.runMutation(
         internal.users.deleteUserRecord,
         {
@@ -379,7 +426,6 @@ export const deleteUser = action({
         },
       );
 
-      // 2. Delete from Clerk (if it's a real clerkId)
       if (clerkId?.startsWith("user_")) {
         try {
           await deleteClerkUser(clerkId);
@@ -429,54 +475,6 @@ export const assignRoleRecord = internalMutation({
 });
 
 /**
- * Admin: Assigns a new role to a user and syncs it with Clerk metadata.
- */
-export const assignRole = action({
-  args: {
-    userId: v.id("users"),
-    newRoleId: v.id("roles"),
-  },
-  handler: async (ctx, args) => {
-    try {
-      // 1. Update in Convex. Because it's called with runMutation,
-      // the mutation will enforce admin privileges.
-      const { clerkId, roleName } = await ctx.runMutation(
-        internal.users.assignRoleRecord,
-        {
-          userId: args.userId,
-          newRoleId: args.newRoleId,
-        },
-      );
-
-      // 2. Update Clerk metadata
-      if (clerkId?.startsWith("user_")) {
-        try {
-          await updateUserMetadata({
-            userId: clerkId,
-            publicMetadata: { pendingRole: roleName },
-          });
-        } catch (err: any) {
-          console.error("Failed to sync new role to Clerk:", err);
-          // Return success anyway because Convex is updated?
-          // Or return error? Let's return error if syncing is critical.
-          return {
-            success: false,
-            error: `Role assigned in DB but Clerk sync failed: ${err.message}`,
-          };
-        }
-      }
-
-      return { success: true, data: null };
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.message || "Failed to assign role.",
-      };
-    }
-  },
-});
-
-/**
  * Internal: Promotes any user to the "Super Admin" role.
  * Run from the Convex dashboard → Functions, or via CLI:
  *   npx convex run users:makeSuperAdmin '{"email":"you@example.com"}'
@@ -512,5 +510,210 @@ export const makeSuperAdmin = internalMutation({
     });
 
     return { userId: user._id, roleName: superAdminRole.name };
+  },
+});
+
+/**
+ * Admin: Assigns a new role to a user.
+ */
+export const updateUserRole = action({
+  args: {
+    userId: v.id("users"),
+    newRoleId: v.id("roles"),
+  },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{ success: boolean; data?: unknown; error?: string }> => {
+    try {
+      const result = await ctx.runMutation(
+        internal.users.assignRoleRecord,
+        args,
+      );
+      return { success: true, data: result };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Failed to assign role" };
+    }
+  },
+});
+
+/**
+ * Admin: Marks a user as an alumni (or removes alumni status).
+ */
+export const setAlumniStatus = mutation({
+  args: {
+    userId: v.id("users"),
+    isAlumni: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const privResult = await requirePrivilege(ctx, "user:update");
+    if (!privResult.success) return privResult;
+
+    const targetUser = await ctx.db.get(args.userId);
+    if (!targetUser) {
+      return { success: false, error: "User not found." };
+    }
+
+    await ctx.db.patch(args.userId, {
+      isAlumni: args.isAlumni,
+      updatedAt: now(),
+    });
+
+    return { success: true, data: null };
+  },
+});
+
+/**
+ * Admin: Updates a user's profile image.
+ */
+export const updateUserProfile = mutation({
+  args: {
+    userId: v.id("users"),
+    profileImage: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const privResult = await requirePrivilege(ctx, "user:update");
+    if (!privResult.success) return privResult;
+
+    const targetUser = await ctx.db.get(args.userId);
+    if (!targetUser) {
+      return { success: false, error: "User not found." };
+    }
+
+    await ctx.db.patch(args.userId, {
+      profileImage: args.profileImage,
+      updatedAt: now(),
+    });
+
+    return { success: true, data: null };
+  },
+});
+
+/**
+ * Admin: Manually registers a new student by creating a Clerk user and a Convex user record.
+ */
+export const createStudent = action({
+  args: {
+    firstName: v.string(),
+    lastName: v.string(),
+    email: v.string(),
+  },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{ success: boolean; data?: string; error?: string }> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return { success: false, error: "Authentication required." };
+    }
+
+    const user = await ctx.runQuery(internal.users.getUserByClerkId, {
+      clerkId: identity.subject,
+    });
+
+    if (!user) {
+      return { success: false, error: "User not found." };
+    }
+
+    const role = await ctx.runQuery(internal.users.getRoleById, {
+      roleId: user.role,
+    });
+    if (!role || !role.privileges.includes("user:create")) {
+      return {
+        success: false,
+        error: "Access denied. Required privilege: user:create",
+      };
+    }
+
+    const { firstName, lastName, email } = args;
+
+    const existingUser = await ctx.runQuery(internal.users.getUserByEmail, {
+      email,
+    });
+
+    if (existingUser) {
+      return {
+        success: false,
+        error: "A user with this email already exists.",
+      };
+    }
+
+    let clerkUserId: string;
+    try {
+      const clerkResponse = await createClerkUser({
+        firstName,
+        lastName,
+        emailAddress: email,
+      });
+      clerkUserId = clerkResponse.id;
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err.message || "Failed to create user in Clerk.",
+      };
+    }
+
+    return await ctx.runMutation(internal.users.createStudentRecord, {
+      clerkId: clerkUserId,
+      email,
+      name: `${firstName} ${lastName}`,
+    });
+  },
+});
+
+export const createStudentRecord = internalMutation({
+  args: {
+    clerkId: v.string(),
+    email: v.string(),
+    name: v.string(),
+  },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{ success: boolean; data?: string; error?: string }> => {
+    const studentRole = await ctx.runQuery(internal.users.getStudentRole);
+
+    if (!studentRole) {
+      try {
+        await deleteClerkUser(args.clerkId);
+      } catch {}
+      return {
+        success: false,
+        error: "Student role not found. Please seed the roles table.",
+      };
+    }
+
+    const timestamp = now();
+    const userId = await ctx.db.insert("users", {
+      clerkId: args.clerkId,
+      email: args.email,
+      name: args.name,
+      role: studentRole._id,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+
+    const students = await ctx.db.query("students").collect();
+    const codes = students.map((s) => s.code);
+    let maxNumber = 0;
+    for (const code of codes) {
+      if (code.startsWith("CMK/")) {
+        const numPart = code.slice(4);
+        const num = parseInt(numPart, 10);
+        if (!isNaN(num) && num > maxNumber) {
+          maxNumber = num;
+        }
+      }
+    }
+    const studentCode = `CMK/${String(maxNumber + 1).padStart(3, "0")}`;
+
+    await ctx.db.insert("students", {
+      code: studentCode,
+      userId,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+
+    return { success: true, data: userId };
   },
 });

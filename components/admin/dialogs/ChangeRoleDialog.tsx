@@ -35,7 +35,7 @@ export function ChangeRoleDialog({
   const [error, setError] = useState<string | null>(null);
 
   const rolesResult = useQuery(api.auth.listRoles);
-  const assignRole = useAction(api.users.assignRole);
+  const assignRole = useAction(api.users.updateUserRole);
 
   const adminRoles = rolesResult?.success
     ? rolesResult.data.filter((r: any) => ADMIN_ROLE_NAMES.includes(r.name))

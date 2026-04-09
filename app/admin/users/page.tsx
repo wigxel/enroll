@@ -1,10 +1,11 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import { Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useState } from "react";
+import { RegisterStudentDialog } from "@/components/admin/dialogs/RegisterStudentDialog";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -15,6 +16,7 @@ function StudentsContent() {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("enrolledAt");
+  const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
 
   // Initialize cohort filter from URL query param
   const cohortFromUrl = searchParams.get("cohort") ?? "";
@@ -56,11 +58,21 @@ function StudentsContent() {
 
   return (
     <>
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Students</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          {totalStudents} enrolled student{totalStudents !== 1 ? "s" : ""}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Students</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            {totalStudents} enrolled student{totalStudents !== 1 ? "s" : ""}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsRegisterDialogOpen(true)}
+          className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Add Student
+        </button>
       </div>
 
       {/* Search, Cohort Filter & Sort */}
@@ -124,6 +136,9 @@ function StudentsContent() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                  Student ID
+                </th>
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                   Student
                 </th>
                 <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
@@ -146,6 +161,9 @@ function StudentsContent() {
                   key={student._id}
                   className="hover:bg-gray-50 transition-colors"
                 >
+                  <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                    {student.studentCode ?? "—"}
+                  </td>
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                     <div className="flex items-center">
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-100 text-green-700 text-xs font-semibold">
@@ -185,6 +203,10 @@ function StudentsContent() {
           </table>
         </div>
       )}
+      <RegisterStudentDialog
+        open={isRegisterDialogOpen}
+        onOpenChange={setIsRegisterDialogOpen}
+      />
     </>
   );
 }

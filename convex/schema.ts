@@ -8,12 +8,23 @@ export default defineSchema({
     name: v.string(),
     role: v.id("roles"),
     profileImage: v.optional(v.string()),
+    isAlumni: v.optional(v.boolean()),
     createdAt: v.string(),
     updatedAt: v.string(),
   })
     .index("by_clerkId", ["clerkId"])
     .index("by_email", ["email"])
     .index("by_role", ["role"]),
+
+  students: defineTable({
+    code: v.string(),
+    userId: v.id("users"),
+    profileImage: v.optional(v.string()),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_code", ["code"]),
 
   roles: defineTable({
     name: v.string(),
@@ -125,12 +136,23 @@ export default defineSchema({
     tuitionFee: v.number(),
     order: v.number(),
     isActive: v.boolean(),
+    instructorIds: v.optional(v.array(v.id("instructors"))),
+    faqIds: v.optional(v.array(v.id("faqs"))),
     createdAt: v.string(),
     updatedAt: v.string(),
   })
     .index("by_order", ["order"])
     .index("by_isActive", ["isActive"])
     .index("by_slug", ["slug"]),
+
+  instructors: defineTable({
+    name: v.string(),
+    title: v.string(),
+    photo: v.optional(v.string()),
+    bio: v.string(),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  }).index("by_name", ["name"]),
 
   quizQuestions: defineTable({
     question: v.string(),
@@ -140,6 +162,15 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_isActive", ["isActive"]),
+
+  faqs: defineTable({
+    question: v.string(),
+    answer: v.string(),
+    order: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  }).index("by_order", ["order"]),
 
   settings: defineTable({
     isAcceptingApplications: v.boolean(),

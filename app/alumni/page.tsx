@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { useProfileImageUrl } from "~/hooks/use-profile-image-url";
 
 function Avatar({
   name,
@@ -17,6 +18,8 @@ function Avatar({
   src?: string | null;
   size?: number;
 }) {
+  const { url: resolvedSrc } = useProfileImageUrl({ value: src });
+
   const initials = name
     .split(" ")
     .map((n) => n[0])
@@ -34,10 +37,10 @@ function Avatar({
   ];
   const color = colors[name.charCodeAt(0) % colors.length];
 
-  if (src) {
+  if (resolvedSrc) {
     return (
       <Image
-        src={src}
+        src={resolvedSrc}
         alt={name}
         width={size}
         height={size}

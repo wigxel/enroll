@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "convex/react";
 import {
   Check,
   Edit,
+  Eye,
   GripVertical,
   Link as LinkIcon,
   Loader2,
@@ -12,6 +13,7 @@ import {
   Power,
   PowerOff,
 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { CourseFormDialog } from "~/components/admin/dialogs/CourseFormDialog";
@@ -38,6 +40,7 @@ export default function CoursesPage() {
     tuitionFee: number;
     coverPhoto?: string;
     isActive: boolean;
+    instructorIds?: string[];
   } | null>(null);
 
   const coursesResult = useQuery(api.courses.listAll);
@@ -210,6 +213,12 @@ export default function CoursesPage() {
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/courses/${course._id}`}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </Link>
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => openEditDialog(course)}
                           >

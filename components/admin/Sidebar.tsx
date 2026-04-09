@@ -5,6 +5,7 @@ import { useQuery } from "convex/react";
 import {
   Bell,
   BookOpen,
+  CircleHelp,
   CreditCard,
   FileText,
   GraduationCap,
@@ -12,6 +13,7 @@ import {
   LayoutDashboard,
   LogOut,
   Settings,
+  Users,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -29,8 +31,10 @@ const navigation = [
   { name: "Applications", href: "/admin/applications", icon: FileText },
   { name: "Students", href: "/admin/users", icon: GraduationCap },
   { name: "Courses", href: "/admin/courses", icon: BookOpen },
+  { name: "Instructors", href: "/admin/instructors", icon: Users },
   { name: "Quizzes", href: "/admin/quizzes", icon: BookOpen },
   { name: "Cohorts", href: "/admin/cohorts", icon: Layers },
+  { name: "FAQs", href: "/admin/faqs", icon: CircleHelp },
   { name: "Payments", href: "/admin/payments", icon: CreditCard },
   { name: "Notifications", href: "/admin/notifications", icon: Bell },
   { name: "Settings", href: "/admin/settings", icon: Settings },

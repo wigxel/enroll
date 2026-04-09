@@ -4,6 +4,7 @@ import type { Result } from "./utils";
 
 /**
  * Public: Returns alumni grouped by user.
+ * Only includes users with isAlumni === true.
  * Each alumnus has an array of `courses` — one entry per completed enrollment —
  * so a user who completed multiple programs has all certifications in one card.
  * Supports optional filters (courseId, cohortId) and full-name/email search.
@@ -15,14 +16,31 @@ export const list = query({
     search: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<Result<any>> => {
+    // Get users marked as alumni using Convex filter API
+    const alumniUsers = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("isAlumni"), true))
+      .collect();
+
+    if (alumniUsers.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    // Fetch completed enrollments for alumni users
     const enrollments = await ctx.db
       .query("enrollments")
       .withIndex("by_status", (q) => q.eq("status", "completed"))
       .collect();
 
+    // Filter to only enrollments from alumni users
+    const alumniUserIds = new Set(alumniUsers.map((u) => u._id));
+    const alumniEnrollments = enrollments.filter((e) =>
+      alumniUserIds.has(e.userId),
+    );
+
     // Enrich every enrollment
     const enriched = await Promise.all(
-      enrollments.map(async (enrollment) => {
+      alumniEnrollments.map(async (enrollment) => {
         const user = await ctx.db.get(enrollment.userId);
         if (!user) return null;
 
@@ -129,22 +147,25 @@ export const list = query({
 export const getStats = query({
   args: {},
   handler: async (ctx): Promise<Result<any>> => {
-    const completedEnrollments = await ctx.db
-      .query("enrollments")
-      .withIndex("by_status", (q) => q.eq("status", "completed"))
+    // Count users marked as alumni using Convex filter API
+    const alumniUsers = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("isAlumni"), true))
       .collect();
 
-    const courses = await ctx.db.query("courses").collect();
-    const cohorts = await ctx.db.query("cohorts").collect();
+    // Get active courses using existing index
+    const courses = await ctx.db
+      .query("courses")
+      .withIndex("by_isActive", (q) => q.eq("isActive", true))
+      .collect();
 
-    // Unique alumni (distinct userIds)
-    const uniqueAlumni = new Set(completedEnrollments.map((e) => e.userId));
+    const cohorts = await ctx.db.query("cohorts").collect();
 
     return {
       success: true,
       data: {
-        totalAlumni: uniqueAlumni.size,
-        totalCourses: courses.filter((c) => c.isActive).length,
+        totalAlumni: alumniUsers.length,
+        totalCourses: courses.length,
         totalCohorts: cohorts.length,
       },
     };

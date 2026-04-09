@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { FileUpload } from "~/components/ui/file-upload";
+import { MultiSelect } from "~/components/ui/multi-select";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import {
   Sheet,
@@ -32,6 +33,7 @@ interface CourseFormData {
   tuitionFee: string;
   coverPhoto: string | undefined;
   isActive: boolean;
+  instructorIds: string[];
 }
 
 interface CourseFormDialogProps {
@@ -47,6 +49,7 @@ interface CourseFormDialogProps {
     tuitionFee: number;
     coverPhoto?: string;
     isActive: boolean;
+    instructorIds?: string[];
   } | null;
   onSuccess?: () => void;
 }
@@ -60,6 +63,7 @@ const emptyForm: CourseFormData = {
   tuitionFee: "",
   coverPhoto: undefined,
   isActive: true,
+  instructorIds: [],
 };
 
 export function CourseFormDialog({
@@ -77,6 +81,12 @@ export function CourseFormDialog({
   const updateCourse = useMutation(api.courses.update);
 
   const isEditing = !!course;
+
+  // Fetch instructors for the multi-select
+  const instructorsResult = useQuery(api.instructors.list);
+  const instructors = instructorsResult?.success
+    ? (instructorsResult.data as any[])
+    : [];
 
   // Resolve existing cover photo storage ID → URL for preview in edit mode
   const photoResult = useQuery(
@@ -98,6 +108,7 @@ export function CourseFormDialog({
         tuitionFee: course.tuitionFee.toString(),
         coverPhoto: course.coverPhoto,
         isActive: course.isActive,
+        instructorIds: course.instructorIds ?? [],
       });
       setSlugModified(false);
     } else {
@@ -152,6 +163,7 @@ export function CourseFormDialog({
           coverPhoto: formData.coverPhoto,
           tuitionFee,
           isActive: formData.isActive,
+          instructorIds: formData.instructorIds as any,
         });
         if (!res.success) throw new Error(res.error);
       } else {
@@ -164,6 +176,7 @@ export function CourseFormDialog({
           coverPhoto: formData.coverPhoto,
           tuitionFee,
           isActive: formData.isActive,
+          instructorIds: formData.instructorIds as any,
         });
         if (!res.success) throw new Error(res.error);
       }
@@ -310,6 +323,26 @@ export function CourseFormDialog({
                     setFormData({ ...formData, coverPhoto: undefined })
                   }
                   previewUrl={existingCoverPhotoUrl}
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div>
+                <span className="block text-sm font-medium text-gray-700">
+                  Instructors
+                </span>
+                <MultiSelect
+                  className="mt-1"
+                  options={instructors.map((i) => ({
+                    value: i._id,
+                    label: `${i.name} - ${i.title}`,
+                    avatarUrl: i.photo,
+                  }))}
+                  selected={formData.instructorIds}
+                  onChange={(selected) =>
+                    setFormData({ ...formData, instructorIds: selected })
+                  }
+                  placeholder="Select instructors"
                   disabled={isSubmitting}
                 />
               </div>

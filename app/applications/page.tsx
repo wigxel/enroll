@@ -87,7 +87,6 @@ export default function CourseCatalogPage() {
               <CourseCard
                 data={course}
                 key={course._id}
-                closed={appStatus.isOpen}
               />
             ))}
           </div>
@@ -98,11 +97,9 @@ export default function CourseCatalogPage() {
 }
 
 function CourseCard({
-  data: course,
-  closed = true,
+  data: course
 }: {
   data: any;
-  closed: boolean;
 }) {
   return (
     <Link href={`/applications/${course.slug}`} draggable={false}>
@@ -117,7 +114,7 @@ function CourseCard({
               className="object-cover"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-red-500 to-orange-200">
+            <div className="flex h-full w-full items-center justify-center image-gradient">
               <span className="text-3xl font-bold text-white/50">
                 {course.name.substring(0, 2).toUpperCase()}
               </span>

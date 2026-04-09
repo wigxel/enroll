@@ -18,4 +18,5 @@
 - Always use the `@/components/forms/UserDropdownInput.tsx` component for user assignment fields (e.g., assigning lawyers, judges, or other users).
 
 #### Submit Button
-- The submit button must be disabled and its text should reflect the pending state (e.g., "Creating..." instead of "Create Form") when the form is submitting (either via `form.formState.isSubmitting` or `props.isLoading`).
+- The submit button must be disabled and its text should reflect the pending state (e.g., "Creating..." instead of "Create Form") when the form is submitting.
+- **Always use `form.formState.isSubmitting`** from react-hook-form - do NOT use a separate React `useState` for tracking submission state.

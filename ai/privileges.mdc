@@ -9,7 +9,7 @@ This list outlines the specific actions users can perform within the Student Enr
 #### **User & Role Management**
 
 - `user:read`: Ability to view user profiles.
-- `user:update`: Ability to modify user details.
+- `user:update`: Ability to modify user details and alumni status.
 - `user:assign:role`: Ability to assign or change a user's role (Admin only).
 - `student:read`: Ability to view a single student's enrollment details (Admin/Staff).
 - `student:read:list`: Ability to view a paginated list of all enrolled students (Admin only).
@@ -44,6 +44,11 @@ This list outlines the specific actions users can perform within the Student Enr
 
 - `course:manage`: Ability to create, update, and delete courses (Admin).
 - `course:read:all`: Ability to view all courses.
+
+#### **Instructor Management**
+
+- `instructor:manage`: Ability to create, update, and delete instructors (Admin).
+- `instructor:read`: Ability to view instructor list.
 
 #### **Content Management**
 

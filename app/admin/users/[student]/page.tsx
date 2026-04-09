@@ -7,13 +7,18 @@ import {
   CheckCircle2,
   Clock,
   Mail,
+  Plus,
+  Star,
   User,
 } from "lucide-react";
-import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { CreateEnrollmentForm } from "~/components/admin/forms/CreateEnrollmentForm";
+import { AvatarUpload } from "~/components/ui/avatar-upload";
+import { Button } from "~/components/ui/button";
+import { api } from "~/convex/_generated/api";
+import type { Id } from "~/convex/_generated/dataModel";
+import { useProfileImageUrl } from "~/hooks/use-profile-image-url";
 
 export default function StudentDetailsPage() {
   const params = useParams();
@@ -25,9 +30,15 @@ export default function StudentDetailsPage() {
     userId: studentId,
   });
   const cohortsResultRaw = useQuery(api.cohorts.list, {});
+  const coursesResultRaw = useQuery(api.courses.listAll, {});
   const updateCohort = useMutation(api.enrollments.updateCohort);
+  const setAlumniStatus = useMutation(api.users.setAlumniStatus);
+  const updateUserProfile = useMutation(api.users.updateUserProfile);
+  const createForStudent = useMutation(api.enrollments.createForStudent);
 
   const [updatingCohort, setUpdatingCohort] = useState<string | null>(null);
+  const [updatingAlumni, setUpdatingAlumni] = useState(false);
+  const [showAddEnrollment, setShowAddEnrollment] = useState(false);
 
   const handleCohortChange = async (
     enrollmentId: Id<"enrollments">,
@@ -50,16 +61,80 @@ export default function StudentDetailsPage() {
     }
   };
 
+  const handleAlumniToggle = async () => {
+    if (!student) return;
+    setUpdatingAlumni(true);
+    try {
+      const res = await setAlumniStatus({
+        userId: studentId,
+        isAlumni: !student.isAlumni,
+      });
+      if (!res.success) {
+        console.error("Failed to update alumni status:", res.error);
+        alert(res.error);
+      }
+    } catch (error) {
+      console.error("Failed to update alumni status:", error);
+    } finally {
+      setUpdatingAlumni(false);
+    }
+  };
+
+  const handlePhotoUpload = async (storageId: string) => {
+    const res = await updateUserProfile({
+      userId: studentId,
+      profileImage: storageId,
+    });
+    if (!res.success) {
+      console.error("Failed to update profile:", res.error);
+      alert(res.error);
+    }
+  };
+
+  const handleCreateEnrollment = async (data: {
+    cohortId: string;
+    courseId: string;
+    isPaid: boolean;
+  }) => {
+    try {
+      const res = await createForStudent({
+        userId: studentId,
+        cohortId: data.cohortId as Id<"cohorts">,
+        courseId: data.courseId as Id<"courses">,
+        isPaid: data.isPaid,
+      });
+      if (!res.success) {
+        console.error("Failed to create enrollment:", res.error);
+        alert(res.error);
+      } else {
+        setShowAddEnrollment(false);
+      }
+    } catch (error) {
+      console.error("Failed to create enrollment:", error);
+    }
+  };
+
+  const handleCancelEnrollment = () => {
+    setShowAddEnrollment(false);
+  };
+
   const cohorts = !cohortsResultRaw?.success
     ? []
     : cohortsResultRaw.data?.cohorts;
+  const courses = !coursesResultRaw?.success
+    ? []
+    : (coursesResultRaw.data ?? []);
   const student = studentResult?.success ? (studentResult.data ?? null) : null;
   const enrollments = enrollmentsResult?.success ? enrollmentsResult.data : [];
+  const { url: profileImageUrl } = useProfileImageUrl({
+    value: student?.profileImage,
+  });
 
   if (
     studentResult === undefined ||
     enrollmentsResult === undefined ||
-    cohortsResultRaw === undefined
+    cohortsResultRaw === undefined ||
+    coursesResultRaw === undefined
   ) {
     return (
       <div className="flex min-h-100 items-center justify-center">
@@ -106,18 +181,12 @@ export default function StudentDetailsPage() {
           <div className="space-y-6 lg:col-span-1">
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
               <div className="bg-gray-50 px-6 py-8 text-center">
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  {student.profileImage ? (
-                    <Image
-                      src={student.profileImage}
-                      alt={student.name}
-                      width={48}
-                      height={48}
-                      className="h-full w-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <User className="h-10 w-10" />
-                  )}
+                <div className="mx-auto">
+                  <AvatarUpload
+                    currentImageUrl={profileImageUrl}
+                    onUploadComplete={handlePhotoUpload}
+                    size={80}
+                  />
                 </div>
                 <h1 className="mt-4 text-xl font-bold text-gray-900">
                   {student.name}
@@ -125,6 +194,49 @@ export default function StudentDetailsPage() {
                 <p className="text-sm font-medium text-primary uppercase tracking-wider">
                   {student.roleName}
                 </p>
+                {(student.isAlumni || updatingAlumni) && (
+                  <div className="mt-3">
+                    {student.isAlumni ? (
+                      <button
+                        type="button"
+                        onClick={handleAlumniToggle}
+                        disabled={updatingAlumni}
+                        className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 hover:bg-amber-200 transition-colors disabled:opacity-50"
+                      >
+                        {updatingAlumni ? (
+                          <div className="mr-1 h-3 w-3 animate-spin rounded-full border border-amber-500 border-t-amber-700" />
+                        ) : (
+                          <Star className="mr-1 h-3 w-3" />
+                        )}
+                        Alumni
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleAlumniToggle}
+                        disabled={updatingAlumni}
+                        className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-amber-50 hover:text-amber-600 transition-colors disabled:opacity-50"
+                      >
+                        {updatingAlumni ? (
+                          <div className="mr-1 h-3 w-3 animate-spin rounded-full border border-gray-400 border-t-amber-600" />
+                        ) : (
+                          <Star className="mr-1 h-3 w-3" />
+                        )}
+                        Mark as Alumni
+                      </button>
+                    )}
+                  </div>
+                )}
+                {!student.isAlumni && !updatingAlumni && (
+                  <button
+                    type="button"
+                    onClick={handleAlumniToggle}
+                    disabled={updatingAlumni}
+                    className="mt-3 text-xs text-gray-400 hover:text-amber-600 disabled:opacity-50"
+                  >
+                    Mark as Alumni
+                  </button>
+                )}
               </div>
               <div className="border-t border-gray-100 px-6 py-6 space-y-4">
                 <div className="flex items-center text-sm text-gray-600">
@@ -162,6 +274,27 @@ export default function StudentDetailsPage() {
                 <p className="mt-2 text-sm text-gray-500">
                   This student hasn't started any enrollment processes yet.
                 </p>
+                {cohorts && cohorts.length > 0 && (
+                  <div className="mt-6 flex flex-col items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddEnrollment(true)}
+                      className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add to Cohort
+                    </button>
+
+                    {showAddEnrollment && (
+                      <CreateEnrollmentForm
+                        cohorts={cohorts}
+                        courses={courses}
+                        onSubmit={handleCreateEnrollment}
+                        onCancel={handleCancelEnrollment}
+                      />
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-4">

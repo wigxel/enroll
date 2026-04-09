@@ -22,6 +22,24 @@ export const listAll = query({
 });
 
 /**
+ * Admin: Gets a single course by ID.
+ */
+export const getById = query({
+  args: { courseId: v.id("courses") },
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "course:read:all");
+    if (!privResult.success) return privResult;
+
+    const course = await ctx.db.get(args.courseId);
+    if (!course) {
+      return { success: false, error: "Course not found." };
+    }
+
+    return { success: true, data: course };
+  },
+});
+
+/**
  * Public: Lists only active courses for the application form dropdown and public catalog.
  * Resolves the coverPhoto storage ID into a full, accessible URL.
  */
@@ -105,6 +123,7 @@ export const create = mutation({
     coverPhoto: v.optional(v.string()),
     tuitionFee: v.number(),
     isActive: v.boolean(),
+    instructorIds: v.optional(v.array(v.id("instructors"))),
   },
   handler: async (ctx, args): Promise<Result<Id<"courses">>> => {
     const privResult = await requirePrivilege(ctx, "course:manage");
@@ -128,6 +147,7 @@ export const create = mutation({
       tuitionFee: args.tuitionFee,
       order: maxOrder + 1,
       isActive: args.isActive,
+      instructorIds: args.instructorIds,
       createdAt: timestamp,
       updatedAt: timestamp,
     });
@@ -150,6 +170,7 @@ export const update = mutation({
     coverPhoto: v.optional(v.string()),
     tuitionFee: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
+    instructorIds: v.optional(v.array(v.id("instructors"))),
   },
   handler: async (ctx, args): Promise<Result<null>> => {
     const privResult = await requirePrivilege(ctx, "course:manage");
@@ -171,6 +192,9 @@ export const update = mutation({
       ...(args.coverPhoto !== undefined && { coverPhoto: args.coverPhoto }),
       ...(args.tuitionFee !== undefined && { tuitionFee: args.tuitionFee }),
       ...(args.isActive !== undefined && { isActive: args.isActive }),
+      ...(args.instructorIds !== undefined && {
+        instructorIds: args.instructorIds,
+      }),
       updatedAt: now(),
     });
 

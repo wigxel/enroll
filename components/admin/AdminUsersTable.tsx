@@ -3,8 +3,8 @@
 import { useAction, useQuery } from "convex/react";
 import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { InviteButton } from "~/components/admin/InviteButton";
 import { ChangeRoleDialog } from "~/components/admin/dialogs/ChangeRoleDialog";
+import { InviteButton } from "~/components/admin/InviteButton";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
 import { cn } from "~/lib/utils";
@@ -35,7 +35,7 @@ export function AdminUsersTable() {
   // Query all users and filter admin roles client-side — the backend `list`
   // supports one role filter at a time, so we merge here.
   const usersResult = useQuery(api.users.list, {});
-  const assignRole = useAction(api.users.assignRole);
+  const assignRole = useAction(api.users.updateUserRole);
 
   const adminUsers = usersResult?.success
     ? (usersResult.data.users as any[]).filter((u) =>

@@ -27,6 +27,7 @@ struct CourseStruct {
   tuitionFee: Number
   order: Number
   isActive: Boolean
+  instructorIds: O.Option<Array<Instructor._id>>
   createdAt: Timestamp(ISO)
   updatedAt: Timestamp(ISO)
 }
@@ -112,6 +113,16 @@ struct QuizQuestionStruct {
   isActive: Boolean
   createdAt: Number
   updatedAt: Number
+}
+
+struct InstructorStruct {
+  _id: String
+  name: String
+  title: String
+  photo: O.Option<String>
+  bio: String
+  createdAt: Timestamp(ISO)
+  updatedAt: Timestamp(ISO)
 }
 
 struct SettingsStruct {

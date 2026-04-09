@@ -4,6 +4,43 @@ import { mutation, query } from "./_generated/server";
 import { now, type Result, requireAuth, requirePrivilege } from "./utils";
 
 /**
+ * Admin: Lists all enrollments for a specific course.
+ */
+export const listByCourseId = query({
+  args: { courseId: v.id("courses") },
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "student:read:list");
+    if (!privResult.success) return privResult;
+
+    const enrollments = await ctx.db.query("enrollments").collect();
+
+    // Filter by course ID (need to look up via application)
+    const enriched = await Promise.all(
+      enrollments.map(async (e) => {
+        const application = await ctx.db.get(e.applicationId);
+        if (!application || application.data.courseId !== args.courseId) {
+          return null;
+        }
+
+        const cohort = e.cohortId ? await ctx.db.get(e.cohortId) : null;
+        const user = await ctx.db.get(e.userId);
+
+        return {
+          ...e,
+          cohortName: cohort?.name ?? "—",
+          studentName: user?.name ?? "—",
+          studentEmail: user?.email ?? "—",
+        };
+      }),
+    );
+
+    const filtered = enriched.filter(Boolean);
+
+    return { success: true, data: filtered };
+  },
+});
+
+/**
  * Retrieves the current user's enrollment checklist.
  */
 export const get = query({
@@ -407,6 +444,70 @@ export const submitQuiz = mutation({
         score,
         requiredScore,
       },
+    };
+  },
+});
+
+/**
+ * Admin: Manually creates an enrollment for a student.
+ * Used when manually registering a student or adding an offline graduate.
+ */
+export const createForStudent = mutation({
+  args: {
+    userId: v.id("users"),
+    cohortId: v.id("cohorts"),
+    courseId: v.id("courses"),
+    isPaid: v.boolean(),
+  },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<Result<{ enrollmentId: string; applicationId: string }>> => {
+    const privResult = await requirePrivilege(ctx, "enrollment:update");
+    if (!privResult.success) return privResult;
+
+    const timestamp = now();
+
+    // Create placeholder application (minimal data for audit trail)
+    const applicationId = await ctx.db.insert("applications", {
+      userId: args.userId,
+      status: "approved",
+      paymentStatus: args.isPaid ? "paid" : "unpaid",
+      data: {
+        firstName: "",
+        lastName: "",
+        email: "",
+        dateOfBirth: "",
+        gender: "",
+        address: "",
+        phoneNumber: "",
+        educationalBackground: "",
+        courseId: args.courseId,
+      },
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+
+    const isComplete = args.isPaid;
+
+    const enrollmentId = await ctx.db.insert("enrollments", {
+      userId: args.userId,
+      applicationId,
+      cohortId: args.cohortId,
+      steps: {
+        tuitionPaid: args.isPaid,
+        quizPassed: args.isPaid,
+        documentsSigned: args.isPaid,
+      },
+      status: isComplete ? "completed" : "pending",
+      completedAt: isComplete ? timestamp : undefined,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+
+    return {
+      success: true,
+      data: { enrollmentId, applicationId },
     };
   },
 });

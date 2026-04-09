@@ -521,6 +521,11 @@ export const approve = mutation({
         updatedAt: timestamp,
       });
 
+      // Create student record with auto-generated code
+      await ctx.runMutation(internal.students.createStudentRecord, {
+        userId: application.userId,
+      });
+
       // Send notification to the applicant
       await ctx.runMutation(internal.notifications.sendNotification, {
         type: "application_status_change",
