@@ -90,7 +90,7 @@ export function FaqForm({
         />
 
         <DialogFooter>
-          <DialogTrigger>
+          <DialogTrigger asChild>
             <Button type="button" variant="outline">
               Cancel
             </Button>

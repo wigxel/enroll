@@ -99,11 +99,40 @@ export const getBySlug = query({
       coverPhotoUrl = url ?? course.coverPhoto;
     }
 
+    // Fetch instructor details
+    let instructors: any[] = [];
+    if (course.instructorIds?.length) {
+      const instructorResults = await Promise.all(
+        course.instructorIds.map(async (id) => {
+          const instructor = await ctx.db.get(id);
+          if (!instructor) return null;
+
+          let photoUrl: string | undefined;
+          if (instructor.photo) {
+            const url = await ctx.storage.getUrl(
+              instructor.photo as Id<"_storage">,
+            );
+            photoUrl = url ?? undefined;
+          }
+
+          return {
+            _id: instructor._id,
+            name: instructor.name,
+            title: instructor.title,
+            bio: instructor.bio,
+            photo: photoUrl,
+          };
+        }),
+      );
+      instructors = instructorResults.filter(Boolean);
+    }
+
     return {
       success: true,
       data: {
         ...course,
         coverPhoto: coverPhotoUrl,
+        instructors,
       },
     };
   },
@@ -171,6 +200,7 @@ export const update = mutation({
     tuitionFee: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
     instructorIds: v.optional(v.array(v.id("instructors"))),
+    faqIds: v.optional(v.array(v.id("faqs"))),
   },
   handler: async (ctx, args): Promise<Result<null>> => {
     const privResult = await requirePrivilege(ctx, "course:manage");
@@ -195,6 +225,7 @@ export const update = mutation({
       ...(args.instructorIds !== undefined && {
         instructorIds: args.instructorIds,
       }),
+      ...(args.faqIds !== undefined && { faqIds: args.faqIds }),
       updatedAt: now(),
     });
 
@@ -243,5 +274,31 @@ export const generateUploadUrl = mutation({
 
     const url = await ctx.storage.generateUploadUrl();
     return { success: true, data: url };
+  },
+});
+
+/**
+ * Admin: Links or unlinks FAQs from a course.
+ */
+export const updateFaqs = mutation({
+  args: {
+    courseId: v.id("courses"),
+    faqIds: v.array(v.id("faqs")),
+  },
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const privResult = await requirePrivilege(ctx, "course:manage");
+    if (!privResult.success) return privResult;
+
+    const course = await ctx.db.get(args.courseId);
+    if (!course) {
+      return { success: false, error: "Course not found." };
+    }
+
+    await ctx.db.patch(args.courseId, {
+      faqIds: args.faqIds,
+      updatedAt: now(),
+    });
+
+    return { success: true, data: null };
   },
 });

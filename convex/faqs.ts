@@ -14,6 +14,24 @@ export const list = query({
   },
 });
 
+export const listByIds = query({
+  args: {
+    faqIds: v.array(v.id("faqs")),
+  },
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "course:read:all");
+    if (!privResult.success) return privResult;
+
+    if (args.faqIds.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    const faqs = await Promise.all(args.faqIds.map((id) => ctx.db.get(id)));
+
+    return { success: true, data: faqs.filter(Boolean) };
+  },
+});
+
 export const create = mutation({
   args: {
     question: v.string(),

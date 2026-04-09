@@ -1,17 +1,12 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import {
-  ArrowLeft,
-  Calendar,
-  CheckCircle2,
-  Clock,
-  Loader2,
-  Plus,
-} from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, Loader2, Plus, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { FaqDialog } from "~/components/admin/dialogs/FaqDialog";
+import { LinkFaqsSheet } from "~/components/admin/dialogs/LinkFaqsSheet";
 import { Button } from "~/components/ui/button";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
@@ -25,17 +20,30 @@ export default function CourseDetailsPage() {
   const enrollmentsResult = useQuery(api.enrollments.listByCourseId, {
     courseId,
   });
+  const allFaqsResult = useQuery(api.faqs.list);
+  const linkedFaqsResult = useQuery(api.faqs.listByIds, {
+    faqIds: courseResult?.success ? (courseResult.data?.faqIds ?? []) : [],
+  });
   const updateCourse = useMutation(api.courses.update);
+  const updateCourseFaqs = useMutation(api.courses.updateFaqs);
+  const createFaq = useMutation(api.faqs.create);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [showFaqDialog, setShowFaqDialog] = useState(false);
+  const [showLinkFaqMenu, setShowLinkFaqSheet] = useState(false);
 
   const course = courseResult?.success ? courseResult.data : null;
   const enrollments = enrollmentsResult?.success ? enrollmentsResult.data : [];
+  const allFaqs = allFaqsResult?.success ? allFaqsResult.data : [];
+  const linkedFaqs = linkedFaqsResult?.success ? linkedFaqsResult.data : [];
 
   const isLoading =
-    courseResult === undefined || enrollmentsResult === undefined;
+    courseResult === undefined ||
+    enrollmentsResult === undefined ||
+    allFaqsResult === undefined ||
+    linkedFaqsResult === undefined;
 
   const activeEnrollments = enrollments.filter((e) => e.status === "pending");
   const completedEnrollments = enrollments.filter(
@@ -79,6 +87,65 @@ export default function CourseDetailsPage() {
       toast.error("Failed to update course status");
     }
   };
+
+  const handleLinkFaq = async (faqId: Id<"faqs">) => {
+    if (!course) return;
+    const newFaqIds = [...(course.faqIds ?? []), faqId];
+    try {
+      const res = await updateCourseFaqs({ courseId, faqIds: newFaqIds });
+      if (!res.success) {
+        toast.error(res.error);
+      } else {
+        toast.success("FAQ linked");
+        setShowLinkFaqSheet(false);
+      }
+    } catch (error) {
+      toast.error("Failed to link FAQ");
+    }
+  };
+
+  const handleUnlinkFaq = async (faqId: Id<"faqs">) => {
+    if (!course) return;
+    const newFaqIds = (course.faqIds ?? []).filter((id) => id !== faqId);
+    try {
+      const res = await updateCourseFaqs({ courseId, faqIds: newFaqIds });
+      if (!res.success) {
+        toast.error(res.error);
+      } else {
+        toast.success("FAQ unlinked");
+      }
+    } catch (error) {
+      toast.error("Failed to unlink FAQ");
+    }
+  };
+
+  const handleCreateFaq = async (data: {
+    question: string;
+    answer: string;
+  }) => {
+    try {
+      const res = await createFaq({
+        question: data.question,
+        answer: data.answer,
+      });
+      if (!res.success) {
+        toast.error(res.error);
+      } else {
+        toast.success("FAQ created");
+        // Auto-link to this course
+        const newFaqIds = [...(course?.faqIds ?? []), res.data];
+        await updateCourseFaqs({ courseId, faqIds: newFaqIds });
+        setShowFaqDialog(false);
+      }
+    } catch (error) {
+      toast.error("Failed to create FAQ");
+    }
+  };
+
+  // Get available FAQs (not yet linked)
+  const availableFaqs = allFaqs.filter(
+    (faq) => !(course?.faqIds ?? []).includes(faq._id),
+  );
 
   if (isLoading) {
     return (
@@ -143,11 +210,10 @@ export default function CourseDetailsPage() {
                   {course.name}
                 </h1>
                 <span
-                  className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-medium ${
-                    course.isActive
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-500"
-                  }`}
+                  className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-medium ${course.isActive
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-100 text-gray-500"
+                    }`}
                 >
                   {course.isActive ? "Active" : "Inactive"}
                 </span>
@@ -189,7 +255,8 @@ export default function CourseDetailsPage() {
           </div>
 
           {/* Right Column: Enrollments */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-8">
+
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">
                 Enrollments
@@ -230,77 +297,149 @@ export default function CourseDetailsPage() {
               </div>
             </div>
 
-            {enrollments.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
-                <Clock className="mx-auto h-12 w-12 text-gray-300" />
-                <h3 className="mt-4 text-sm font-medium text-gray-900">
-                  No enrollments found
-                </h3>
-                <p className="mt-2 text-sm text-gray-500">
-                  No students have enrolled in this course yet.
-                </p>
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">Students</h2>
               </div>
-            ) : (
-              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Student
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Cohort
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Enrolled
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {enrollments.map((enrollment) => (
-                      <tr key={enrollment._id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {enrollment.studentName}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {enrollment.studentEmail}
-                            </p>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {enrollment.cohortName}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                              enrollment.status === "completed"
+
+              {enrollments.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
+                  <Clock className="mx-auto h-12 w-12 text-gray-300" />
+                  <h3 className="mt-4 text-sm font-medium text-gray-900">
+                    No enrollments found
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-500">
+                    No students have enrolled in this course yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          Student
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          Cohort
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          Enrolled
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {enrollments.map((enrollment) => (
+                        <tr key={enrollment._id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4">
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {enrollment.studentName}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {enrollment.studentEmail}
+                              </p>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            {enrollment.cohortName}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${enrollment.status === "completed"
                                 ? "bg-green-100 text-green-700"
                                 : "bg-amber-100 text-amber-700"
-                            }`}
-                          >
-                            {enrollment.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {enrollment.createdAt
-                            ? new Date(
+                                }`}
+                            >
+                              {enrollment.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            {enrollment.createdAt
+                              ? new Date(
                                 enrollment.createdAt,
                               ).toLocaleDateString()
-                            : "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                              : "—"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+
+
+
+            {/* FAQs Section */}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">FAQs</h2>
+                <Button size="sm" onClick={() => setShowLinkFaqSheet(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add FAQ
+                </Button>
               </div>
-            )}
+
+              {linkedFaqs.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
+                  <p className="text-sm text-gray-500">
+                    No FAQs linked to this course yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {linkedFaqs.map((faq) => (
+                    <div
+                      key={faq._id}
+                      className="rounded-lg border border-gray-200 bg-white p-4"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">
+                            {faq.question}
+                          </h4>
+                          <p className="mt-1 text-sm text-gray-500 line-clamp-2">
+                            {faq.answer}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleUnlinkFaq(faq._id)}
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
         </div>
+
+        <FaqDialog
+          isOpen={showFaqDialog}
+          onOpenChange={setShowFaqDialog}
+          onSubmit={handleCreateFaq}
+        />
+
+        <LinkFaqsSheet
+          isOpen={showLinkFaqMenu}
+          onOpenChange={setShowLinkFaqSheet}
+          availableFaqs={availableFaqs}
+          linkedFaqs={linkedFaqs}
+          onLink={handleLinkFaq}
+          onUnlink={handleUnlinkFaq}
+          onCreateNew={() => {
+            setShowLinkFaqSheet(false);
+            setShowFaqDialog(true);
+          }}
+        />
       </div>
     </div>
   );

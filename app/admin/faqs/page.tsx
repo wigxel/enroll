@@ -44,10 +44,11 @@ function FAQItem({
         <p className="mt-1 text-sm text-gray-500 line-clamp-2">{faq.answer}</p>
       </div>
       <span
-        className={`rounded-full px-2 py-1 text-xs font-medium ${faq.isActive
-          ? "bg-green-100 text-green-700"
-          : "bg-gray-100 text-gray-500"
-          }`}
+        className={`rounded-full px-2 py-1 text-xs font-medium ${
+          faq.isActive
+            ? "bg-green-100 text-green-700"
+            : "bg-gray-100 text-gray-500"
+        }`}
       >
         {faq.isActive ? "Active" : "Inactive"}
       </span>
@@ -152,9 +153,9 @@ export default function FaqsPage() {
   };
 
   React.useEffect(() => {
-    if (!(faqsResult?.success)) return;
+    if (!faqsResult?.success) return;
     setLocalFaqs(safeArray(faqsResult?.data));
-  }, [faqsResult])
+  }, [faqsResult]);
 
   return (
     <div className="py-8">

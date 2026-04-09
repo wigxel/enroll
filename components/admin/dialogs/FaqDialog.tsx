@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import { FaqForm } from "~/components/admin/forms/FaqForm";
-import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -22,7 +20,7 @@ interface FaqDialogProps {
     answer: string;
   };
   isEdit?: boolean;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export function FaqDialog({
@@ -33,7 +31,18 @@ export function FaqDialog({
   isEdit = false,
   children,
 }: FaqDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isControlled = isOpen !== undefined;
+  const open = isControlled ? isOpen : internalOpen;
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(newOpen);
+    }
+    onOpenChange?.(newOpen);
+  };
 
   const handleSubmit = async (data: { question: string; answer: string }) => {
     setIsSubmitting(true);
@@ -45,10 +54,8 @@ export function FaqDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>

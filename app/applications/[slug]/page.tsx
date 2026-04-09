@@ -1,12 +1,4 @@
-import React from "react";
 import { fetchQuery } from "convex/nextjs";
-import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import ApplicationForm from "@/components/forms/ApplicationForm";
-
-import { api } from "@/convex/_generated/api";
 import {
   Award,
   BookOpen,
@@ -19,6 +11,13 @@ import {
   Star,
   User,
 } from "lucide-react";
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import type React from "react";
+import ApplicationForm from "@/components/forms/ApplicationForm";
+import { api } from "@/convex/_generated/api";
 
 interface CourseApplicationPageProps {
   params: Promise<{ slug: string }>;
@@ -48,25 +47,6 @@ const PREREQUISITES = [
   "A personal laptop or desktop with a stable internet connection.",
   "Willingness to commit 10–15 hours per week to coursework.",
   "Passion for the subject matter and a desire to grow professionally.",
-];
-
-const INSTRUCTORS = [
-  {
-    name: "Dr. Amina Okafor",
-    title: "Lead Instructor & Curriculum Designer",
-    bio: "Former Head of Training at Zenith Bank with 15+ years of industry experience. Ph.D in Educational Technology from University of Lagos.",
-    expertise: ["Curriculum Design", "Industry Training", "Mentorship"],
-    initials: "AO",
-    color: "from-indigo-500 to-purple-600",
-  },
-  {
-    name: "Emeka Chukwu",
-    title: "Senior Practitioner & Guest Lecturer",
-    bio: "Seasoned professional with 12 years in the field. Founder of two successful ventures and a sought-after keynote speaker across West Africa.",
-    expertise: ["Practical Application", "Entrepreneurship", "Strategy"],
-    initials: "EC",
-    color: "from-emerald-500 to-teal-600",
-  },
 ];
 
 const REVIEWS = [
@@ -236,7 +216,6 @@ export default async function CourseApplicationPage({
       {/* ── Main two-column layout ── */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-
           {/* ── Left Column: Course summary card ── */}
           <div className="lg:col-span-4 space-y-8">
             <div className="sticky top-24 rounded-2xl bg-background overflow-hidden shadow-sm border border-gray-100 dark:border-zinc-800">
@@ -323,7 +302,6 @@ export default async function CourseApplicationPage({
 
           {/* ── Right Column ── */}
           <div className="lg:col-span-8 space-y-16">
-
             {/* Prerequisites */}
             <section>
               <SectionHeading
@@ -354,46 +332,71 @@ export default async function CourseApplicationPage({
                 subtitle="Learn from seasoned practitioners"
               />
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {INSTRUCTORS.map((ins) => (
-                  <div
-                    key={ins.name}
-                    className="rounded-2xl border border-gray-100 dark:border-zinc-800 bg-background overflow-hidden"
-                  >
-                    {/* Colour banner */}
-                    <div
-                      className={`h-20 bg-gradient-to-br ${ins.color} relative`}
-                    >
-                      <div className="absolute -bottom-6 left-5 flex h-12 w-12 items-center justify-center rounded-full bg-white dark:bg-zinc-900 shadow-md ring-2 ring-white dark:ring-zinc-900">
-                        <span
-                          className={`bg-gradient-to-br ${ins.color} bg-clip-text text-transparent font-bold text-sm`}
+                {(course.instructors?.length ? course.instructors : []).map(
+                  (ins) => {
+                    const initials = ins.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase();
+                    const colors = [
+                      "from-indigo-500 to-purple-600",
+                      "from-emerald-500 to-teal-600",
+                      "from-rose-500 to-pink-600",
+                      "from-amber-500 to-orange-600",
+                    ];
+                    const color =
+                      colors[ins.name.charCodeAt(0) % colors.length];
+                    return (
+                      <div
+                        key={ins._id}
+                        className="rounded-2xl border border-gray-100 dark:border-zinc-800 bg-background overflow-hidden"
+                      >
+                        {/* Colour banner */}
+                        <div
+                          className={`h-20 bg-gradient-to-br ${color} relative`}
                         >
-                          {ins.initials}
-                        </span>
+                          {ins.photo && (
+                            <Image
+                              src={ins.photo}
+                              alt={ins.name}
+                              fill
+                              className="object-cover opacity-50"
+                            />
+                          )}
+                          <div className="absolute -bottom-6 left-5 flex h-12 w-12 items-center justify-center rounded-full bg-white dark:bg-zinc-900 shadow-md ring-2 ring-white dark:ring-zinc-900 overflow-hidden">
+                            {ins.photo ? (
+                              <Image
+                                src={ins.photo}
+                                alt={ins.name}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <span
+                                className={`bg-gradient-to-br ${color} bg-clip-text text-transparent font-bold text-sm`}
+                              >
+                                {initials}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="pt-9 px-5 pb-5">
+                          <h3 className="font-semibold text-gray-900 dark:text-white">
+                            {ins.name}
+                          </h3>
+                          <p className="text-xs text-indigo-500 font-medium mt-0.5">
+                            {ins.title}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 leading-relaxed">
+                            {ins.bio}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="pt-9 px-5 pb-5">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
-                        {ins.name}
-                      </h3>
-                      <p className="text-xs text-indigo-500 font-medium mt-0.5">
-                        {ins.title}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 leading-relaxed">
-                        {ins.bio}
-                      </p>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {ins.expertise.map((tag) => (
-                          <span
-                            key={tag}
-                            className="rounded-full bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-0.5 text-xs font-medium text-indigo-700 dark:text-indigo-300"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  },
+                )}
               </div>
             </section>
 
@@ -453,7 +456,9 @@ export default async function CourseApplicationPage({
                         <p className="text-sm font-semibold text-gray-900 dark:text-white">
                           {review.name}
                         </p>
-                        <p className="text-xs text-gray-400">{review.role} · {review.year}</p>
+                        <p className="text-xs text-gray-400">
+                          {review.role} · {review.year}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -486,7 +491,6 @@ export default async function CourseApplicationPage({
                 <ApplicationForm defaultCourseId={course._id} />
               </div>
             </section>
-
           </div>
         </div>
       </main>

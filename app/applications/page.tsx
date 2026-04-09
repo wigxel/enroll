@@ -84,10 +84,7 @@ export default function CourseCatalogPage() {
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 w-full">
             {courses.map((course) => (
-              <CourseCard
-                data={course}
-                key={course._id}
-              />
+              <CourseCard data={course} key={course._id} />
             ))}
           </div>
         )}
@@ -96,11 +93,7 @@ export default function CourseCatalogPage() {
   );
 }
 
-function CourseCard({
-  data: course
-}: {
-  data: any;
-}) {
+function CourseCard({ data: course }: { data: any }) {
   return (
     <Link href={`/applications/${course.slug}`} draggable={false}>
       <div className="flex flex-col overflow-hidden p-0 transition-all bg-background select-none rounded-2xl hover:shadow-xl transition-default hover:-translate-y-2 shadow-black/6">

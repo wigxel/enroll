@@ -154,6 +154,17 @@ export default defineSchema({
     updatedAt: v.string(),
   }).index("by_name", ["name"]),
 
+  reviews: defineTable({
+    userId: v.id("users"),
+    courseId: v.id("courses"),
+    rating: v.number(),
+    text: v.string(),
+    isApproved: v.boolean(),
+    createdAt: v.string(),
+  })
+    .index("by_courseId", ["courseId"])
+    .index("by_userId", ["userId"]),
+
   quizQuestions: defineTable({
     question: v.string(),
     options: v.array(v.string()),

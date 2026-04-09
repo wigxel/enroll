@@ -29,19 +29,20 @@ export function PartnersMarquee() {
         <div className="absolute right-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-l from-white dark:from-zinc-900 to-transparent pointer-events-none" />
 
         {/* Scrolling track */}
-        <button type="button"
+        <button
+          type="button"
           className="appearance-none flex gap-6 whitespace-nowrap"
           style={{
             animation: "partners-marquee 28s linear infinite",
             willChange: "transform",
           }}
           onMouseEnter={(e) =>
-          ((e.currentTarget as HTMLDivElement).style.animationPlayState =
-            "paused")
+            ((e.currentTarget as HTMLDivElement).style.animationPlayState =
+              "paused")
           }
           onMouseLeave={(e) =>
-          ((e.currentTarget as HTMLDivElement).style.animationPlayState =
-            "running")
+            ((e.currentTarget as HTMLDivElement).style.animationPlayState =
+              "running")
           }
         >
           {track.map((partner, i) => (

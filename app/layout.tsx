@@ -21,9 +21,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           className={`${displayFont.variable} ${bodyFont.variable} ${condensedFont.variable} antialiased font-body bg-background-100`}
         >
           <QueryProvider>
-            <ConvexClientProvider>
-              {children}
-            </ConvexClientProvider>
+            <ConvexClientProvider>{children}</ConvexClientProvider>
           </QueryProvider>
           <Toaster />
         </body>
