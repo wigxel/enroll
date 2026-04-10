@@ -69,7 +69,7 @@ export function TopNav() {
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-xl font-bold tracking-tight text-primary">
-              Enrollment
+              <Image src={"/logo.svg"} className="w-30" alt={"CMK Logo"} width={505.74} height={171.5} />
             </span>
           </Link>
           <nav className="hidden items-center gap-1 sm:flex">

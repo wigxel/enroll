@@ -5,6 +5,7 @@ import React, { useImperativeHandle } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
 import { Form } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 
@@ -64,50 +65,50 @@ export const ReviewSubmission = React.forwardRef<
             Review & Submit
           </h2>
 
-          <div className="space-y-4 bg-gray-50 p-4 rounded-lg text-sm">
-            <div className="grid grid-cols-3 gap-2 border-b pb-2">
+          <ul className="space-y-4 py-4 divide-y divide-gray-200 rounded-lg text-sm">
+            <li className="grid grid-cols-3 gap-2 pb-2">
               <span className="font-medium text-gray-500">Name:</span>
               <span className="col-span-2 text-gray-900">
                 {formData.firstName} {formData.lastName}
               </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2 border-b pb-2">
+            </li>
+            <li className="grid grid-cols-3 gap-2 pb-2">
               <span className="font-medium text-gray-500">Email:</span>
               <span className="col-span-2 text-gray-900">{formData.email}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2 border-b pb-2">
+            </li>
+            <li className="grid grid-cols-3 gap-2 pb-2">
               <span className="font-medium text-gray-500">Gender:</span>
               <span className="col-span-2 text-gray-900">
                 {formData.gender}
               </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2 border-b pb-2">
+            </li>
+            <li className="grid grid-cols-3 gap-2 pb-2">
               <span className="font-medium text-gray-500">Date of Birth:</span>
               <span className="col-span-2 text-gray-900">
                 {formData.dateOfBirth}
               </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2 border-b pb-2">
+            </li>
+            <li className="grid grid-cols-3 gap-2 pb-2">
               <span className="font-medium text-gray-500">Phone:</span>
               <span className="col-span-2 text-gray-900">
                 {formData.phoneNumber}
               </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2 border-b pb-2">
+            </li>
+            <li className="grid grid-cols-3 gap-2 pb-2">
               <span className="font-medium text-gray-500">Address:</span>
               <span className="col-span-2 text-gray-900">
                 {formData.address}
               </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2 border-b pb-2">
+            </li>
+            <li className="grid grid-cols-3 gap-2 pb-2">
               <span className="font-medium text-gray-500">
                 Education Details:
               </span>
               <span className="col-span-2 text-gray-900 line-clamp-2">
                 {formData.educationalBackground}
               </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2 border-b pb-2">
+            </li>
+            <li className="grid grid-cols-3 gap-2 pb-2">
               <span className="font-medium text-gray-500">
                 Selected Course:
               </span>
@@ -115,15 +116,18 @@ export const ReviewSubmission = React.forwardRef<
                 {courses?.find((c) => c._id === formData.courseId)?.name ||
                   "..."}
               </span>
-            </div>
-          </div>
+            </li>
+          </ul>
 
           <div className="flex items-start gap-3 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-            <Input
-              type="checkbox"
+            <Checkbox
               id="confirm"
               className="mt-1 h-5 w-5 shrink-0 rounded-sm border-gray-300 text-primary focus:ring-primary accent-primary"
-              {...form.register("confirm")}
+              checked={form.watch('confirm')}
+              onCheckedChange={(value) => {
+                // @ts-expect-error Not a problem
+                form.setValue('confirm', value)
+              }}
             />
             <div className="flex flex-col">
               <label
@@ -152,7 +156,6 @@ export const ReviewSubmission = React.forwardRef<
               variant="outline"
               onClick={onBack}
               disabled={isSaving}
-              className="px-6 rounded-full border-gray-300 shadow-sm"
             >
               Back
             </Button>
@@ -163,7 +166,6 @@ export const ReviewSubmission = React.forwardRef<
           <Button
             type="submit"
             disabled={isSaving || !isConfirmed}
-            className="px-8 flex items-center justify-center rounded-full shadow-md bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white"
           >
             {isSaving ? "Submitting..." : "Submit Application"}
           </Button>

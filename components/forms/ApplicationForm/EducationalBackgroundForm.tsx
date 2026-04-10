@@ -8,6 +8,7 @@ import { Button } from "~/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -98,25 +99,27 @@ export const EducationalBackgroundForm = React.forwardRef<
                 </FormLabel>
                 <FormControl>
                   <textarea
-                    className="flex min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    placeholder="Please describe your highest level of education. E.g. BSc in Computer Science from University of Example (2020-2024)."
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="Please describe your highest level of education."
                     {...field}
                   />
                 </FormControl>
+                <FormDescription>
+                  E.g. BSc in Computer Science from University of Example (2020-2024).
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        <div className="flex justify-between mt-auto pt-6 border-t font-semibold">
+        <div className="flex justify-between mt-auto pt-6 border-t border-gray-200 font-semibold">
           {onBack ? (
             <Button
               type="button"
               variant="outline"
               onClick={onBack}
               disabled={isSaving}
-              className="px-6 rounded-full border-gray-300 shadow-sm"
             >
               Back
             </Button>
@@ -127,7 +130,6 @@ export const EducationalBackgroundForm = React.forwardRef<
           <Button
             type="submit"
             disabled={isSaving}
-            className="px-8 rounded-full shadow-md bg-stone-900 hover:bg-stone-800 text-primary-foreground disabled:opacity-50 text-white"
           >
             {isSaving ? "Saving..." : "Continue"}
           </Button>

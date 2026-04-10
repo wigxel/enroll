@@ -8,7 +8,9 @@ import {
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { useQuery } from "convex/react";
 import { useState } from "react";
+import { api } from "@/convex/_generated/api";
 
 interface ApplicationStatusViewProps {
   application: any; // Using any for brevity or specific type if needed
@@ -68,6 +70,11 @@ export function ApplicationStatusView({
   application,
 }: ApplicationStatusViewProps) {
   const [showSummary, setShowSummary] = useState(false);
+  const appStatusResult = useQuery(api.settings.getAppStatus);
+  const hasApplicationFee = appStatusResult?.success
+    ? (appStatusResult.data?.applicationFeeAmount ?? 0) > 0
+    : false;
+  const isLoadingAppStatus = appStatusResult === undefined;
 
   if (!application) {
     return (
@@ -117,16 +124,16 @@ export function ApplicationStatusView({
 
         {/* Details panel */}
         <div className="mt-6">
-          {application.status === "draft" && (
+          {application.status === "draft" && !isLoadingAppStatus && (
             <Link
               href={
-                application.paymentStatus === "unpaid"
+                application.paymentStatus === "unpaid" && hasApplicationFee
                   ? `/application/pay?applicationId=${application._id}`
                   : "/application"
               }
               className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
             >
-              {application.paymentStatus === "unpaid"
+              {application.paymentStatus === "unpaid" && hasApplicationFee
                 ? "Pay Application Fee"
                 : "Continue Application"}
             </Link>

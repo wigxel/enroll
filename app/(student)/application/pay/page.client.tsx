@@ -7,6 +7,7 @@ import { useState } from "react";
 import { usePaystackPayment } from "react-paystack";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
+import { formatCurrency } from "~/lib/utils";
 
 export default function PaymentComponent() {
   const router = useRouter();
@@ -21,6 +22,14 @@ export default function PaymentComponent() {
     explicitAppId ? { applicationId: explicitAppId as any } : "skip",
   );
 
+  // Fetch application fee from settings
+  const appStatusResult = useQuery(api.settings.getAppStatus);
+
+  const application_fee = appStatusResult?.success
+    ? (appStatusResult.data?.applicationFeeAmount ?? 0)
+    : 0;
+  const formatted_fee: string = formatCurrency(application_fee);
+
   const application = applicationResult?.success
     ? applicationResult.data
     : null;
@@ -31,13 +40,15 @@ export default function PaymentComponent() {
   const config = {
     reference: "", // Will be set dynamically before initialization
     email: application?.applicantEmail ?? "",
-    amount: 15000 * 100, // 15,000 NGN in kobo
+    amount: application_fee * 100, // 15,000 NGN in kobo
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "",
   };
   const initializePayment = usePaystackPayment(config as any);
 
   // Loading states
-  const isLoading = explicitAppId ? applicationResult === undefined : false;
+  const isLoading = explicitAppId
+    ? applicationResult === undefined || appStatusResult === undefined
+    : false;
 
   if (isLoading) {
     return (
@@ -45,6 +56,12 @@ export default function PaymentComponent() {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // Check if application fee is configured - skip payment if no fee
+  if (application_fee === 0) {
+    router.push("/application/under-review");
+    return null;
   }
 
   // Not found
@@ -74,7 +91,7 @@ export default function PaymentComponent() {
       const intentResponse = await createIntent({
         referenceId: application._id,
         referenceType: "application",
-        amount: 15000,
+        amount: application_fee,
         currency: "NGN",
       });
 
@@ -160,7 +177,9 @@ export default function PaymentComponent() {
             </div>
             <div className="flex justify-between border-t border-gray-200 pt-3">
               <dt className="text-sm font-medium text-gray-900">Total Due</dt>
-              <dd className="text-lg font-bold text-gray-900">₦15,000</dd>
+              <dd className="text-lg font-bold text-gray-900">
+                {formatted_fee}
+              </dd>
             </div>
           </dl>
         </div>
@@ -173,7 +192,7 @@ export default function PaymentComponent() {
           className="mt-6 flex w-full flex-row items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none"
         >
           {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          {isProcessing ? "Processing..." : "Pay Now — ₦15,000"}
+          {isProcessing ? "Processing..." : `Pay Now — ${formatted_fee}`}
         </button>
 
         {/* Security note */}

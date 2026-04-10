@@ -138,6 +138,7 @@ export default defineSchema({
     isActive: v.boolean(),
     instructorIds: v.optional(v.array(v.id("instructors"))),
     faqIds: v.optional(v.array(v.id("faqs"))),
+    brochureUrl: v.optional(v.string()),
     prerequisites: v.optional(
       v.array(
         v.object({

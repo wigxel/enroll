@@ -23,7 +23,7 @@ export async function Header() {
 
         <nav className="flex items-center gap-1">
           <Link
-            href="/applications"
+            href="/courses"
             className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-800 dark:hover:text-white"
           >
             <BookOpen className="h-4 w-4" />

@@ -201,6 +201,7 @@ export const update = mutation({
     isActive: v.optional(v.boolean()),
     instructorIds: v.optional(v.array(v.id("instructors"))),
     faqIds: v.optional(v.array(v.id("faqs"))),
+    brochureUrl: v.optional(v.string()),
     prerequisites: v.optional(
       v.array(
         v.object({
@@ -234,6 +235,7 @@ export const update = mutation({
         instructorIds: args.instructorIds,
       }),
       ...(args.faqIds !== undefined && { faqIds: args.faqIds }),
+      ...(args.brochureUrl !== undefined && { brochureUrl: args.brochureUrl }),
       ...(args.prerequisites !== undefined && {
         prerequisites: args.prerequisites,
       }),

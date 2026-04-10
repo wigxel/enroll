@@ -95,7 +95,7 @@ export default function CourseCatalogPage() {
 
 function CourseCard({ data: course }: { data: any }) {
   return (
-    <Link href={`/applications/${course.slug}`} draggable={false}>
+    <Link href={`/courses/${course.slug}`} draggable={false}>
       <div className="flex flex-col overflow-hidden p-0 transition-all bg-background select-none rounded-2xl hover:shadow-xl transition-default hover:-translate-y-2 shadow-black/6">
         {/* Cover Photo */}
         <div className="relative h-48 bg-gray-200 rounded-xl m-2 overflow-hidden">

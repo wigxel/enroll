@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle2, Clock, Loader2, Plus, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { BrochureSection } from "~/components/admin/course-details/BrochureSection";
 import { FaqDialog } from "~/components/admin/dialogs/FaqDialog";
 import { LinkFaqsSheet } from "~/components/admin/dialogs/LinkFaqsSheet";
 import { Button } from "~/components/ui/button";
@@ -426,6 +427,9 @@ export default function CourseDetailsPage() {
                 </div>
               )}
             </section>
+
+            {/* Brochure Section */}
+            <BrochureSection courseId={courseId} />
           </div>
         </div>
 

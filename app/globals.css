@@ -192,6 +192,10 @@
   }
 }
 
+body::selection {
+  background-color: hsla(from var(--primary) h s l / 0.16);
+}
+
 body {
   font-family: var(--font-body);
 }

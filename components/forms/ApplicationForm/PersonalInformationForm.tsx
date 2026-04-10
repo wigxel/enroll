@@ -20,6 +20,7 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { useDebounceCallback } from "~/hooks/use-debounce-callback";
+import { cn } from "~/lib/utils";
 import { AddressInputField } from "../../fields/AddressInputField";
 import { DateOfBirthInputField } from "../../fields/DateOfBirthInputField";
 import { GenderSelectField } from "../../fields/GenderSelectField";
@@ -153,7 +154,7 @@ export const PersonalInformationForm = React.forwardRef<
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
-        className="space-y-6 flex flex-col min-h-[300px]"
+        className="space-y-6 flex flex-col"
       >
         <div className="flex-1 space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h2 className="text-xl font-semibold mb-4 text-gray-900">
@@ -163,17 +164,18 @@ export const PersonalInformationForm = React.forwardRef<
           {!existingApp && (
             <div
               className={
-                isInitialValidated
-                  ? "opacity-70 pointer-events-none mb-4"
-                  : "space-y-4"
+                cn("space-y-4",
+                  isInitialValidated
+                    ? "opacity-70 pointer-events-none mb-4"
+                    : "")
               }
             >
               {!isInitialValidated && (
                 <p className="text-gray-500 text-sm mb-6">
-                  Please enter your email address and phone number to check if
-                  you already have an application in progress.
+                  Please enter your email address and phone number to begin.
                 </p>
               )}
+
               <FormField
                 control={form.control}
                 name="email"
@@ -193,57 +195,59 @@ export const PersonalInformationForm = React.forwardRef<
                   </FormItem>
                 )}
               />
+
               <PhoneNumberInputField
                 control={form.control}
                 name="phoneNumber"
               />
+
+              {isInitialValidated ? <div role="separator" className="border-gray-200 my-8 border-t" /> : null}
             </div>
           )}
 
           {existingApp && (
-            <div className="rounded-lg border p-6 bg-gray-50 dark:bg-zinc-900/50 space-y-4">
-              {existingApp.paymentStatus === "unpaid" ? (
-                <>
-                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500 font-medium">
-                    <AlertCircle className="w-5 h-5" />
-                    Pending Payment
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    We found an existing application with these details, but the
-                    application fee has not been paid yet.
-                  </p>
-                  <Button asChild className="w-full sm:w-auto mt-4">
-                    <Link href={`/application/pay?reference=${existingApp.id}`}>
-                      Proceed to Payment <ArrowRight className="ml-2 w-4 h-4" />
-                    </Link>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-500 font-medium">
-                    <CheckCircle2 className="w-5 h-5" />
-                    Application Received
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    You already have a {existingApp.status.replace("_", " ")}{" "}
-                    application with these details. Please check your email or
-                    dashboard for updates, and wait for it to be processed.
-                  </p>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="w-full sm:w-auto mt-4"
-                  >
-                    <Link href="/student/dashboard">Go to Dashboard</Link>
-                  </Button>
-                </>
-              )}
-            </div>
+            existingApp.paymentStatus === "unpaid" ? (
+              <div className="rounded-lg border p-6 bg-gray-50 dark:bg-zinc-900/50 space-y-4">
+                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500 font-medium">
+                  <AlertCircle className="w-5 h-5" />
+                  Pending Payment
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  We found an existing application with these details, but the
+                  application fee has not been paid yet.
+                </p>
+                <Button asChild className="w-full sm:w-auto mt-4">
+                  <Link href={`/application/pay?reference=${existingApp.id}`}>
+                    Proceed to Payment <ArrowRight className="ml-2 w-4 h-4" />
+                  </Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="rounded-lg  bg-blue-50/50 border border-blue-100 p-6 space-y-4">
+                <div className="flex items-center gap-2 font-semibold text-foreground">
+                  <CheckCircle2 className="w-5 h-5" />
+                  Application Ongoing
+                </div>
+
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  You already have a {existingApp.status.replace("_", " ")}{" "}
+                  application with these details. Please check your email or
+                  dashboard for updates, and wait for it to be processed.
+                </p>
+
+                <Button
+                  asChild
+                  className="w-full sm:w-auto mt-2"
+                >
+                  <Link href="/student/dashboard">Go to Dashboard</Link>
+                </Button>
+              </div>
+            )
           )}
 
           {isInitialValidated && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -259,6 +263,7 @@ export const PersonalInformationForm = React.forwardRef<
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="lastName"
@@ -275,11 +280,13 @@ export const PersonalInformationForm = React.forwardRef<
                   )}
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <DateOfBirthInputField
                   control={form.control}
                   name="dateOfBirth"
                 />
+
                 <GenderSelectField control={form.control} name="gender" />
               </div>
 
@@ -288,11 +295,12 @@ export const PersonalInformationForm = React.forwardRef<
           )}
         </div>
 
-        <div className="flex justify-between mt-auto pt-6 border-t font-semibold">
+        <div className="flex justify-between mt-auto pt-6 font-semibold">
           {onBack || existingApp ? (
             <Button
               type="button"
               variant="outline"
+              disabled={isSaving}
               onClick={() => {
                 if (existingApp) {
                   setExistingApp(null);
@@ -302,8 +310,6 @@ export const PersonalInformationForm = React.forwardRef<
                   onBack?.();
                 }
               }}
-              disabled={isSaving}
-              className="px-6 rounded-full border-gray-300 shadow-sm"
             >
               {existingApp ? "Start Over" : "Back"}
             </Button>
@@ -315,7 +321,8 @@ export const PersonalInformationForm = React.forwardRef<
             <Button
               type="submit"
               disabled={isSaving}
-              className="px-8 flex items-center justify-center rounded-full shadow-md bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white"
+              size="lg"
+              className="w-full"
             >
               {isSaving ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

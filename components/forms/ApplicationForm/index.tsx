@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
+import { GraduationCap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -39,6 +40,10 @@ export default function ApplicationForm({
   const coursesResult = useQuery(api.courses.listActive);
   const courses = safeArray((coursesResult as any)?.data);
   const createApplication = useMutation(api.applications.create);
+  const appStatusResult = useQuery(api.settings.getAppStatus);
+  const hasApplicationFee = appStatusResult?.success
+    ? (appStatusResult.data?.applicationFeeAmount ?? 0) > 0
+    : false;
 
   const [formData, setFormData] = useState<{
     firstName: string;
@@ -139,8 +144,12 @@ export default function ApplicationForm({
       const applicationId = res.data;
 
       toast.success("Application submitted successfully!");
-      // Redirect to payment
-      router.push(`/application/pay?reference=${applicationId}`);
+      // Redirect to payment or under-review based on fee configuration
+      if (hasApplicationFee) {
+        router.push(`/application/pay?reference=${applicationId}`);
+      } else {
+        router.push("/application/under-review");
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to submit application");
     } finally {
@@ -151,23 +160,21 @@ export default function ApplicationForm({
   return (
     <div className="flex flex-col gap-8">
       {/* Stepper Header */}
-      <div className="w-full">
-        <div className="flex justify-between relative before:absolute before:inset-0 before:top-1/2 before:-translate-y-1/2 before:h-0.5 before:bg-gray-200 before:z-0">
+      <div className="w-full pt-6 px-4 pb-2 bg-background shadow-sm rounded-2xl">
+        <div className="flex -mx-4 px-4 pointer-events-none select-none justify-between relative before:absolute before:inset-0 before:top-4 before:-translate-y-1/2 before:h-0.5 before:bg-gray-200 before:z-0">
           {steps.map((step) => (
             <div
               key={step.id}
-              className={`relative z-10 flex flex-col items-center gap-2 ${
-                currentStep > step.id ? "text-primary" : "text-gray-400"
-              }`}
+              className={`relative z-10 flex flex-col items-center gap-2 ${currentStep > step.id ? "text-primary" : "text-gray-400"}`}
             >
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                className={`w-8 h-8 font-mono rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
                   currentStep >= step.id
                     ? "bg-primary text-primary-foreground font-semibold shadow-sm"
                     : "bg-gray-100 text-gray-500"
                 }`}
               >
-                {step.id}
+                {String(step.id).padStart(2, "0")}
               </div>
               <span
                 className={`text-xs font-medium hidden sm:block ${
@@ -181,7 +188,7 @@ export default function ApplicationForm({
         </div>
       </div>
 
-      <div className="bg-white p-6 md:p-8 rounded-xl border shadow-sm">
+      <div className="bg-background shadow-lg px-8 py-8 rounded-2xl">
         {currentStep === 1 && (
           <PersonalInformationForm
             initialFormData={formData}
