@@ -125,6 +125,16 @@ struct InstructorStruct {
   updatedAt: Timestamp(ISO)
 }
 
+struct ReviewStruct {
+  _id: String
+  userId: User._id
+  courseId: Course._id
+  rating: Number
+  text: String
+  isApproved: Boolean
+  createdAt: Timestamp(ISO)
+}
+
 struct SettingsStruct {
   _id: String
   isAcceptingApplications: Boolean

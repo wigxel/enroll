@@ -64,11 +64,18 @@ export const get = query({
       ? await ctx.db.get(enrollment.cohortId)
       : null;
 
+    const application = await ctx.db.get(enrollment.applicationId);
+    const course = application?.data?.courseId
+      ? await ctx.db.get(application.data.courseId)
+      : null;
+
     return {
       success: true,
       data: {
         ...enrollment,
         cohortName: cohort?.name ?? "—",
+        courseId: application?.data?.courseId ?? null,
+        courseName: course?.name ?? "—",
       },
     };
   },

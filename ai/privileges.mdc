@@ -50,6 +50,11 @@ This list outlines the specific actions users can perform within the Student Enr
 - `instructor:manage`: Ability to create, update, and delete instructors (Admin).
 - `instructor:read`: Ability to view instructor list.
 
+#### **Review Management**
+
+- `review:manage`: Ability to approve and delete reviews (Admin).
+- `review:create`: Ability to create reviews (Student).
+
 #### **Content Management**
 
 - `content:manage`: Ability to create, update, and delete educational content like quiz questions (Admin).

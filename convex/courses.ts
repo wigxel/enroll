@@ -201,6 +201,14 @@ export const update = mutation({
     isActive: v.optional(v.boolean()),
     instructorIds: v.optional(v.array(v.id("instructors"))),
     faqIds: v.optional(v.array(v.id("faqs"))),
+    prerequisites: v.optional(
+      v.array(
+        v.object({
+          key: v.string(),
+          value: v.string(),
+        }),
+      ),
+    ),
   },
   handler: async (ctx, args): Promise<Result<null>> => {
     const privResult = await requirePrivilege(ctx, "course:manage");
@@ -226,6 +234,9 @@ export const update = mutation({
         instructorIds: args.instructorIds,
       }),
       ...(args.faqIds !== undefined && { faqIds: args.faqIds }),
+      ...(args.prerequisites !== undefined && {
+        prerequisites: args.prerequisites,
+      }),
       updatedAt: now(),
     });
 
@@ -300,5 +311,32 @@ export const updateFaqs = mutation({
     });
 
     return { success: true, data: null };
+  },
+});
+
+export const getCourseFaqs = query({
+  args: { courseId: v.id("courses") },
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const course = await ctx.db.get(args.courseId);
+    if (!course || !course.isActive) {
+      return { success: false, error: "Course not found or inactive." };
+    }
+
+    if (!course.faqIds?.length) {
+      return { success: true, data: [] };
+    }
+
+    const faqs = await Promise.all(course.faqIds.map((id) => ctx.db.get(id)));
+
+    const validFaqs = faqs.filter((f): f is NonNullable<typeof f> => !!f);
+
+    return {
+      success: true,
+      data: validFaqs.map((faq) => ({
+        _id: faq._id,
+        question: faq.question,
+        answer: faq.answer,
+      })),
+    };
   },
 });

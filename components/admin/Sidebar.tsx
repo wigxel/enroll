@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   LogOut,
   Settings,
+  Star,
   Users,
 } from "lucide-react";
 import Image from "next/image";
@@ -32,6 +33,7 @@ const navigation = [
   { name: "Students", href: "/admin/users", icon: GraduationCap },
   { name: "Courses", href: "/admin/courses", icon: BookOpen },
   { name: "Instructors", href: "/admin/instructors", icon: Users },
+  { name: "Reviews", href: "/admin/reviews", icon: Star },
   { name: "Quizzes", href: "/admin/quizzes", icon: BookOpen },
   { name: "Cohorts", href: "/admin/cohorts", icon: Layers },
   { name: "FAQs", href: "/admin/faqs", icon: CircleHelp },
@@ -61,6 +63,39 @@ export function Sidebar() {
     ? currentUserResult.data
     : null;
   const role = currentUser?.role ?? "User";
+
+  // Pending counts for badge displays (unified query)
+  const countsResult = useQuery(api.dashboard.getDashboardCounts);
+  const counts = countsResult?.success ? countsResult.data : null;
+
+  const pendingAppsCount = counts?.pendingApplications ?? 0;
+  const pendingReviewsCount = counts?.pendingReviews ?? 0;
+  const unreadNotificationsCount = counts?.unreadNotifications ?? 0;
+
+  const getBadge = (name: string) => {
+    if (name === "Applications" && pendingAppsCount > 0) {
+      return (
+        <span className="ml-auto rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+          {pendingAppsCount}
+        </span>
+      );
+    }
+    if (name === "Reviews" && pendingReviewsCount > 0) {
+      return (
+        <span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+          {pendingReviewsCount}
+        </span>
+      );
+    }
+    if (name === "Notifications" && unreadNotificationsCount > 0) {
+      return (
+        <span className="ml-auto rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+          {unreadNotificationsCount}
+        </span>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="flex h-screen w-64 flex-col border-r border-gray-200 bg-white">
@@ -94,6 +129,7 @@ export function Sidebar() {
                   aria-hidden="true"
                 />
                 {item.name}
+                {getBadge(item.name)}
               </Link>
             );
           })}

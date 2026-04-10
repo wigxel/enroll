@@ -1,4 +1,5 @@
 import { fetchQuery } from "convex/nextjs";
+import { useQuery } from "convex/react";
 import {
   Award,
   BookOpen,
@@ -18,6 +19,8 @@ import { notFound } from "next/navigation";
 import type React from "react";
 import ApplicationForm from "@/components/forms/ApplicationForm";
 import { api } from "@/convex/_generated/api";
+import { FaqSection } from "./faq-section";
+import { PrerequisitesSection } from "./prerequisites-section";
 
 interface CourseApplicationPageProps {
   params: Promise<{ slug: string }>;
@@ -40,14 +43,6 @@ export async function generateMetadata({
 // ---------------------------------------------------------------------------
 // Static content — swap for DB-driven data when available
 // ---------------------------------------------------------------------------
-
-const PREREQUISITES = [
-  "No prior experience required — this program is designed for beginners.",
-  "Basic computer literacy (browsing the web, typing, managing files).",
-  "A personal laptop or desktop with a stable internet connection.",
-  "Willingness to commit 10–15 hours per week to coursework.",
-  "Passion for the subject matter and a desire to grow professionally.",
-];
 
 const REVIEWS = [
   {
@@ -79,33 +74,6 @@ const REVIEWS = [
   },
 ];
 
-const FAQS = [
-  {
-    q: "Who is this program designed for?",
-    a: "This program welcomes complete beginners as well as professionals looking to upskill. Our curriculum is structured to meet you at your current level and progressively build your competence.",
-  },
-  {
-    q: "Is the program fully online or in-person?",
-    a: "The program is delivered in a hybrid format — live virtual sessions twice a week supplemented by in-person workshops once a month. All sessions are recorded for flexibility.",
-  },
-  {
-    q: "How long does the program take to complete?",
-    a: "The program runs for the duration stated on this page. You will graduate at the end of the structured cohort alongside your peers, with a certification ceremony.",
-  },
-  {
-    q: "What happens after I pay the application fee?",
-    a: "Your application is reviewed by our admissions team within 3–5 business days. Once approved, you will receive an offer letter and payment instructions for the tuition fee.",
-  },
-  {
-    q: "Is there a payment plan for tuition?",
-    a: "Yes. We offer a flexible installment plan that lets you pay tuition in up to three tranches. Reach out to admissions after you receive your offer letter for details.",
-  },
-  {
-    q: "What certification will I receive?",
-    a: "Graduates receive an industry-recognised certificate issued by our institution, verifiable online. The certificate details the competencies you have demonstrated throughout the program.",
-  },
-];
-
 // ---------------------------------------------------------------------------
 // Page component
 // ---------------------------------------------------------------------------
@@ -122,6 +90,15 @@ export default async function CourseApplicationPage({
   const appStatus = appStatusResult?.success ? appStatusResult.data : null;
 
   if (!course) notFound();
+
+  // Fetch reviews after we have the course
+  const reviewsResult = await fetchQuery(api.reviews.getCourseReviews, {
+    courseId: course._id,
+  });
+  const reviewsData = reviewsResult?.success ? reviewsResult.data : null;
+  const reviews = reviewsData?.reviews || [];
+  const averageRating = reviewsData?.averageRating || 0;
+  const totalReviews = reviewsData?.totalReviews || 0;
 
   return (
     <div className="min-h-screen">
@@ -309,19 +286,7 @@ export default async function CourseApplicationPage({
                 title="Prerequisites"
                 subtitle="What you need before you start"
               />
-              <ul className="mt-6 space-y-3">
-                {PREREQUISITES.map((item, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-3 rounded-xl border border-gray-100 dark:border-zinc-800 bg-background p-4"
-                  >
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5 shrink-0" />
-                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                      {item}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <PrerequisitesSection courseId={course._id as string} />
             </section>
 
             {/* Instructors */}
@@ -410,60 +375,86 @@ export default async function CourseApplicationPage({
               {/* Average rating bar */}
               <div className="mt-4 flex items-center gap-3">
                 <span className="text-4xl font-extrabold text-gray-900 dark:text-white">
-                  5.0
+                  {averageRating.toFixed(1)}
                 </span>
                 <div>
                   <div className="flex gap-0.5">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
                         key={i}
-                        className="h-5 w-5 fill-amber-400 text-amber-400"
+                        className={`h-5 w-5 ${i < Math.round(averageRating) ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
                       />
                     ))}
                   </div>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    Based on {REVIEWS.length} verified alumni reviews
+                    Based on {totalReviews} verified alumni reviews
                   </p>
                 </div>
               </div>
 
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-5">
-                {REVIEWS.map((review) => (
-                  <div
-                    key={review.name}
-                    className="relative rounded-2xl border border-gray-100 dark:border-zinc-800 bg-background p-6"
-                  >
-                    <Quote className="absolute top-4 right-4 h-8 w-8 text-gray-100 dark:text-zinc-800" />
-                    {/* Stars */}
-                    <div className="flex gap-0.5 mb-3">
-                      {Array.from({ length: review.rating }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className="h-4 w-4 fill-amber-400 text-amber-400"
-                        />
-                      ))}
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                      "{review.text}"
-                    </p>
-                    <div className="mt-4 flex items-center gap-3">
+              {reviews.length === 0 ? (
+                <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">
+                  No reviews yet. Be the first to review after completing the
+                  course!
+                </p>
+              ) : (
+                <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-5">
+                  {reviews.map((review: any) => {
+                    const initials =
+                      review.userName
+                        ?.split(" ")
+                        .map((n: string) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase() || "??";
+                    const colors = [
+                      "from-rose-500 to-pink-600",
+                      "from-sky-500 to-cyan-600",
+                      "from-amber-500 to-orange-600",
+                      "from-indigo-500 to-purple-600",
+                      "from-emerald-500 to-teal-600",
+                    ];
+                    const color =
+                      colors[
+                        review.userId
+                          ? review.userId.charCodeAt(0) % colors.length
+                          : 0
+                      ];
+                    return (
                       <div
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${review.color} text-white text-xs font-bold`}
+                        key={review._id}
+                        className="relative rounded-2xl border border-gray-100 dark:border-zinc-800 bg-background p-6"
                       >
-                        {review.initials}
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                          {review.name}
+                        <Quote className="absolute top-4 right-4 h-8 w-8 text-gray-100 dark:text-zinc-800" />
+                        {/* Stars */}
+                        <div className="flex gap-0.5 mb-3">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-4 w-4 ${i < review.rating ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                          "{review.text}"
                         </p>
-                        <p className="text-xs text-gray-400">
-                          {review.role} · {review.year}
-                        </p>
+                        <div className="mt-4 flex items-center gap-3">
+                          <div
+                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${color} text-white text-xs font-bold`}
+                          >
+                            {initials}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                              {review.userName || "Anonymous"}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </section>
 
             {/* FAQs */}
@@ -473,11 +464,7 @@ export default async function CourseApplicationPage({
                 title="Frequently Asked Questions"
                 subtitle="Everything you need to know before applying"
               />
-              <div className="mt-6 divide-y divide-gray-100 dark:divide-zinc-800 rounded-2xl border border-gray-100 dark:border-zinc-800 bg-background overflow-hidden">
-                {FAQS.map((faq, i) => (
-                  <FaqItem key={i} question={faq.q} answer={faq.a} />
-                ))}
-              </div>
+              <FaqSection courseId={course._id as string} />
             </section>
 
             {/* Application Form */}
@@ -523,19 +510,5 @@ function SectionHeading({
         <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
       </div>
     </div>
-  );
-}
-
-function FaqItem({ question, answer }: { question: string; answer: string }) {
-  return (
-    <details className="group">
-      <summary className="flex cursor-pointer list-none items-center justify-between px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
-        {question}
-        <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180 shrink-0 ml-4" />
-      </summary>
-      <div className="px-6 pb-4 pt-0 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-        {answer}
-      </div>
-    </details>
   );
 }

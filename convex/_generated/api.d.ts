@@ -15,6 +15,7 @@ import type * as clerk from "../clerk.js";
 import type * as cohorts from "../cohorts.js";
 import type * as courses from "../courses.js";
 import type * as crons from "../crons.js";
+import type * as dashboard from "../dashboard.js";
 import type * as debug from "../debug.js";
 import type * as enrollments from "../enrollments.js";
 import type * as faqs from "../faqs.js";
@@ -47,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   cohorts: typeof cohorts;
   courses: typeof courses;
   crons: typeof crons;
+  dashboard: typeof dashboard;
   debug: typeof debug;
   enrollments: typeof enrollments;
   faqs: typeof faqs;

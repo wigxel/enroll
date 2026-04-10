@@ -10,6 +10,7 @@ import { LinkFaqsSheet } from "~/components/admin/dialogs/LinkFaqsSheet";
 import { Button } from "~/components/ui/button";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
+import { PrerequisitesSection } from "./prerequisites-section";
 
 export default function CourseDetailsPage() {
   const params = useParams();
@@ -210,10 +211,11 @@ export default function CourseDetailsPage() {
                   {course.name}
                 </h1>
                 <span
-                  className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-medium ${course.isActive
-                    ? "bg-green-100 text-green-700"
-                    : "bg-gray-100 text-gray-500"
-                    }`}
+                  className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-medium ${
+                    course.isActive
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-500"
+                  }`}
                 >
                   {course.isActive ? "Active" : "Inactive"}
                 </span>
@@ -252,11 +254,15 @@ export default function CourseDetailsPage() {
                 </Button>
               </div>
             </div>
+
+            {/* Prerequisites Section */}
+            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white p-6">
+              <PrerequisitesSection courseId={courseId} />
+            </div>
           </div>
 
           {/* Right Column: Enrollments */}
           <div className="lg:col-span-2 space-y-8">
-
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">
                 Enrollments
@@ -299,7 +305,9 @@ export default function CourseDetailsPage() {
 
             <section>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Students</h2>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Students
+                </h2>
               </div>
 
               {enrollments.length === 0 ? (
@@ -349,10 +357,11 @@ export default function CourseDetailsPage() {
                           </td>
                           <td className="px-6 py-4">
                             <span
-                              className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${enrollment.status === "completed"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-amber-100 text-amber-700"
-                                }`}
+                              className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                                enrollment.status === "completed"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-amber-100 text-amber-700"
+                              }`}
                             >
                               {enrollment.status}
                             </span>
@@ -360,8 +369,8 @@ export default function CourseDetailsPage() {
                           <td className="px-6 py-4 text-sm text-gray-500">
                             {enrollment.createdAt
                               ? new Date(
-                                enrollment.createdAt,
-                              ).toLocaleDateString()
+                                  enrollment.createdAt,
+                                ).toLocaleDateString()
                               : "—"}
                           </td>
                         </tr>
@@ -371,8 +380,6 @@ export default function CourseDetailsPage() {
                 </div>
               )}
             </section>
-
-
 
             {/* FAQs Section */}
             <section className="space-y-4">

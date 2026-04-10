@@ -138,6 +138,14 @@ export default defineSchema({
     isActive: v.boolean(),
     instructorIds: v.optional(v.array(v.id("instructors"))),
     faqIds: v.optional(v.array(v.id("faqs"))),
+    prerequisites: v.optional(
+      v.array(
+        v.object({
+          key: v.string(),
+          value: v.string(),
+        }),
+      ),
+    ),
     createdAt: v.string(),
     updatedAt: v.string(),
   })

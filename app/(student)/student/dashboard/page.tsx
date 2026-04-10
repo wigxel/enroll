@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { api } from "@/convex/_generated/api";
+import { CourseReviewForm } from "~/components/reviews/course-review-form";
 
 const resourceCards = [
   {
@@ -209,6 +210,22 @@ export default function StudentDashboardPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Course Reviews - Only show for completed enrollments */}
+      {enrollment?.status === "completed" && enrollment?.courseId ? (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-gray-900">Course Review</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Share your experience to help future students.
+          </p>
+          <div className="mt-4">
+            <CourseReviewForm
+              courseId={enrollment.courseId}
+              courseName={enrollment.courseName}
+            />
           </div>
         </section>
       ) : null}
