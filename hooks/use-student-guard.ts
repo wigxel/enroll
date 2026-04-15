@@ -4,9 +4,9 @@ import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { api } from "~/convex/_generated/api";
-import { isAdminRole } from "~/lib/roles";
+import { isStudentRole } from "~/lib/roles";
 
-export function useAdminGuard(): boolean {
+export function useStudentGuard(): boolean {
   const router = useRouter();
   const result = useQuery(api.users.getCurrentUser);
 
@@ -16,7 +16,7 @@ export function useAdminGuard(): boolean {
   useEffect(() => {
     if (isLoading) return;
 
-    if (!role || !isAdminRole(role)) {
+    if (!role || !isStudentRole(role)) {
       router.replace("/");
     }
   }, [isLoading, role, router]);

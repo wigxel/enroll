@@ -15,7 +15,7 @@ interface DownloadBrochureProps {
 export function DownloadBrochure({
   courseId,
   children,
-  asChild = false,
+  asChild = true,
 }: DownloadBrochureProps) {
   const courseResult = useQuery(api.courses.getById, { courseId });
   const brochureStorageId = courseResult?.success
@@ -25,8 +25,8 @@ export function DownloadBrochure({
   const urlResult = useQuery(
     api.storage.getFileUrl,
     brochureStorageId &&
-    typeof brochureStorageId === "string" &&
-    !brochureStorageId.startsWith("http")
+      typeof brochureStorageId === "string" &&
+      !brochureStorageId.startsWith("http")
       ? { storageId: brochureStorageId as Id<"_storage"> }
       : "skip"
   );

@@ -16,7 +16,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
         {question}
         <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180 shrink-0 ml-4" />
       </summary>
-      <div className="px-6 pb-4 pt-0 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+      <div className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
         {answer}
       </div>
     </details>

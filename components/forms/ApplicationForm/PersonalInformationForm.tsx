@@ -207,8 +207,8 @@ export const PersonalInformationForm = React.forwardRef<
 
           {existingApp && (
             existingApp.paymentStatus === "unpaid" ? (
-              <div className="rounded-lg border p-6 bg-gray-50 dark:bg-zinc-900/50 space-y-4">
-                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500 font-medium">
+              <div className="rounded-lg border p-6 select-none bg-gray-50 border-gray-200 space-y-4">
+                <div className="flex items-center gap-2 font-semibold">
                   <AlertCircle className="w-5 h-5" />
                   Pending Payment
                 </div>
@@ -223,7 +223,7 @@ export const PersonalInformationForm = React.forwardRef<
                 </Button>
               </div>
             ) : (
-              <div className="rounded-lg  bg-blue-50/50 border border-blue-100 p-6 space-y-4">
+              <div className="rounded-lg bg-blue-50/50 border border-blue-100 p-6 space-y-4">
                 <div className="flex items-center gap-2 font-semibold text-foreground">
                   <CheckCircle2 className="w-5 h-5" />
                   Application Ongoing
@@ -295,7 +295,7 @@ export const PersonalInformationForm = React.forwardRef<
           )}
         </div>
 
-        <div className="flex justify-between mt-auto pt-6 font-semibold">
+        <div className="flex justify-between mt-auto font-semibold">
           {onBack || existingApp ? (
             <Button
               type="button"

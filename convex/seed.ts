@@ -804,6 +804,66 @@ export const settings = internalMutation({
   handler: seedSettings,
 });
 
+async function seedReviews(ctx: any, args: { dryRun: boolean }) {
+  const { dryRun } = args;
+  const existing = await ctx.db.query("reviews").collect();
+  if (existing.length > 0) {
+    console.log(`Reviews already seeded (${existing.length} found). Skipping.`);
+    return { inserted: 0, skipped: existing.length };
+  }
+
+  const enrollments = await ctx.db
+    .query("enrollments")
+    .withIndex("by_status", (q: any) => q.eq("status", "completed"))
+    .collect();
+
+  const studentUserIds = Array.from(new Set(enrollments.map((e: any) => e.userId)));
+  const students = (await Promise.all(studentUserIds.map((id) => ctx.db.get(id)))).filter(Boolean);
+  const courses = await ctx.db.query("courses").collect();
+
+  if (students.length === 0 || courses.length === 0) {
+    console.log("No students or courses found. Run enrollments and courses seeds first.");
+    return { error: "Missing students or courses" };
+  }
+
+  const reviewsData = [
+    { text: "This course completely transformed my career. The instructors were knowledgeable and the hands-on projects gave me real-world experience.", rating: 5 },
+    { text: "Great curriculum and excellent support from the team. Highly recommended!", rating: 5 },
+    { text: "Excellent learning experience. The curriculum was well-structured and practical.", rating: 4 },
+    { text: "Very insightful course. I learned a lot that I apply daily in my job.", rating: 5 },
+    { text: "Good course but could use more hands-on exercises. Overall worth it.", rating: 4 },
+    { text: "The instructors were amazing! Great support throughout the program.", rating: 5 },
+    { text: "Learned valuable skills that helped me land a better job. Highly recommend!", rating: 5 },
+    { text: "Decent course with good content. Would recommend to others.", rating: 4 },
+  ];
+
+  let inserted = 0;
+  for (const review of reviewsData) {
+    const randomStudent = students[Math.floor(Math.random() * students.length)];
+    const randomCourse = courses[Math.floor(Math.random() * courses.length)];
+
+    if (!dryRun) {
+      await ctx.db.insert("reviews", {
+        userId: randomStudent._id,
+        courseId: randomCourse._id,
+        text: review.text,
+        rating: review.rating,
+        isApproved: true,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    inserted++;
+  }
+
+  console.log(`Seeded ${inserted} reviews from ${students.length} students`);
+  return { inserted, students: students.length };
+}
+
+export const reviews = internalMutation({
+  args: { dryRun: v.optional(v.boolean()) },
+  handler: seedReviews,
+});
+
 // ── Master Run ──────────────────────────────────────────────
 
 /**
@@ -825,6 +885,7 @@ export const run = internalMutation({
     results.cohorts = await seedCohorts(ctx, { dryRun });
     results.payments = await seedPayments(ctx, { dryRun });
     results.enrollments = await seedEnrollments(ctx, { dryRun });
+    results.reviews = await seedReviews(ctx, { dryRun });
     results.notifications = await seedNotifications(ctx, { dryRun });
     results.settings = await seedSettings(ctx, { dryRun });
 

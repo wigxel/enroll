@@ -86,59 +86,6 @@ export default async function CourseApplicationPage({
           </div>
 
           <div className="flex-1 flex justify-end">
-            <DownloadBrochure courseId={course._id} asChild>
-              <a className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-zinc-700 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors">
-                <Download className="h-3.5 w-3.5" />
-                Brochure
-              </a>
-            </DownloadBrochure>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Hero testimonial banner ── */}
-      <div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 mb-3">
-                Student Story
-              </span>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                Hear from our graduates
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Our students have gone on to land jobs at top companies, build
-                their own startups, and transform their careers. Watch this
-                short testimonial to see how this program can change your life
-                too.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                {[
-                  { stat: "95%", label: "Completion Rate" },
-                  { stat: "2x", label: "Avg. Salary Jump" },
-                  { stat: "500+", label: "Alumni Network" },
-                ].map((item) => (
-                  <div key={item.label} className="text-center">
-                    <div className="text-2xl font-bold text-primary">
-                      {item.stat}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {item.label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="relative rounded-2xl overflow-hidden shadow-xl aspect-video">
-              <iframe
-                className="w-full h-full"
-                src="https://www.youtube.com/embed/qhbuKbxJsk8?rel=0"
-                title="Student Testimonial"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
           </div>
         </div>
       </div>
@@ -146,95 +93,7 @@ export default async function CourseApplicationPage({
       {/* ── Main two-column layout ── */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* ── Left Column: Course summary card ── */}
-          <div className="lg:col-span-4 space-y-8">
-            <div className="sticky top-24 rounded-2xl bg-background overflow-hidden shadow-sm border border-gray-100 dark:border-zinc-800">
-              <div className="relative h-48 bg-gray-100 dark:bg-zinc-800">
-                {course.coverPhoto ? (
-                  <Image
-                    src={course.coverPhoto}
-                    alt={course.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="absolute inset-0 image-gradient flex items-center justify-center">
-                    <span className="text-3xl font-bold text-white/50">
-                      {course.name.substring(0, 2).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-              </div>
 
-              <div className="p-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  {course.name}
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
-                  {course.description}
-                </p>
-
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-sm">
-                      <Clock className="h-4 w-4" /> Duration
-                    </span>
-                    <span className="font-medium text-gray-900 dark:text-white text-sm text-end">
-                      {course.duration}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-sm">
-                      <Award className="h-4 w-4" /> Certification
-                    </span>
-                    <span className="font-medium text-gray-900 dark:text-white text-sm text-end">
-                      {course.certification}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-sm">
-                      <GraduationCap className="h-4 w-4" /> Tuition
-                    </span>
-                    <span className="font-medium text-gray-900 dark:text-white text-sm text-end">
-                      {course.tuitionFee
-                        ? `₦${course.tuitionFee.toLocaleString()}`
-                        : "Free"}
-                    </span>
-                  </div>
-
-                  {appStatus?.applicationFeeAmount ? (
-                    <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-zinc-800">
-                      <span className="text-gray-500 dark:text-gray-400 text-sm">
-                        Application Fee
-                      </span>
-                      <span className="inline-flex items-center gap-1 font-semibold text-primary">
-                        ₦{appStatus.applicationFeeAmount.toLocaleString()}
-                        <span className="text-xs font-normal text-gray-400">
-                          (one-time)
-                        </span>
-                      </span>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  {/* Download Brochure CTA */}
-                  <DownloadBrochure courseId={course._id}>
-                    <a className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 dark:border-zinc-700 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-primary/50 hover:text-primary hover:bg-primary/5 transition-all group">
-                      <Download className="h-4 w-4 group-hover:animate-bounce" />
-                      Download Programme Brochure
-                    </a>
-                  </DownloadBrochure>
-
-                  <Link href={`/applications/${course.slug}`}>
-                    <Button variant={"default"} size="lg" className="w-full">
-                      Apply Now
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* ── Right Column ── */}
           <div className="lg:col-span-8 space-y-16">
@@ -425,6 +284,98 @@ export default async function CourseApplicationPage({
               />
               <FaqSection courseId={course._id as string} />
             </section>
+          </div>
+
+          {/* ── Left Column: Course summary card ── */}
+          <div className="lg:col-span-4 space-y-8">
+            <div className="sticky top-24 rounded-2xl bg-background overflow-hidden shadow-sm border border-gray-100 dark:border-zinc-800">
+              <div className="relative h-48 bg-gray-100 dark:bg-zinc-800">
+                {course.coverPhoto ? (
+                  <Image
+                    src={course.coverPhoto}
+                    alt={course.name}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 image-gradient flex items-center justify-center">
+                    <span className="text-3xl font-bold text-white/50">
+                      {course.name.substring(0, 2).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 flex flex-col gap-2">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  {course.name}
+                </h1>
+
+                <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
+                  {course.description}
+                </p>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-sm">
+                      <Clock className="h-4 w-4" /> Duration
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-white text-sm text-end">
+                      {course.duration}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-sm">
+                      <Award className="h-4 w-4" /> Certification
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-white text-sm text-end">
+                      {course.certification}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-sm">
+                      <GraduationCap className="h-4 w-4" /> Tuition
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-white text-sm text-end">
+                      {course.tuitionFee
+                        ? `₦${course.tuitionFee.toLocaleString()}`
+                        : "Free"}
+                    </span>
+                  </div>
+
+                  {appStatus?.applicationFeeAmount ? (
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-zinc-800">
+                      <span className="text-gray-500 dark:text-gray-400 text-sm">
+                        Application Fee
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-primary">
+                        ₦{appStatus.applicationFeeAmount.toLocaleString()}
+                        <span className="text-xs font-normal text-gray-400">
+                          (one-time)
+                        </span>
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  {/* Download Brochure CTA */}
+                  <DownloadBrochure courseId={course._id}>
+                    {/** biome-ignore lint/a11y/useValidAnchor: Wrapper adds href */}
+                    <a className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 dark:border-zinc-700 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-primary/50 hover:text-primary hover:bg-primary/5 transition-all group">
+                      <Download className="h-4 w-4 group-hover:animate-bounce" />
+                      Download Programme Brochure
+                    </a>
+                  </DownloadBrochure>
+
+                  <Link href={`/applications/${course.slug}`}>
+                    <Button variant={"default"} size="lg" className="w-full">
+                      Apply Now
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>

@@ -35,6 +35,35 @@ export const getCourseReviews = query({
 });
 
 /**
+ * Public: Get approved reviews for marquee display.
+ */
+export const getForMarquee = query({
+  args: {},
+  handler: async (ctx): Promise<Result<any>> => {
+    const reviews = await ctx.db
+      .query("reviews")
+      .filter((q) => q.eq(q.field("isApproved"), true))
+      .order("desc")
+      .take(20);
+
+    const enriched = await Promise.all(
+      reviews.map(async (r) => {
+        const user = await ctx.db.get(r.userId);
+        return {
+          _id: r._id,
+          text: r.text,
+          rating: r.rating,
+          userName: user?.name ?? "Anonymous",
+          userAvatar: user?.profileImage ?? null,
+        };
+      }),
+    );
+
+    return { success: true, data: enriched };
+  },
+});
+
+/**
  * Student: Check if user already reviewed a course.
  */
 export const getUserReviewForCourse = query({

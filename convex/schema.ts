@@ -206,4 +206,15 @@ export default defineSchema({
     data: v.any(),
     updatedAt: v.string(),
   }).index("by_key", ["key"]),
+
+  partners: defineTable({
+    name: v.string(),
+    logo: v.string(),
+    isActive: v.boolean(),
+    order: v.number(),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_order", ["order"])
+    .index("by_isActive", ["isActive"]),
 });

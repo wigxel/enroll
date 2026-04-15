@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, DollarSign, Users } from "lucide-react";
+import { Calendar, DollarSign, Handshake, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type React from "react";
@@ -13,6 +13,7 @@ const settingsTabs = [
     icon: Calendar,
   },
   { name: "Fees", href: "/admin/settings/fees", icon: DollarSign },
+  { name: "Partners", href: "/admin/settings/partners", icon: Handshake },
 ];
 
 export default function SettingsLayout({

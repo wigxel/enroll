@@ -1,10 +1,14 @@
+import { auth } from "@clerk/nextjs/server";
 import { fetchQuery } from "convex/nextjs";
-import { truncate } from 'lodash-es'
+import { truncate } from "lodash-es";
+import { AlertOctagonIcon } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ApplicationForm from "@/components/forms/ApplicationForm";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { api } from "@/convex/_generated/api";
+import { isAdminRole } from "@/lib/roles";
+import { Button } from "~/components/ui/button";
 
 interface CourseApplicationPageProps {
   params: Promise<{ slug: string }>;
@@ -30,12 +34,18 @@ export async function generateMetadata({
 export default async function CourseApplicationPage({
   params,
 }: CourseApplicationPageProps) {
-  const [courseResult] = await Promise.all([
+  const { getToken } = await auth();
+  const token = await getToken({ template: "convex" });
+
+  const [courseResult, appStatus, user] = await Promise.all([
     fetchQuery(api.courses.getBySlug, { slug: (await params).slug }),
     fetchQuery(api.settings.getAppStatus),
+    fetchQuery(api.users.getCurrentUser, {}, token ? { token } : undefined),
   ]);
 
   const course = courseResult?.success ? courseResult.data : null;
+  const currentUser = user?.success ? user.data : null;
+  const isAdmin = isAdminRole(currentUser?.role ?? null);
 
   if (!course) {
     notFound();
@@ -50,7 +60,10 @@ export default async function CourseApplicationPage({
             className="flex-1 hidden md:flex"
             items={[
               { label: "Courses", href: "/courses" },
-              { label: truncate(course.name, { length: 10 }), href: `/courses/${course.slug}` },
+              {
+                label: truncate(course.name, { length: 10 }),
+                href: `/courses/${course.slug}`,
+              },
               { label: "Apply" },
             ]}
           />
@@ -64,8 +77,29 @@ export default async function CourseApplicationPage({
       </div>
 
       <div className="mx-auto py-12 container max-w-xl">
-        <ApplicationForm defaultCourseId={course._id} />
+        {isAdmin ? (
+          <div className="rounded-lg bg-white border border-gray-200 p-6 space-y-4">
+            <h6 className="flex items-center gap-2 font-semibold text-foreground">
+              <AlertOctagonIcon className="w-5 h-5" />
+              Action denied
+            </h6>
+
+            <p className="flex items-center gap-2 text-foreground">
+              You are viewing this page as an administrator. Use the admin
+              dashboard to manage applications.
+            </p>
+            <a
+              href="/admin/dashboard"
+            >
+              <Button variant="link">
+                Go to Admin Dashboard
+              </Button>
+            </a>
+          </div>
+        ) : (
+          <ApplicationForm defaultCourseId={course._id} />
+        )}
       </div>
-    </div>
+    </div >
   );
 }
