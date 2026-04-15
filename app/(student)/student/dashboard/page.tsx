@@ -81,25 +81,25 @@ export default function StudentDashboardPage() {
 
   const initials = user.name
     ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
     : "U";
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <title>Student Dashboard - Enrollment System</title>
-      <div className="rounded-2xl bg-gradient-to-br from-primary/5 via-primary/[0.02] to-transparent border border-primary/10 p-6 sm:p-8">
+      <div className="rounded-2xl bg-linear-to-br from-primary/5 via-primary/2 to-transparent border border-primary/10 p-6 sm:p-8">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
             {user.profileImage ? (
               <Image
                 src={user.profileImage}
                 alt={user.name}
                 width={56}
                 height={56}
-                className="h-14 w-14 rounded-full object-cover"
+                className="h-10 w-10 rounded-full object-cover"
               />
             ) : (
               <span className="text-lg font-bold">{initials}</span>
@@ -109,12 +109,6 @@ export default function StudentDashboardPage() {
             <h1 className="text-xl font-semibold text-gray-900 sm:text-2xl">
               Welcome, {user.name}! 🎉
             </h1>
-            <p className="mt-0.5 text-sm text-gray-500">
-              You are now enrolled in{" "}
-              <span className="font-medium text-gray-700">
-                {application.courseName}
-              </span>
-            </p>
           </div>
         </div>
       </div>
@@ -173,13 +167,13 @@ export default function StudentDashboardPage() {
                   <p className="text-sm font-semibold text-gray-900">
                     {enrollment.completedAt
                       ? new Date(enrollment.completedAt).toLocaleDateString(
-                          "en-NG",
-                          {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          },
-                        )
+                        "en-NG",
+                        {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        },
+                      )
                       : "In Progress"}
                   </p>
                 </div>

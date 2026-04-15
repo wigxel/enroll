@@ -241,6 +241,69 @@ export const getMyApplication = query({
 });
 
 /**
+ * Student: Lists all applications for the current user.
+ * Returns all applications (draft, submitted, under_review, approved, declined).
+ */
+export const getAll = query({
+  args: {},
+  handler: async (ctx): Promise<Result<any>> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return { success: false, error: "Authentication required." };
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) {
+      return { success: false, error: "User record not found." };
+    }
+
+    // Get all applications by userId
+    const applications = await ctx.db
+      .query("applications")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .collect();
+
+    // Also check for applications by email (fallback)
+    const emailApplications = await ctx.db
+      .query("applications")
+      .filter((q) => q.eq(q.field("data.email"), user.email))
+      .collect();
+
+    // Combine and deduplicate by ID
+    const allAppsMap = new Map<string, Doc<"applications">>();
+    for (const app of [...applications, ...emailApplications]) {
+      allAppsMap.set(app._id.toString(), app);
+    }
+    const allApplications = Array.from(allAppsMap.values());
+
+    // Enrich with course names
+    const enriched = await Promise.all(
+      allApplications.map(async (app) => {
+        const course = app.data?.courseId
+          ? await ctx.db.get(app.data.courseId)
+          : null;
+        return {
+          _id: app._id,
+          status: app.status,
+          paymentStatus: app.paymentStatus,
+          courseId: app.data?.courseId ?? null,
+          courseName: course?.name ?? "Unknown Course",
+          submittedAt: app.submittedAt ?? null,
+          reviewedAt: app.reviewedAt ?? null,
+          rejectionReason: app.rejectionReason ?? null,
+        };
+      }),
+    );
+
+    return { success: true, data: enriched };
+  },
+});
+
+/**
  * Public: Retrieves a specific application by ID for the payment page or guest tracking.
  * Only returns basic safe information.
  */

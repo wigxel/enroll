@@ -5,10 +5,21 @@ import {
   BookOpen,
   CalendarDays,
   CheckCircle2,
-  Loader2,
+  Clock,
+  FileCheck,
   GraduationCap,
+  Loader2,
+  XCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { api } from "@/convex/_generated/api";
 
 interface EnrollmentCard {
@@ -18,6 +29,16 @@ interface EnrollmentCard {
   status: "pending" | "completed";
   completedAt: string | null;
   createdAt: string;
+}
+
+interface ApplicationCard {
+  _id: string;
+  courseName: string;
+  courseId: string;
+  status: "draft" | "submitted" | "under_review" | "approved" | "declined";
+  paymentStatus: "unpaid" | "paid";
+  submittedAt: string | null;
+  reviewedAt: string | null;
 }
 
 const gradientBackgrounds = [
@@ -47,11 +68,10 @@ function EnrollmentCardComponent({
           <GraduationCap className="h-5 w-5 text-primary" />
         </div>
         <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-            isCompleted
-              ? "bg-emerald-100 text-emerald-700"
-              : "bg-blue-100 text-blue-700"
-          }`}
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${isCompleted
+            ? "bg-emerald-100 text-emerald-700"
+            : "bg-blue-100 text-blue-700"
+            }`}
         >
           {isCompleted ? (
             <>
@@ -74,21 +94,21 @@ function EnrollmentCardComponent({
         <span>
           {enrollment.completedAt
             ? `Completed ${new Date(enrollment.completedAt).toLocaleDateString(
-                "en-NG",
-                {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                },
-              )}`
+              "en-NG",
+              {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              },
+            )}`
             : `Started ${new Date(enrollment.createdAt).toLocaleDateString(
-                "en-NG",
-                {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                },
-              )}`}
+              "en-NG",
+              {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              },
+            )}`}
         </span>
       </div>
 
@@ -104,10 +124,109 @@ function EnrollmentCardComponent({
   );
 }
 
-export default function CoursesPage() {
-  const result = useQuery(api.enrollments.getAll);
+function ApplicationCardComponent({
+  application,
+  index,
+}: {
+  application: ApplicationCard;
+  index: number;
+}) {
+  const isDeclined = application.status === "declined";
+  const isApproved = application.status === "approved";
+  const bgGradient = gradientBackgrounds[index % gradientBackgrounds.length];
 
-  if (result === undefined) {
+  const statusConfig = {
+    draft: { label: "Draft", color: "bg-gray-100 text-gray-700", icon: Clock },
+    submitted: {
+      label: "Submitted",
+      color: "bg-blue-100 text-blue-700",
+      icon: FileCheck,
+    },
+    under_review: {
+      label: "Under Review",
+      color: "bg-yellow-100 text-yellow-700",
+      icon: Clock,
+    },
+    approved: {
+      label: "Approved",
+      color: "bg-emerald-100 text-emerald-700",
+      icon: CheckCircle2,
+    },
+    declined: {
+      label: "Declined",
+      color: "bg-red-100 text-red-700",
+      icon: XCircle,
+    },
+  };
+
+  const config = statusConfig[application.status];
+  const StatusIcon = config.icon;
+
+  return (
+    <div
+      className={`relative overflow-hidden rounded-xl border border-gray-200 bg-linear-to-br ${bgGradient} p-6 shadow-sm transition-shadow hover:shadow-md`}
+    >
+      <div className="mb-4 flex items-start justify-between">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/60">
+          <BookOpen className="h-5 w-5 text-primary" />
+        </div>
+        <span
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${config.color}`}
+        >
+          <StatusIcon className="mr-1 h-3 w-3" />
+          {config.label}
+        </span>
+      </div>
+
+      <h3 className="mb-1 text-lg font-semibold text-gray-900">
+        {application.courseName}
+      </h3>
+      <p className="mb-4 text-sm text-gray-500">
+        {application.paymentStatus === "paid" ? "Paid" : "Payment pending"}
+      </p>
+
+      <div className="flex items-center gap-2 text-xs text-gray-400">
+        <CalendarDays className="h-3.5 w-3.5" />
+        <span>
+          {application.submittedAt
+            ? `Applied ${new Date(application.submittedAt).toLocaleDateString(
+              "en-NG",
+              {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              },
+            )}`
+            : "Not submitted"}
+        </span>
+      </div>
+
+      {isDeclined && (
+        <Link
+          href={`/courses/${application.courseId}`}
+          className="mt-4 inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Reapply
+        </Link>
+      )}
+
+      {isApproved && (
+        <div className="mt-4 inline-flex w-full items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white">
+          Enrollment Approved
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function CoursesPage() {
+  const enrollmentsResult = useQuery(api.enrollments.getAll);
+  const applicationsResult = useQuery(api.applications.getAll);
+
+  const isLoading =
+    enrollmentsResult === undefined || applicationsResult === undefined;
+
+  if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center p-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -115,12 +234,22 @@ export default function CoursesPage() {
     );
   }
 
-  const enrollments: EnrollmentCard[] = result.success ? result.data : [];
+  const enrollments: EnrollmentCard[] = enrollmentsResult?.success
+    ? enrollmentsResult.data
+    : [];
+  const applications: ApplicationCard[] = applicationsResult?.success
+    ? applicationsResult.data
+    : [];
 
   const ongoing = enrollments.filter((e) => e.status === "pending");
   const completed = enrollments.filter((e) => e.status === "completed");
 
-  if (enrollments.length === 0) {
+  const pendingApps = applications.filter((a) =>
+    ["draft", "submitted", "under_review"].includes(a.status),
+  );
+  const processedApps = applications.filter((a) => a.status === "declined");
+
+  if (enrollments.length === 0 && applications.length === 0) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-8">
@@ -176,6 +305,40 @@ export default function CoursesPage() {
         </section>
       )}
 
+      {pendingApps.length > 0 && (
+        <section className="mb-10">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">
+            Applied Courses
+          </h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {pendingApps.map((application, index) => (
+              <ApplicationCardComponent
+                key={application._id}
+                application={application}
+                index={index}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {processedApps.length > 0 && (
+        <section className="mb-10">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">
+            Application Status
+          </h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {processedApps.map((application, index) => (
+              <ApplicationCardComponent
+                key={application._id}
+                application={application}
+                index={index}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {completed.length > 0 && (
         <section>
           <h2 className="mb-4 text-lg font-semibold text-gray-900">
@@ -192,6 +355,24 @@ export default function CoursesPage() {
           </div>
         </section>
       )}
+
+      {/* Continue Learning Prompt */}
+      <section className="mt-12">
+        <Card className="bg-primary/5 md:py-4 md:flex items-center justify-between border-primary/20">
+          <CardHeader>
+            <CardTitle>Ready for your next challenge?</CardTitle>
+            <CardDescription>
+              Expand your knowledge and advance your career by exploring our
+              other professional courses.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="flex items-center md:pb-0 md:justify-end">
+            <Button asChild className="w-full md:w-auto">
+              <Link href="/courses">Browse All Courses</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </section>
     </div>
   );
 }
