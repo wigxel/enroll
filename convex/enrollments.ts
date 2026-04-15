@@ -82,6 +82,48 @@ export const get = query({
 });
 
 /**
+ * Student: Lists all enrollments for the current user.
+ * Returns all enrollments (ongoing and completed) with course info.
+ */
+export const getAll = query({
+  args: {},
+  handler: async (ctx): Promise<Result<any>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+
+    const user = authResult.data;
+
+    const enrollments = await ctx.db
+      .query("enrollments")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .collect();
+
+    // Enrich with course and cohort info
+    const enriched = await Promise.all(
+      enrollments.map(async (e) => {
+        const cohort = e.cohortId ? await ctx.db.get(e.cohortId) : null;
+        const application = await ctx.db.get(e.applicationId);
+        const course = application?.data?.courseId
+          ? await ctx.db.get(application.data.courseId)
+          : null;
+
+        return {
+          _id: e._id,
+          status: e.status,
+          completedAt: e.completedAt,
+          cohortName: cohort?.name ?? "—",
+          courseId: application?.data?.courseId ?? null,
+          courseName: course?.name ?? "—",
+          createdAt: e.createdAt,
+        };
+      }),
+    );
+
+    return { success: true, data: enriched };
+  },
+});
+
+/**
  * Admin: Retrieves any enrollment by its ID.
  */
 export const getById = query({
