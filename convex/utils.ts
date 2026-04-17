@@ -1,5 +1,10 @@
+import { v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
-import type { MutationCtx, QueryCtx } from "./_generated/server";
+import {
+  internalQuery,
+  type MutationCtx,
+  type QueryCtx,
+} from "./_generated/server";
 
 export type Result<T> =
   | { success: true; data: T }
@@ -77,6 +82,32 @@ export const requirePrivilege = async (
 
   return { success: true, data: user };
 };
+
+/**
+ * Internal query to check if the current user has a specific privilege.
+ * Used by actions that cannot access ctx.db directly.
+ */
+export const internalCheckPrivilege = internalQuery({
+  args: {
+    privilege: v.string(),
+  },
+  handler: async (ctx, args): Promise<Doc<"users"> | null> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) return null;
+
+    const role = await ctx.db.get(user.role);
+    if (!role || !role.privileges.includes(args.privilege)) return null;
+
+    return user;
+  },
+});
 
 /**
  * Returns the current ISO timestamp string.

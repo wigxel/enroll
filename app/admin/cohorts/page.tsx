@@ -121,7 +121,7 @@ export default function CohortsPage() {
                   <tr key={cohort._id} className="hover:bg-gray-50">
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                       <Link
-                        href={`/admin/cohorts/${cohort._id}`}
+                        href={`/admin/cohorts/${cohort._id}` as any}
                         className="text-primary hover:text-primary/80"
                       >
                         {cohort.name}

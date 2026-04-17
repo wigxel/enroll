@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import { BookOpen, GraduationCap, Layers, Search, Users } from "lucide-react";
+import { ArrowRight, BookOpen, GraduationCap, Layers, Search, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -339,24 +339,11 @@ export default function AlumniPage() {
           Browse our available programs and start your application today.
         </p>
         <Link
-          href="/applications"
-          className="mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-700 hover:shadow-indigo-500/50"
+          href="/courses"
+          className="mt-8 inline-flex items-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-500/30 transition hover:bg-red-700 hover:shadow-indigo-500/50"
         >
           Explore Programs
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M5 12h14" />
-            <path d="m12 5 7 7-7 7" />
-          </svg>
+          <ArrowRight />
         </Link>
       </section>
     </div>

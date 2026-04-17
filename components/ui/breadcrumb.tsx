@@ -27,7 +27,7 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
               <li>
                 {isLink && href ? (
                   <Link
-                    href={href as unknown as string}
+                    href={href as any}
                     className="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                   >
                     {item.label}

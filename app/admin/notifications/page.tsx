@@ -185,7 +185,7 @@ export default function NotificationsPage() {
                       <div className="mt-2 flex items-center gap-3">
                         {link && (
                           <Link
-                            href={link}
+                            href={link as any}
                             onClick={() => handleMarkAsRead(notification._id)}
                             className="inline-flex items-center text-xs font-medium text-primary hover:text-primary/80"
                           >

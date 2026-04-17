@@ -52,7 +52,9 @@ function ClassmateAvatar({
 
 export function ClassmatesSection({ courseId }: { courseId: string }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const result = useQuery(api.enrollments.getClassmates, { courseId });
+  const result = useQuery(api.enrollments.getClassmates, {
+    courseId: courseId as any,
+  });
 
   if (result === undefined) {
     return (

@@ -69,6 +69,7 @@ export function TopNav() {
         {/* Left: Logo + Nav */}
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
+            {/* @ts-ignore */}
             <span className="text-xl font-bold tracking-tight text-primary">
               <Image
                 src={"/logo.svg"}

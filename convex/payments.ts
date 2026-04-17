@@ -2,7 +2,13 @@ import { v } from "convex/values";
 import { safeStr } from "../lib/data.helpers";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import { action, internalMutation, mutation, query } from "./_generated/server";
+import {
+  action,
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
 import { now, type Result, requirePrivilege } from "./utils";
 
 /**
@@ -132,6 +138,16 @@ export const createPaymentRecord = internalMutation({
       status: "pending",
       createdAt: now(),
     });
+  },
+});
+
+/**
+ * Internal query to get a payment by ID.
+ */
+export const getPaymentById = internalQuery({
+  args: { paymentId: v.id("payments") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.paymentId);
   },
 });
 
@@ -511,10 +527,19 @@ export const refund = action({
     reason: v.string(),
   },
   handler: async (ctx, args): Promise<Result<null>> => {
-    const privResult = await requirePrivilege(ctx, "payment:refund");
-    if (!privResult.success) return privResult;
+    const user = await ctx.runQuery(internal.utils.internalCheckPrivilege, {
+      privilege: "payment:refund",
+    });
+    if (!user) {
+      return {
+        success: false,
+        error: "Access denied. Required privilege: payment:refund",
+      };
+    }
 
-    const payment = await ctx.db.get(args.paymentId);
+    const payment = await ctx.runQuery(internal.payments.getPaymentById, {
+      paymentId: args.paymentId,
+    });
     if (!payment) {
       return { success: false, error: "Payment not found." };
     }

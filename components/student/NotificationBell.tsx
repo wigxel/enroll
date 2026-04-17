@@ -146,7 +146,7 @@ export function NotificationBell() {
               {notifications.map((notification) => (
                 <Link
                   key={notification.id}
-                  href={notification.href}
+                  href={notification.href as any}
                   onClick={() =>
                     handleNotificationClick(
                       notification._id,

@@ -7,7 +7,7 @@ export default async function DashboardProxy() {
   const { userId, getToken } = await auth();
 
   if (!userId) {
-    redirect("/sign-in");
+    redirect("/sign-in" as any);
   }
 
   // Get the token for Convex authentication

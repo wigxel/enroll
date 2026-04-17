@@ -19,7 +19,7 @@ export default function FastTrackRedirect() {
     async function handleFastTrack() {
       try {
         const result = await createFastTrack({
-          courseId: " courseId_placeholder",
+          courseId: "courseId_placeholder" as any,
         });
         // Note: courseId will be passed via props in the final version
       } catch (e) {

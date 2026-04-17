@@ -112,7 +112,7 @@ export function Sidebar() {
             return (
               <Link
                 key={item.name}
-                href={item.href}
+                href={item.href as any}
                 className={cn(
                   "group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
                   isActive

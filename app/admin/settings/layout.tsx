@@ -38,7 +38,7 @@ export default function SettingsLayout({
                 return (
                   <li key={tab.href}>
                     <Link
-                      href={tab.href}
+                      href={tab.href as any}
                       className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                         isActive
                           ? "bg-primary/10 text-primary"

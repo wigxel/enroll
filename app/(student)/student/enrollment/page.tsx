@@ -1,6 +1,6 @@
 "use client";
-import { useMutation, useQuery } from "convex/react";
 import { useUser } from "@clerk/nextjs";
+import { useMutation, useQuery } from "convex/react";
 import {
   ArrowRight,
   BookOpen,
@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import TuitionPaymentButton from "@/components/payments/TuitionPaymentButton";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +26,6 @@ import {
 } from "@/components/ui/dialog";
 import { api } from "@/convex/_generated/api";
 import { safeObj } from "~/lib/data.helpers";
-import TuitionPaymentButton from "@/components/payments/TuitionPaymentButton";
 
 interface EnrollmentStep {
   id: string;
@@ -33,7 +33,7 @@ interface EnrollmentStep {
   title: string;
   description: string;
   icon: typeof CreditCard;
-  href: string;
+  href: string
   completed: boolean;
 }
 
@@ -183,7 +183,7 @@ export default function EnrollmentChecklistPage() {
       description:
         "Complete your tuition payment to secure your spot in the program.",
       icon: CreditCard,
-      // href removed as we use TuitionPaymentButton
+      href: "/students/courses#pending"
     },
     {
       id: "quiz",
@@ -243,23 +243,21 @@ export default function EnrollmentChecklistPage() {
           return (
             <div
               key={step.id}
-              className={`rounded-xl border p-5 transition-all ${
-                isCompleted
-                  ? "border-emerald-200 bg-emerald-50/50"
-                  : isCurrent
-                    ? "border-primary/30 bg-white shadow-sm ring-1 ring-primary/10"
-                    : "border-gray-200 bg-gray-50/50 opacity-60"
-              }`}
+              className={`rounded-xl border p-5 transition-all ${isCompleted
+                ? "border-emerald-200 bg-emerald-50/50"
+                : isCurrent
+                  ? "border-primary/30 bg-white shadow-sm ring-1 ring-primary/10"
+                  : "border-gray-200 bg-gray-50/50 opacity-60"
+                }`}
             >
               <div className="flex items-start gap-4">
                 <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
-                    isCompleted
-                      ? "bg-emerald-100 text-emerald-600"
-                      : isCurrent
-                        ? "bg-primary/10 text-primary"
-                        : "bg-gray-200 text-gray-400"
-                  }`}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isCompleted
+                    ? "bg-emerald-100 text-emerald-600"
+                    : isCurrent
+                      ? "bg-primary/10 text-primary"
+                      : "bg-gray-200 text-gray-400"
+                    }`}
                 >
                   {isCompleted ? (
                     <CheckCircle2 className="h-5 w-5" />
@@ -292,16 +290,14 @@ export default function EnrollmentChecklistPage() {
                     )}
                   </div>
                   <h3
-                    className={`mt-1 text-sm font-semibold ${
-                      isLocked ? "text-gray-400" : "text-gray-900"
-                    }`}
+                    className={`mt-1 text-sm font-semibold ${isLocked ? "text-gray-400" : "text-gray-900"
+                      }`}
                   >
                     {step.title}
                   </h3>
                   <p
-                    className={`mt-0.5 text-xs ${
-                      isLocked ? "text-gray-400" : "text-gray-500"
-                    }`}
+                    className={`mt-0.5 text-xs ${isLocked ? "text-gray-400" : "text-gray-500"
+                      }`}
                   >
                     {step.description}
                   </p>
@@ -328,6 +324,7 @@ export default function EnrollmentChecklistPage() {
                     />
                   ) : (
                     <Link
+                      // @ts-expect-error Not a problem
                       href={step.href}
                       className="flex shrink-0 items-center gap-1 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                     >

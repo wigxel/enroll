@@ -64,7 +64,7 @@ export function OnboardingChecklist() {
   const handleTaskClick = (task: Task) => {
     toggleTask(task.id);
     if (task.href) {
-      router.push(task.href);
+      router.push(task.href as any);
     }
   };
 
