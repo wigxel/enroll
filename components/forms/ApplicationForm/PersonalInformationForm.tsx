@@ -163,12 +163,10 @@ export const PersonalInformationForm = React.forwardRef<
 
           {!existingApp && (
             <div
-              className={
-                cn("space-y-4",
-                  isInitialValidated
-                    ? "opacity-70 pointer-events-none mb-4"
-                    : "")
-              }
+              className={cn(
+                "space-y-4",
+                isInitialValidated ? "opacity-70 pointer-events-none mb-4" : "",
+              )}
             >
               {!isInitialValidated && (
                 <p className="text-gray-500 text-sm mb-6">
@@ -201,12 +199,17 @@ export const PersonalInformationForm = React.forwardRef<
                 name="phoneNumber"
               />
 
-              {isInitialValidated ? <div role="separator" className="border-gray-200 my-8 border-t" /> : null}
+              {isInitialValidated ? (
+                <div
+                  role="separator"
+                  className="border-gray-200 my-8 border-t"
+                />
+              ) : null}
             </div>
           )}
 
-          {existingApp && (
-            existingApp.paymentStatus === "unpaid" ? (
+          {existingApp &&
+            (existingApp.paymentStatus === "unpaid" ? (
               <div className="rounded-lg border p-6 select-none bg-gray-50 border-gray-200 space-y-4">
                 <div className="flex items-center gap-2 font-semibold">
                   <AlertCircle className="w-5 h-5" />
@@ -235,15 +238,11 @@ export const PersonalInformationForm = React.forwardRef<
                   dashboard for updates, and wait for it to be processed.
                 </p>
 
-                <Button
-                  asChild
-                  className="w-full sm:w-auto mt-2"
-                >
+                <Button asChild className="w-full sm:w-auto mt-2">
                   <Link href="/student/dashboard">Go to Dashboard</Link>
                 </Button>
               </div>
-            )
-          )}
+            ))}
 
           {isInitialValidated && (
             <>

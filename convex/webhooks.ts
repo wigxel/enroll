@@ -253,12 +253,9 @@ export const onPaystackChargeSuccess = internalMutation({
 
     // If tuition payment succeeded, update the enrollment step
     if (payment.referenceType === "tuition") {
-      if (!payment.userId) {
-        throw new Error("Tuition payment must be associated with a user.");
-      }
       const enrollment = await ctx.db
         .query("enrollments")
-        .withIndex("by_userId", (q) => q.eq("userId", payment.userId!))
+        .filter((q) => q.eq(q.field("_id"), payment.referenceId as any))
         .first();
 
       if (enrollment) {

@@ -85,7 +85,7 @@ export default function ApplicationUnderReviewPage() {
           {/* Action */}
           <div className="mt-10">
             <Link
-              href="/student/application-pending"
+              href="/student/courses"
               className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98]"
             >
               View Application Status

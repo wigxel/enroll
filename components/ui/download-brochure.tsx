@@ -28,7 +28,7 @@ export function DownloadBrochure({
       typeof brochureStorageId === "string" &&
       !brochureStorageId.startsWith("http")
       ? { storageId: brochureStorageId as Id<"_storage"> }
-      : "skip"
+      : "skip",
   );
 
   const brochureUrl = useMemo(() => {
@@ -63,11 +63,7 @@ export function DownloadBrochure({
   const Comp = asChild ? Slot : ("a" as any);
 
   return (
-    <Comp
-      href={brochureUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+    <Comp href={brochureUrl} target="_blank" rel="noopener noreferrer">
       {children}
     </Comp>
   );

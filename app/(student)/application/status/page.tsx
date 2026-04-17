@@ -7,7 +7,7 @@ export default function ApplicationStatusRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/student/application-pending");
+    router.replace("/student/courses");
   }, [router]);
 
   return null;

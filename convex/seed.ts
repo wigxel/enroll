@@ -817,24 +817,54 @@ async function seedReviews(ctx: any, args: { dryRun: boolean }) {
     .withIndex("by_status", (q: any) => q.eq("status", "completed"))
     .collect();
 
-  const studentUserIds = Array.from(new Set(enrollments.map((e: any) => e.userId)));
-  const students = (await Promise.all(studentUserIds.map((id) => ctx.db.get(id)))).filter(Boolean);
+  const studentUserIds = Array.from(
+    new Set(enrollments.map((e: any) => e.userId)),
+  );
+  const students = (
+    await Promise.all(studentUserIds.map((id) => ctx.db.get(id)))
+  ).filter(Boolean);
   const courses = await ctx.db.query("courses").collect();
 
   if (students.length === 0 || courses.length === 0) {
-    console.log("No students or courses found. Run enrollments and courses seeds first.");
+    console.log(
+      "No students or courses found. Run enrollments and courses seeds first.",
+    );
     return { error: "Missing students or courses" };
   }
 
   const reviewsData = [
-    { text: "This course completely transformed my career. The instructors were knowledgeable and the hands-on projects gave me real-world experience.", rating: 5 },
-    { text: "Great curriculum and excellent support from the team. Highly recommended!", rating: 5 },
-    { text: "Excellent learning experience. The curriculum was well-structured and practical.", rating: 4 },
-    { text: "Very insightful course. I learned a lot that I apply daily in my job.", rating: 5 },
-    { text: "Good course but could use more hands-on exercises. Overall worth it.", rating: 4 },
-    { text: "The instructors were amazing! Great support throughout the program.", rating: 5 },
-    { text: "Learned valuable skills that helped me land a better job. Highly recommend!", rating: 5 },
-    { text: "Decent course with good content. Would recommend to others.", rating: 4 },
+    {
+      text: "This course completely transformed my career. The instructors were knowledgeable and the hands-on projects gave me real-world experience.",
+      rating: 5,
+    },
+    {
+      text: "Great curriculum and excellent support from the team. Highly recommended!",
+      rating: 5,
+    },
+    {
+      text: "Excellent learning experience. The curriculum was well-structured and practical.",
+      rating: 4,
+    },
+    {
+      text: "Very insightful course. I learned a lot that I apply daily in my job.",
+      rating: 5,
+    },
+    {
+      text: "Good course but could use more hands-on exercises. Overall worth it.",
+      rating: 4,
+    },
+    {
+      text: "The instructors were amazing! Great support throughout the program.",
+      rating: 5,
+    },
+    {
+      text: "Learned valuable skills that helped me land a better job. Highly recommend!",
+      rating: 5,
+    },
+    {
+      text: "Decent course with good content. Would recommend to others.",
+      rating: 4,
+    },
   ];
 
   let inserted = 0;

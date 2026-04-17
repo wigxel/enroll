@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { safeNum } from "./data.helpers";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -129,14 +130,27 @@ export const getColorClassName = (
   return chartColors[color]?.[type] ?? fallbackColor[type];
 };
 
-export const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("en-US", {
+export const formatCurrency = (value: number): string => {
+  const val = safeNum(value, Number.NEGATIVE_INFINITY);
+
+  if (Object.is(val, Number.NEGATIVE_INFINITY)) return "--";
+
+  return val.toLocaleString("en-NG", {
     style: "currency",
     currency: "NGN",
     minimumSignificantDigits: 2,
-    currencySign: "standard",
-  }).format(value);
+    currencySign: "accounting",
+  });
 };
 
 export const isDevelopment = (): boolean =>
   Object.is(process.env.NODE_ENV, "development");
+
+export function safeJsonParse<T>(json: string, fallback: T): T {
+  try {
+    return JSON.parse(json) as T;
+  } catch (e) {
+    console.error("JSON parse error:", e);
+    return fallback;
+  }
+}

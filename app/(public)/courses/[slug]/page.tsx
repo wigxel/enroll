@@ -85,16 +85,13 @@ export default async function CourseApplicationPage({
             {course.name}
           </div>
 
-          <div className="flex-1 flex justify-end">
-          </div>
+          <div className="flex-1 flex justify-end"></div>
         </div>
       </div>
 
       {/* ── Main two-column layout ── */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-
-
           {/* ── Right Column ── */}
           <div className="lg:col-span-8 space-y-16">
             {/* Prerequisites */}
@@ -234,9 +231,9 @@ export default async function CourseApplicationPage({
                     ];
                     const color =
                       colors[
-                      review.userId
-                        ? review.userId.charCodeAt(0) % colors.length
-                        : 0
+                        review.userId
+                          ? review.userId.charCodeAt(0) % colors.length
+                          : 0
                       ];
                     return (
                       <div

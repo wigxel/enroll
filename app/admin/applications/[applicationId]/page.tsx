@@ -1,10 +1,18 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { ArrowLeft, CheckCircle, Loader2, XCircle } from "lucide-react";
+import { useCopyToClipboard } from "hooks-ts";
+import {
+  ArrowLeft,
+  CheckCircle,
+  Clipboard,
+  Loader2,
+  XCircle,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { DeclineApplicationDialog } from "~/components/admin/dialogs/DeclineApplicationDialog";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
@@ -23,6 +31,7 @@ export default function ApplicationDetailPage() {
 
   const [showDeclineDialog, setShowDeclineDialog] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const [copiedText, copy] = useCopyToClipboard();
 
   const statusColors: Record<string, string> = {
     draft: "bg-gray-100 text-gray-800",
@@ -246,8 +255,21 @@ export default function ApplicationDetailPage() {
                     <dt className="text-sm font-medium text-gray-500">
                       Reference
                     </dt>
-                    <dd className="mt-1 text-sm text-gray-900 font-mono">
-                      {application.payment.stripePaymentIntentId}
+                    <dd className="mt-1 text-sm text-gray-900 font-mono flex items-center gap-2">
+                      <span className="truncate max-w-[200px]">
+                        {application.payment.stripePaymentIntentId.slice(0, 20)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          copy(application.payment.stripePaymentIntentId);
+                          toast.success("Reference copied to clipboard");
+                        }}
+                        className="shrink-0 p-1 hover:bg-gray-100 rounded"
+                        title="Copy reference"
+                      >
+                        <Clipboard className="h-3.5 w-3.5 text-gray-400" />
+                      </button>
                     </dd>
                   </div>
                   <div>

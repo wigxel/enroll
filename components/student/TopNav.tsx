@@ -15,12 +15,12 @@ import { NotificationBell } from "./NotificationBell";
 
 interface NavItem {
   name: string;
-  href: string;
+  href: React.ComponentProps<typeof Link>["href"];
 }
 
 const applicantNav: NavItem[] = [
   { name: "Home", href: "/student/dashboard" },
-  { name: "My Application", href: "/student/application-pending" },
+  { name: "My Application", href: "/student/courses" },
 ];
 
 const enrollmentNav: NavItem[] = [
@@ -49,7 +49,7 @@ export function TopNav() {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
 
-  const name = user?.fullName ?? user?.username ?? "User";
+  const name = user?.fullName.split(" ")[0] ?? user?.username ?? "User";
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const imageUrl = user?.imageUrl;
   const initials = getInitials(name);
@@ -81,12 +81,14 @@ export function TopNav() {
           </Link>
           <nav className="hidden items-center gap-1 sm:flex">
             {navItems.map((item) => {
+              const href_as_string = String(item.href);
               const isActive =
                 pathname === item.href ||
-                (item.href !== "/" && pathname.startsWith(item.href));
+                (item.href !== "/" && pathname.startsWith(href_as_string));
+
               return (
                 <Link
-                  key={item.href}
+                  key={href_as_string}
                   href={item.href}
                   className={cn(
                     "rounded-lg px-3 py-2 text-sm font-medium transition-colors",

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { now, type Result, requirePrivilege } from "./utils";
 
@@ -27,10 +27,8 @@ export const listAll = query({
 export const getById = query({
   args: { courseId: v.id("courses") },
   handler: async (ctx, args): Promise<Result<any>> => {
-    const privResult = await requirePrivilege(ctx, "course:read:all");
-    if (!privResult.success) return privResult;
-
     const course = await ctx.db.get(args.courseId);
+
     if (!course) {
       return { success: false, error: "Course not found." };
     }

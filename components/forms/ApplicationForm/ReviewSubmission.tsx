@@ -123,10 +123,10 @@ export const ReviewSubmission = React.forwardRef<
             <Checkbox
               id="confirm"
               className="mt-1 h-5 w-5 shrink-0 rounded-sm border-gray-300 text-primary focus:ring-primary accent-primary"
-              checked={form.watch('confirm')}
+              checked={form.watch("confirm")}
               onCheckedChange={(value) => {
                 // @ts-expect-error Not a problem
-                form.setValue('confirm', value)
+                form.setValue("confirm", value);
               }}
             />
             <div className="flex flex-col">
@@ -163,10 +163,7 @@ export const ReviewSubmission = React.forwardRef<
             <div />
           )}
 
-          <Button
-            type="submit"
-            disabled={isSaving || !isConfirmed}
-          >
+          <Button type="submit" disabled={isSaving || !isConfirmed}>
             {isSaving ? "Submitting..." : "Submit Application"}
           </Button>
         </div>

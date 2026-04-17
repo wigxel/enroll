@@ -1,6 +1,6 @@
 "use client";
-
 import { useMutation, useQuery } from "convex/react";
+import { useUser } from "@clerk/nextjs";
 import {
   ArrowRight,
   BookOpen,
@@ -12,7 +12,8 @@ import {
   ScrollText,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -23,6 +24,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { api } from "@/convex/_generated/api";
+import { safeObj } from "~/lib/data.helpers";
+import TuitionPaymentButton from "@/components/payments/TuitionPaymentButton";
 
 interface EnrollmentStep {
   id: string;
@@ -33,8 +36,6 @@ interface EnrollmentStep {
   href: string;
   completed: boolean;
 }
-
-// We will use the live Convex query `api.enrollments.get` inside the component instead of this mock.
 
 function getStepStatus(
   steps: {
@@ -47,7 +48,6 @@ function getStepStatus(
   const stepKeys = ["tuitionPaid", "quizPassed", "documentsSigned"] as const;
   if (steps[stepKeys[stepIndex]]) return "completed";
 
-  // Current step is the first incomplete step
   const firstIncompleteIndex = stepKeys.findIndex((key) => !steps[key]);
   if (firstIncompleteIndex === stepIndex) return "current";
 
@@ -55,16 +55,68 @@ function getStepStatus(
 }
 
 export default function EnrollmentChecklistPage() {
-  const enrollmentResult = useQuery(api.enrollments.get);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const courseIdParam = searchParams.get("courseId");
+  const { user } = useUser();
+
+  const userEmail = user?.primaryEmailAddress?.emailAddress;
+
+  const enrollmentsResult = useQuery(api.enrollments.getAll);
   const updateStep = useMutation(api.enrollments.updateStep);
   const completeEnrollment = useMutation(api.enrollments.complete);
-
-  const enrollment = enrollmentResult?.success ? enrollmentResult.data : null;
 
   const [isSignModalOpen, setIsSignModalOpen] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
 
-  if (enrollmentResult === undefined) {
+  // Process enrollments after data is loaded
+  const allEnrollments = enrollmentsResult?.success
+    ? enrollmentsResult.data
+    : [];
+
+  const pendingEnrollments = allEnrollments.filter(
+    (e) => e.status === "pending",
+  );
+
+  const targetEnrollment = courseIdParam
+    ? pendingEnrollments.find((e) => e.courseId === courseIdParam)
+    : pendingEnrollments[0];
+
+  // Handle redirects
+  useEffect(() => {
+    if (enrollmentsResult === undefined) return;
+
+    // No pending enrollments -> go to courses
+    if (pendingEnrollments.length === 0) {
+      router.replace("/student/courses");
+      return;
+    }
+
+    // Invalid courseId param provided -> go to courses
+    if (courseIdParam && !targetEnrollment) {
+      router.replace("/student/courses");
+      return;
+    }
+
+    // Already completed -> go to course page
+    if (
+      targetEnrollment &&
+      targetEnrollment.status === "completed" &&
+      targetEnrollment.courseSlug
+    ) {
+      const slug = String(targetEnrollment.courseSlug);
+      router.replace(`/student/courses/${slug}`);
+      return;
+    }
+  }, [
+    enrollmentsResult,
+    pendingEnrollments,
+    courseIdParam,
+    targetEnrollment,
+    router,
+  ]);
+
+  if (enrollmentsResult === undefined) {
     return (
       <div className="flex flex-1 items-center justify-center p-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -72,20 +124,25 @@ export default function EnrollmentChecklistPage() {
     );
   }
 
-  if (!enrollment) {
+  if (!targetEnrollment) {
     return (
-      <div className="flex flex-1 items-center justify-center p-12 text-gray-500">
-        {enrollmentResult?.success === false
-          ? enrollmentResult.error
-          : "No enrollment record found."}
+      <div className="flex flex-1 items-center justify-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
+  const enrollment = safeObj(targetEnrollment);
+  const enrollment_steps = {
+    tuitionPaid: false,
+    quizPassed: false,
+    ...safeObj(enrollment.steps),
+  };
+
   const handleSignDocuments = async () => {
     setIsSigning(true);
+
     try {
-      // Mark step as complete
       const stepRes = await updateStep({
         enrollmentId: enrollment._id,
         step: "documentsSigned",
@@ -94,25 +151,14 @@ export default function EnrollmentChecklistPage() {
 
       if (!stepRes.success) throw new Error(stepRes.error);
 
-      // Check if this was the last step
-      if (enrollment.steps.tuitionPaid && enrollment.steps.quizPassed) {
-        toast.promise(
-          async () => {
-            const res = await completeEnrollment({
-              enrollmentId: enrollment._id,
-            });
-            if (!res.success) throw new Error(res.error);
-            return res.data;
-          },
-          {
-            loading: "Finalizing enrollment...",
-            success: () => {
-              setIsSignModalOpen(false);
-              return "Enrollment complete! Welcome aboard 🎉";
-            },
-            error: (err) => err.message || "Failed to finalize enrollment.",
-          },
-        );
+      if (enrollment_steps.tuitionPaid && enrollment_steps.quizPassed) {
+        await completeEnrollment({ enrollmentId: enrollment._id });
+        setIsSignModalOpen(false);
+        if (enrollment.courseSlug) {
+          router.push(`/student/courses/${enrollment.courseSlug}`);
+        } else {
+          router.push("/student/courses");
+        }
       } else {
         toast.success("Documents signed successfully!");
         setIsSignModalOpen(false);
@@ -125,7 +171,7 @@ export default function EnrollmentChecklistPage() {
     }
   };
 
-  const completedCount = Object.values(enrollment.steps).filter(Boolean).length;
+  const completedCount = Object.values(enrollment_steps).filter(Boolean).length;
   const totalSteps = 3;
   const progressPercent = (completedCount / totalSteps) * 100;
 
@@ -137,7 +183,7 @@ export default function EnrollmentChecklistPage() {
       description:
         "Complete your tuition payment to secure your spot in the program.",
       icon: CreditCard,
-      href: "/student/enrollment/tuition",
+      // href removed as we use TuitionPaymentButton
     },
     {
       id: "quiz",
@@ -146,7 +192,7 @@ export default function EnrollmentChecklistPage() {
       description:
         "Take the orientation assessment to demonstrate your readiness.",
       icon: BookOpen,
-      href: "/student/enrollment/quiz",
+      href: `/student/enrollment/quiz?courseId=${enrollment.courseId}`,
     },
     {
       id: "documents",
@@ -155,13 +201,12 @@ export default function EnrollmentChecklistPage() {
       description:
         "Review and sign the enrollment agreement and policy documents.",
       icon: FileSignature,
-      href: "/student/enrollment/documents",
+      href: `/student/enrollment/documents?courseId=${enrollment.courseId}`,
     },
   ];
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
-      {/* Header */}
       <div className="text-center">
         <h1 className="text-2xl font-semibold text-gray-900">
           Complete Your Enrollment
@@ -172,7 +217,6 @@ export default function EnrollmentChecklistPage() {
         </p>
       </div>
 
-      {/* Progress bar */}
       <div className="mt-8">
         <div className="flex items-center justify-between text-sm">
           <span className="font-medium text-gray-700">Progress</span>
@@ -188,10 +232,9 @@ export default function EnrollmentChecklistPage() {
         </div>
       </div>
 
-      {/* Step cards */}
       <div className="mt-8 space-y-4">
         {stepDefinitions.map((step, index) => {
-          const status = getStepStatus(enrollment.steps, index);
+          const status = getStepStatus(enrollment_steps, index);
           const StepIcon = step.icon;
           const isLocked = status === "locked";
           const isCompleted = status === "completed";
@@ -209,7 +252,6 @@ export default function EnrollmentChecklistPage() {
               }`}
             >
               <div className="flex items-start gap-4">
-                {/* Icon */}
                 <div
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
                     isCompleted
@@ -228,7 +270,6 @@ export default function EnrollmentChecklistPage() {
                   )}
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium text-gray-400">
@@ -266,7 +307,6 @@ export default function EnrollmentChecklistPage() {
                   </p>
                 </div>
 
-                {/* CTA */}
                 {isCurrent &&
                   (step.id === "documents" ? (
                     <button
@@ -277,6 +317,15 @@ export default function EnrollmentChecklistPage() {
                       Sign Now
                       <ArrowRight className="h-3.5 w-3.5" />
                     </button>
+                  ) : step.id === "tuition" ? (
+                    <TuitionPaymentButton
+                      enrollment={{
+                        _id: enrollment._id,
+                        courseId: enrollment.courseId,
+                        steps: enrollment_steps,
+                      }}
+                      userEmail={userEmail}
+                    />
                   ) : (
                     <Link
                       href={step.href}
@@ -292,7 +341,6 @@ export default function EnrollmentChecklistPage() {
         })}
       </div>
 
-      {/* Signature Modal */}
       <Dialog open={isSignModalOpen} onOpenChange={setIsSignModalOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>

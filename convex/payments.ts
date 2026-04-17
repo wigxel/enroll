@@ -6,8 +6,7 @@ import { action, internalMutation, mutation, query } from "./_generated/server";
 import { now, type Result, requirePrivilege } from "./utils";
 
 /**
- * Creates a payment intent stub.
- * In production, this would call Paystack to create a real payment intent.
+ * Creates a Paystack transaction and returns the reference for frontend checkout.
  */
 export const createIntent = action({
   args: {
@@ -15,25 +14,85 @@ export const createIntent = action({
     referenceType: v.union(v.literal("application"), v.literal("tuition")),
     amount: v.number(),
     currency: v.string(),
+    email: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<Result<any>> => {
     const identity = await ctx.auth.getUserIdentity();
+    const userEmail = args.email ?? identity?.email ?? "";
 
-    // In production: call Paystack API to create a payment intent
-    // const paymentIntent = await stripe.paymentIntents.create({ ... });
-    const stripePaymentIntentId = `pi_stub_${Date.now()}`;
+    if (!userEmail) {
+      return { success: false, error: "User email is required for payment." };
+    }
 
-    // Create the payment record in the database
+    const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
+    if (!paystackSecret) {
+      return {
+        success: false,
+        error: "Paystack is not configured. Please contact support.",
+      };
+    }
+
+    const amountInKobo = Math.round(args.amount * 100);
+
+    const paystackResponse = await fetch(
+      "https://api.paystack.co/transaction/initialize",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${paystackSecret}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: userEmail,
+          amount: amountInKobo,
+          currency: args.currency,
+          reference: `${args.referenceType}_${args.referenceId}_${Date.now()}`,
+          metadata: {
+            referenceId: args.referenceId,
+            referenceType: args.referenceType,
+          },
+        }),
+      },
+    );
+
+    if (!paystackResponse.ok) {
+      const errorText = await paystackResponse.text();
+      console.error("Paystack API error:", errorText);
+      return {
+        success: false,
+        error: "Failed to initialize payment. Please try again.",
+      };
+    }
+
+    const paystackData = await paystackResponse.json();
+
+    if (!paystackData.status) {
+      return {
+        success: false,
+        error: paystackData.message || "Payment initialization failed.",
+      };
+    }
+
+    const paystackReference = paystackData.data.reference;
+    const accessCode = paystackData.data.access_code;
+
     await ctx.runMutation(internal.payments.createPaymentRecord, {
       clerkId: identity?.subject,
       referenceId: args.referenceId,
       referenceType: args.referenceType,
       amount: args.amount,
       currency: args.currency,
-      stripePaymentIntentId,
+      stripePaymentIntentId: paystackReference,
     });
 
-    return { success: true, data: { stripePaymentIntentId } };
+    return {
+      success: true,
+      data: {
+        paystackReference,
+        authorizationUrl: paystackData.data.authorization_url,
+        accessCode,
+      },
+    };
   },
 });
 
@@ -132,15 +191,9 @@ export const confirm = mutation({
 
     // If tuition payment succeeded, update the enrollment step
     if (args.status === "succeeded" && payment.referenceType === "tuition") {
-      if (!payment.userId) {
-        return {
-          success: false,
-          error: "Tuition payments must be associated with a user.",
-        };
-      }
       const enrollment = await ctx.db
         .query("enrollments")
-        .withIndex("by_userId", (q) => q.eq("userId", payment.userId!))
+        .filter((q) => q.eq(q.field("_id"), payment.referenceId as any))
         .first();
 
       if (enrollment) {
@@ -450,7 +503,7 @@ export const refreshRevenueCache = internalMutation({
 });
 
 /**
- * Admin: Processes a refund. In production, this would call Paystack's refund API.
+ * Admin: Processes a refund via Paystack's refund API.
  */
 export const refund = action({
   args: {
@@ -458,15 +511,59 @@ export const refund = action({
     reason: v.string(),
   },
   handler: async (ctx, args): Promise<Result<null>> => {
-    // --- AUTH BYPASSED FOR DEVELOPMENT ---
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) {
-    //     return { success: false, error: "Authentication required." };
-    // }
+    const privResult = await requirePrivilege(ctx, "payment:refund");
+    if (!privResult.success) return privResult;
 
-    // In production: call Paystack refund API
-    // const refund = await stripe.refunds.create({ payment_intent: payment.stripePaymentIntentId });
+    const payment = await ctx.db.get(args.paymentId);
+    if (!payment) {
+      return { success: false, error: "Payment not found." };
+    }
 
+    if (payment.status !== "succeeded") {
+      return {
+        success: false,
+        error: "Only succeeded payments can be refunded.",
+      };
+    }
+
+    if (!payment.stripePaymentIntentId) {
+      return {
+        success: false,
+        error: "No transaction ID found for this payment.",
+      };
+    }
+
+    const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
+    if (!paystackSecret) {
+      return {
+        success: false,
+        error: "Paystack is not configured. Contact support.",
+      };
+    }
+
+    // Call Paystack refund API
+    const paystackResponse = await fetch("https://api.paystack.co/refund", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${paystackSecret}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        transaction: payment.stripePaymentIntentId,
+      }),
+    });
+
+    const responseData = await paystackResponse.json();
+
+    if (!paystackResponse.ok || !responseData.status) {
+      console.error("Paystack refund failed:", responseData);
+      return {
+        success: false,
+        error: responseData.message || "Refund failed at payment provider.",
+      };
+    }
+
+    // Only update local status if Paystack API succeeds
     return await ctx.runMutation(internal.payments.processRefund, {
       paymentId: args.paymentId,
       reason: args.reason,

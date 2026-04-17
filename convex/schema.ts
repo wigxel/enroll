@@ -64,7 +64,8 @@ export default defineSchema({
     .index("by_email", ["data.email"])
     .index("by_phoneNumber", ["data.phoneNumber"])
     .index("by_status", ["status"])
-    .index("by_paymentStatus", ["paymentStatus"]),
+    .index("by_paymentStatus", ["paymentStatus"])
+    .index("by_courseId", ["data.courseId"]),
 
   payments: defineTable({
     userId: v.optional(v.id("users")),

@@ -21,9 +21,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { api } from "@/convex/_generated/api";
+import { cn } from "~/lib/utils";
 
 interface EnrollmentCard {
   _id: string;
+  courseId: string;
+  courseSlug: string | null;
   courseName: string;
   cohortName: string;
   status: "pending" | "completed";
@@ -35,10 +38,12 @@ interface ApplicationCard {
   _id: string;
   courseName: string;
   courseId: string;
+  courseSlug: string | null;
   status: "draft" | "submitted" | "under_review" | "approved" | "declined";
   paymentStatus: "unpaid" | "paid";
   submittedAt: string | null;
   reviewedAt: string | null;
+  rejectionReason: string | null;
 }
 
 const gradientBackgrounds = [
@@ -61,17 +66,21 @@ function EnrollmentCardComponent({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br ${bgGradient} p-6 shadow-sm transition-shadow hover:shadow-md`}
+      className={cn(
+        bgGradient,
+        `relative overflow-hidden rounded-xl border border-gray-200 bg-linear-to-br p-6 shadow-sm transition-shadow hover:shadow-md`,
+      )}
     >
       <div className="mb-4 flex items-start justify-between">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/60">
           <GraduationCap className="h-5 w-5 text-primary" />
         </div>
         <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${isCompleted
-            ? "bg-emerald-100 text-emerald-700"
-            : "bg-blue-100 text-blue-700"
-            }`}
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            isCompleted
+              ? "bg-emerald-100 text-emerald-700"
+              : "bg-blue-100 text-blue-700"
+          }`}
         >
           {isCompleted ? (
             <>
@@ -83,43 +92,46 @@ function EnrollmentCardComponent({
           )}
         </span>
       </div>
-
       <h3 className="mb-1 text-lg font-semibold text-gray-900">
         {enrollment.courseName}
       </h3>
       <p className="mb-4 text-sm text-gray-500">{enrollment.cohortName}</p>
-
       <div className="flex items-center gap-2 text-xs text-gray-400">
         <CalendarDays className="h-3.5 w-3.5" />
         <span>
           {enrollment.completedAt
             ? `Completed ${new Date(enrollment.completedAt).toLocaleDateString(
-              "en-NG",
-              {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              },
-            )}`
+                "en-NG",
+                {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                },
+              )}`
             : `Started ${new Date(enrollment.createdAt).toLocaleDateString(
-              "en-NG",
-              {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              },
-            )}`}
+                "en-NG",
+                {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                },
+              )}`}
         </span>
       </div>
-
-      {isCompleted && (
-        <Link
-          href="/student/certifications"
-          className="mt-4 inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
-        >
-          View Certificate
+      <div className="mt-6 flex flex-col gap-2">
+        <Link href={`/student/courses/${enrollment.courseSlug}`}>
+          <Button variant="outline" className="w-full">
+            View Course
+          </Button>
         </Link>
-      )}
+        {isCompleted && (
+          <Link href="/student/certifications">
+            <Button variant="default" className="w-full">
+              View Certificate
+            </Button>
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
@@ -190,20 +202,20 @@ function ApplicationCardComponent({
         <span>
           {application.submittedAt
             ? `Applied ${new Date(application.submittedAt).toLocaleDateString(
-              "en-NG",
-              {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              },
-            )}`
+                "en-NG",
+                {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                },
+              )}`
             : "Not submitted"}
         </span>
       </div>
 
-      {isDeclined && (
+      {isDeclined && application.courseSlug && (
         <Link
-          href={`/courses/${application.courseId}`}
+          href={`/courses/${application.courseSlug}`}
           className="mt-4 inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           Reapply

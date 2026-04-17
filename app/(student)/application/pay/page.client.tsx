@@ -1,5 +1,5 @@
 "use client";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { ArrowLeft, Loader2, Shield } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -35,12 +35,11 @@ export default function PaymentComponent() {
     : null;
 
   const createIntent = useAction(api.payments.createIntent);
-  const confirmPayment = useMutation(api.payments.confirm);
 
   const config = {
-    reference: "", // Will be set dynamically before initialization
+    reference: "",
     email: application?.applicantEmail ?? "",
-    amount: application_fee * 100, // 15,000 NGN in kobo
+    amount: application_fee * 100,
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "",
   };
   const initializePayment = usePaystackPayment(config as any);
@@ -87,48 +86,30 @@ export default function PaymentComponent() {
     try {
       setIsProcessing(true);
 
-      // 1. Create intent via Convex
       const intentResponse = await createIntent({
         referenceId: application._id,
         referenceType: "application",
         amount: application_fee,
         currency: "NGN",
+        email: application?.applicantEmail,
       });
 
       if (!intentResponse.success) {
         throw new Error(intentResponse.error);
       }
 
-      // 2. Setup dynamic config for this transaction
-      const dynamicConfig = {
-        ...config,
-        reference: intentResponse.data.stripePaymentIntentId, // Using this as our Paystack reference
-      };
+      const { paystackReference } = intentResponse.data;
 
-      // 3. Initialize Paystack
       initializePayment({
-        config: dynamicConfig,
-        onSuccess: async (referenceData: any) => {
-          try {
-            toast.loading("Confirming payment...", { id: "payment-confirm" });
-            const confirmRes = await confirmPayment({
-              stripePaymentIntentId: referenceData.reference,
-              status: "succeeded",
-            });
-            if (!confirmRes.success) {
-              throw new Error(confirmRes.error);
-            }
-            toast.success("Payment successful!", { id: "payment-confirm" });
-            // Assuming this automatically gets submitted or we just redirect
-            router.push("/application/under-review");
-          } catch (error) {
-            console.error("Confirmation error:", error);
-            toast.error("Failed to confirm payment status.", {
-              id: "payment-confirm",
-            });
-          } finally {
-            setIsProcessing(false);
-          }
+        config: {
+          ...config,
+          reference: paystackReference,
+        },
+        onSuccess: () => {
+          toast.success("Payment successful! Redirecting...", {
+            id: "payment-confirm",
+          });
+          router.push("/application/under-review");
         },
         onClose: () => {
           toast("Payment cancelled");

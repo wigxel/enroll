@@ -5,6 +5,7 @@ import { AlertOctagonIcon } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ApplicationForm from "@/components/forms/ApplicationForm";
+import FastTrackPrompt from "@/components/forms/FastTrackPrompt";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { api } from "@/convex/_generated/api";
 import { isAdminRole } from "@/lib/roles";
@@ -37,15 +38,17 @@ export default async function CourseApplicationPage({
   const { getToken } = await auth();
   const token = await getToken({ template: "convex" });
 
-  const [courseResult, appStatus, user] = await Promise.all([
+  const [courseResult, appStatus, user, enrollmentResult] = await Promise.all([
     fetchQuery(api.courses.getBySlug, { slug: (await params).slug }),
     fetchQuery(api.settings.getAppStatus),
     fetchQuery(api.users.getCurrentUser, {}, token ? { token } : undefined),
+    fetchQuery(api.enrollments.get, {}, token ? { token } : undefined),
   ]);
 
   const course = courseResult?.success ? courseResult.data : null;
   const currentUser = user?.success ? user.data : null;
   const isAdmin = isAdminRole(currentUser?.role ?? null);
+  const isReturningStudent = enrollmentResult?.success;
 
   if (!course) {
     notFound();
@@ -54,7 +57,7 @@ export default async function CourseApplicationPage({
   return (
     <div className="min-h-screen">
       {/* ── Sticky header ── */}
-      <div className="sticky top-0 z-50  bg-background/90 backdrop-blur-sm border-b border-gray-100 dark:border-zinc-800">
+      <div className="sticky top-0 z-50 bg-background/40 backdrop-blur-sm">
         <div className="h-16 flex items-center container justify-between mx-auto">
           <Breadcrumb
             className="flex-1 hidden md:flex"
@@ -88,18 +91,16 @@ export default async function CourseApplicationPage({
               You are viewing this page as an administrator. Use the admin
               dashboard to manage applications.
             </p>
-            <a
-              href="/admin/dashboard"
-            >
-              <Button variant="link">
-                Go to Admin Dashboard
-              </Button>
+            <a href="/admin/dashboard">
+              <Button variant="link">Go to Admin Dashboard</Button>
             </a>
           </div>
+        ) : isReturningStudent ? (
+          <FastTrackPrompt courseId={course._id} />
         ) : (
           <ApplicationForm defaultCourseId={course._id} />
         )}
       </div>
-    </div >
+    </div>
   );
 }

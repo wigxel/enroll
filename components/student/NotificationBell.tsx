@@ -46,9 +46,9 @@ function useRecentNotifications(): (Notification & { _id: string })[] {
 function getNotificationHref(type: string, _relatedEntityId?: string) {
   switch (type) {
     case "application_status_change":
-      return "/student/application-pending";
+      return "/student/courses";
     case "payment_received":
-      return "/student/application-pending";
+      return "/student/courses";
     case "tuition_payment_received":
       return "/student/enrollment";
     case "enrollment_step_complete":

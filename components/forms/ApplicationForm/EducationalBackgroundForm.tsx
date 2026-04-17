@@ -105,7 +105,8 @@ export const EducationalBackgroundForm = React.forwardRef<
                   />
                 </FormControl>
                 <FormDescription>
-                  E.g. BSc in Computer Science from University of Example (2020-2024).
+                  E.g. BSc in Computer Science from University of Example
+                  (2020-2024).
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -127,10 +128,7 @@ export const EducationalBackgroundForm = React.forwardRef<
             <div />
           )}
 
-          <Button
-            type="submit"
-            disabled={isSaving}
-          >
+          <Button type="submit" disabled={isSaving}>
             {isSaving ? "Saving..." : "Continue"}
           </Button>
         </div>

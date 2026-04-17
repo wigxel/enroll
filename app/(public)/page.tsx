@@ -1,6 +1,7 @@
 import { ArrowRight, GraduationCap } from "lucide-react";
 import Link from "next/link";
 import { PartnersMarquee } from "~/components/ui/partners-marquee";
+import { TestimonialsMarquee } from "~/components/ui/testimonials-marquee";
 
 export default async function Home() {
   return (
@@ -47,6 +48,12 @@ export default async function Home() {
 
       {/* Partners Marquee */}
       <PartnersMarquee />
+
+      {/* Testimonials Marquee */}
+      <div className="py-16">
+        {/*<TestimonialsMarquee direction="left" speed={35} />*/}
+      </div>
+
       {/* ── Hero testimonial banner ── */}
       <div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -93,7 +100,6 @@ export default async function Home() {
           </div>
         </div>
       </div>
-
     </main>
   );
 }

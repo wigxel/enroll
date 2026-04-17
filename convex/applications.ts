@@ -65,6 +65,57 @@ export const create = mutation({
 });
 
 /**
+ * Student: Fast-tracks application for returning students.
+ * Bypasses the form by using existing user data.
+ */
+export const createFastTrack = mutation({
+  args: {
+    courseId: v.id("courses"),
+  },
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+
+    const user = authResult.data;
+
+    const existing = await ctx.db
+      .query("applications")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .filter((q) => q.eq(q.field("data.courseId"), args.courseId))
+      .first();
+
+    if (existing) {
+      return {
+        success: false,
+        error: "You already have an application for this course.",
+      };
+    }
+
+    const timestamp = now();
+    const applicationId = await ctx.db.insert("applications", {
+      userId: user._id,
+      status: "draft",
+      paymentStatus: "unpaid",
+      data: {
+        firstName: user.name.split(" ")[0],
+        lastName: user.name.split(" ").slice(1).join(" ") || "User",
+        email: user.email,
+        dateOfBirth: "1900-01-01",
+        gender: "Other",
+        address: "Not provided",
+        phoneNumber: "Not provided",
+        educationalBackground: "Previous Student",
+        courseId: args.courseId,
+      },
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+
+    return { success: true, data: applicationId };
+  },
+});
+
+/**
  * Updates application data. Only allowed if status is "draft".
  */
 export const update = mutation({
@@ -280,7 +331,7 @@ export const getAll = query({
     }
     const allApplications = Array.from(allAppsMap.values());
 
-    // Enrich with course names
+    // Enrich with course names and slug
     const enriched = await Promise.all(
       allApplications.map(async (app) => {
         const course = app.data?.courseId
@@ -292,6 +343,7 @@ export const getAll = query({
           paymentStatus: app.paymentStatus,
           courseId: app.data?.courseId ?? null,
           courseName: course?.name ?? "Unknown Course",
+          courseSlug: course?.slug ?? null,
           submittedAt: app.submittedAt ?? null,
           reviewedAt: app.reviewedAt ?? null,
           rejectionReason: app.rejectionReason ?? null,

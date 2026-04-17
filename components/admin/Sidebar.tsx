@@ -75,14 +75,15 @@ export function Sidebar() {
   const getBadge = (name: string) => {
     if (name === "Applications" && pendingAppsCount > 0) {
       return (
-        <span className="ml-auto rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+        <span className="ml-auto rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
           {pendingAppsCount}
         </span>
       );
     }
+
     if (name === "Reviews" && pendingReviewsCount > 0) {
       return (
-        <span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+        <span className="ml-auto rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
           {pendingReviewsCount}
         </span>
       );

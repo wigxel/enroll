@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { api } from "@/convex/_generated/api";
-import { CourseReviewForm } from "~/components/reviews/course-review-form";
+import { OnboardingChecklist } from "@/components/student/OnboardingChecklist";
 
 const resourceCards = [
   {
@@ -55,7 +55,7 @@ export default function StudentDashboardPage() {
       const isEnrolledValue = !!enrollment;
 
       if (!isApprovedValue || !isEnrolledValue) {
-        router.replace("/student/application-pending");
+        router.replace("/student/courses");
       }
     }
   }, [applicationResult, enrollmentResult, application, enrollment, router]);
@@ -81,15 +81,16 @@ export default function StudentDashboardPage() {
 
   const initials = user.name
     ? user.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
     : "U";
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <title>Student Dashboard - Enrollment System</title>
+      <OnboardingChecklist />
       <div className="rounded-2xl bg-linear-to-br from-primary/5 via-primary/2 to-transparent border border-primary/10 p-6 sm:p-8">
         <div className="flex items-center gap-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -121,7 +122,7 @@ export default function StudentDashboardPage() {
               Enrollment Summary
             </h2>
             <Link
-              href="/student/application-pending"
+              href="/student/courses"
               className="inline-flex gap-1 items-center"
             >
               <span>View details</span>
@@ -167,13 +168,13 @@ export default function StudentDashboardPage() {
                   <p className="text-sm font-semibold text-gray-900">
                     {enrollment.completedAt
                       ? new Date(enrollment.completedAt).toLocaleDateString(
-                        "en-NG",
-                        {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        },
-                      )
+                          "en-NG",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          },
+                        )
                       : "In Progress"}
                   </p>
                 </div>
@@ -204,22 +205,6 @@ export default function StudentDashboardPage() {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-      ) : null}
-
-      {/* Course Reviews - Only show for completed enrollments */}
-      {enrollment?.status === "completed" && enrollment?.courseId ? (
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold text-gray-900">Course Review</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Share your experience to help future students.
-          </p>
-          <div className="mt-4">
-            <CourseReviewForm
-              courseId={enrollment.courseId}
-              courseName={enrollment.courseName}
-            />
           </div>
         </section>
       ) : null}

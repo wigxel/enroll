@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
+import { Doc } from "./_generated/dataModel";
 import { now, type Result, requireAuth, requirePrivilege } from "./utils";
 
 /**
@@ -12,24 +13,31 @@ export const listByCourseId = query({
     const privResult = await requirePrivilege(ctx, "student:read:list");
     if (!privResult.success) return privResult;
 
-    const enrollments = await ctx.db.query("enrollments").collect();
+    const applications = await ctx.db
+      .query("applications")
+      .withIndex("by_courseId", (q) => q.eq("data.courseId", args.courseId))
+      .collect();
 
-    // Filter by course ID (need to look up via application)
     const enriched = await Promise.all(
-      enrollments.map(async (e) => {
-        const application = await ctx.db.get(e.applicationId);
-        if (!application || application.data.courseId !== args.courseId) {
-          return null;
-        }
+      applications.map(async (app) => {
+        const enrollment = await ctx.db
+          .query("enrollments")
+          .withIndex("by_applicationId", (q) => q.eq("applicationId", app._id))
+          .first();
 
-        const cohort = e.cohortId ? await ctx.db.get(e.cohortId) : null;
-        const user = await ctx.db.get(e.userId);
+        if (!enrollment) return null;
+
+        const cohort = enrollment.cohortId
+          ? await ctx.db.get(enrollment.cohortId)
+          : null;
+        const user = app.userId ? await ctx.db.get(app.userId) : null;
+        const userData = user as Doc<"users"> | null;
 
         return {
-          ...e,
+          ...enrollment,
           cohortName: cohort?.name ?? "—",
-          studentName: user?.name ?? "—",
-          studentEmail: user?.email ?? "—",
+          studentName: userData?.name ?? "—",
+          studentEmail: userData?.email ?? "—",
         };
       }),
     );
@@ -37,6 +45,53 @@ export const listByCourseId = query({
     const filtered = enriched.filter(Boolean);
 
     return { success: true, data: filtered };
+  },
+});
+
+/**
+ * Student: Retrieves classmates for a specific course.
+ */
+export const getClassmates = query({
+  args: { courseId: v.id("courses") },
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+
+    const currentUser = authResult.data;
+
+    const applications = await ctx.db
+      .query("applications")
+      .withIndex("by_courseId", (q) => q.eq("data.courseId", args.courseId))
+      .collect();
+
+    const classmates = await Promise.all(
+      applications.map(async (app) => {
+        if (app.userId === currentUser._id) return null;
+        if (!app.userId) return null;
+
+        const enrollment = await ctx.db
+          .query("enrollments")
+          .withIndex("by_applicationId", (q) => q.eq("applicationId", app._id))
+          .first();
+
+        if (!enrollment) return null;
+
+        const user = await ctx.db.get(app.userId);
+        if (!user) return null;
+        const userData = user as Doc<"users">;
+
+        return {
+          userId: userData._id,
+          name: userData.name,
+          profileImage: userData.profileImage,
+        };
+      }),
+    );
+
+    return {
+      success: true,
+      data: classmates.filter(Boolean),
+    };
   },
 });
 
@@ -106,13 +161,16 @@ export const getAll = query({
         const course = application?.data?.courseId
           ? await ctx.db.get(application.data.courseId)
           : null;
+        const courseSlug = course?.slug ?? null;
 
         return {
           _id: e._id,
           status: e.status,
           completedAt: e.completedAt,
+          steps: e.steps,
           cohortName: cohort?.name ?? "—",
           courseId: application?.data?.courseId ?? null,
+          courseSlug: courseSlug,
           courseName: course?.name ?? "—",
           createdAt: e.createdAt,
         };
