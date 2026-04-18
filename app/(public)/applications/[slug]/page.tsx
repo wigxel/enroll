@@ -42,13 +42,19 @@ export default async function CourseApplicationPage({
     fetchQuery(api.courses.getBySlug, { slug: (await params).slug }),
     fetchQuery(api.settings.getAppStatus),
     fetchQuery(api.users.getCurrentUser, {}, token ? { token } : undefined),
-    fetchQuery(api.enrollments.get, {}, token ? { token } : undefined),
+    fetchQuery(api.enrollments.getAll, {}, token ? { token } : undefined),
   ]);
 
   const course = courseResult?.success ? courseResult.data : null;
   const currentUser = user?.success ? user.data : null;
   const isAdmin = isAdminRole(currentUser?.role ?? null);
-  const isReturningStudent = enrollmentResult?.success;
+
+  const enrollments = enrollmentResult?.success ? enrollmentResult.data : [];
+  // Check if user is enrolled in this specific course
+  const isEnrolledInCourse = enrollments.some(
+    (e) => e.courseId === course?._id,
+  );
+  const isReturningStudent = enrollments.length > 0 && isEnrolledInCourse;
 
   if (!course) {
     notFound();

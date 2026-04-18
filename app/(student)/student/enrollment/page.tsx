@@ -33,7 +33,7 @@ interface EnrollmentStep {
   title: string;
   description: string;
   icon: typeof CreditCard;
-  href: string
+  href: string;
   completed: boolean;
 }
 
@@ -44,9 +44,13 @@ function getStepStatus(
     documentsSigned: boolean;
   },
   stepIndex: number,
+  quizRequired: boolean,
 ): "completed" | "current" | "locked" {
-  const stepKeys = ["tuitionPaid", "quizPassed", "documentsSigned"] as const;
-  if (steps[stepKeys[stepIndex]]) return "completed";
+  const stepKeys = quizRequired
+    ? (["tuitionPaid", "quizPassed", "documentsSigned"] as const)
+    : (["tuitionPaid", "documentsSigned"] as const);
+
+  if (stepKeys[stepIndex] && steps[stepKeys[stepIndex]]) return "completed";
 
   const firstIncompleteIndex = stepKeys.findIndex((key) => !steps[key]);
   if (firstIncompleteIndex === stepIndex) return "current";
@@ -171,8 +175,16 @@ export default function EnrollmentChecklistPage() {
     }
   };
 
-  const completedCount = Object.values(enrollment_steps).filter(Boolean).length;
-  const totalSteps = 3;
+  const quizRequired = (enrollment as any)?.quizRequired ?? false;
+
+  const stepsToComplete = [
+    enrollment_steps.tuitionPaid,
+    quizRequired && enrollment_steps.quizPassed,
+    enrollment_steps.documentsSigned,
+  ].filter(Boolean).length;
+
+  const completedCount = stepsToComplete;
+  const totalSteps = quizRequired ? 3 : 2;
   const progressPercent = (completedCount / totalSteps) * 100;
 
   const stepDefinitions: Omit<EnrollmentStep, "completed">[] = [
@@ -183,20 +195,24 @@ export default function EnrollmentChecklistPage() {
       description:
         "Complete your tuition payment to secure your spot in the program.",
       icon: CreditCard,
-      href: "/students/courses#pending"
+      href: "/students/courses#pending",
     },
-    {
-      id: "quiz",
-      number: 2,
-      title: "Complete Orientation Quiz",
-      description:
-        "Take the orientation assessment to demonstrate your readiness.",
-      icon: BookOpen,
-      href: `/student/enrollment/quiz?courseId=${enrollment.courseId}`,
-    },
+    ...(quizRequired
+      ? [
+          {
+            id: "quiz",
+            number: 2,
+            title: "Complete Orientation Quiz",
+            description:
+              "Take the orientation assessment to demonstrate your readiness.",
+            icon: BookOpen,
+            href: `/student/enrollment/quiz?courseId=${enrollment.courseId}`,
+          },
+        ]
+      : []),
     {
       id: "documents",
-      number: 3,
+      number: quizRequired ? 3 : 2,
       title: "Sign Documents",
       description:
         "Review and sign the enrollment agreement and policy documents.",
@@ -234,7 +250,7 @@ export default function EnrollmentChecklistPage() {
 
       <div className="mt-8 space-y-4">
         {stepDefinitions.map((step, index) => {
-          const status = getStepStatus(enrollment_steps, index);
+          const status = getStepStatus(enrollment_steps, index, quizRequired);
           const StepIcon = step.icon;
           const isLocked = status === "locked";
           const isCompleted = status === "completed";
@@ -243,21 +259,23 @@ export default function EnrollmentChecklistPage() {
           return (
             <div
               key={step.id}
-              className={`rounded-xl border p-5 transition-all ${isCompleted
-                ? "border-emerald-200 bg-emerald-50/50"
-                : isCurrent
-                  ? "border-primary/30 bg-white shadow-sm ring-1 ring-primary/10"
-                  : "border-gray-200 bg-gray-50/50 opacity-60"
-                }`}
+              className={`rounded-xl border p-5 transition-all ${
+                isCompleted
+                  ? "border-emerald-200 bg-emerald-50/50"
+                  : isCurrent
+                    ? "border-primary/30 bg-white shadow-sm ring-1 ring-primary/10"
+                    : "border-gray-200 bg-gray-50/50 opacity-60"
+              }`}
             >
               <div className="flex items-start gap-4">
                 <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isCompleted
-                    ? "bg-emerald-100 text-emerald-600"
-                    : isCurrent
-                      ? "bg-primary/10 text-primary"
-                      : "bg-gray-200 text-gray-400"
-                    }`}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                    isCompleted
+                      ? "bg-emerald-100 text-emerald-600"
+                      : isCurrent
+                        ? "bg-primary/10 text-primary"
+                        : "bg-gray-200 text-gray-400"
+                  }`}
                 >
                   {isCompleted ? (
                     <CheckCircle2 className="h-5 w-5" />
@@ -290,14 +308,16 @@ export default function EnrollmentChecklistPage() {
                     )}
                   </div>
                   <h3
-                    className={`mt-1 text-sm font-semibold ${isLocked ? "text-gray-400" : "text-gray-900"
-                      }`}
+                    className={`mt-1 text-sm font-semibold ${
+                      isLocked ? "text-gray-400" : "text-gray-900"
+                    }`}
                   >
                     {step.title}
                   </h3>
                   <p
-                    className={`mt-0.5 text-xs ${isLocked ? "text-gray-400" : "text-gray-500"
-                      }`}
+                    className={`mt-0.5 text-xs ${
+                      isLocked ? "text-gray-400" : "text-gray-500"
+                    }`}
                   >
                     {step.description}
                   </p>
@@ -337,6 +357,32 @@ export default function EnrollmentChecklistPage() {
           );
         })}
       </div>
+
+      {/* Completion Section - Show when all steps are done */}
+      {completedCount === totalSteps && (
+        <div className="mt-8 p-6 bg-emerald-50 rounded-xl border border-emerald-200">
+          <div className="text-center">
+            <CheckCircle2 className="h-12 w-12 text-emerald-600 mx-auto" />
+            <h3 className="mt-4 text-lg font-semibold text-emerald-900">
+              You're all set!
+            </h3>
+            <p className="mt-2 text-sm text-emerald-700">
+              You've completed all enrollment steps.
+            </p>
+            <Link
+              href={
+                enrollment.courseSlug
+                  ? `/student/courses/${enrollment.courseSlug}`
+                  : "/student/courses"
+              }
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
+            >
+              Go to Course
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       <Dialog open={isSignModalOpen} onOpenChange={setIsSignModalOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">

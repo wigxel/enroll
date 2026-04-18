@@ -95,6 +95,7 @@ export default defineSchema({
       quizPassed: v.boolean(),
       documentsSigned: v.boolean(),
     }),
+    quizAttempts: v.optional(v.number()),
     status: v.union(v.literal("pending"), v.literal("completed")),
     completedAt: v.optional(v.string()),
     createdAt: v.string(),
@@ -140,6 +141,14 @@ export default defineSchema({
     instructorIds: v.optional(v.array(v.id("instructors"))),
     faqIds: v.optional(v.array(v.id("faqs"))),
     brochureUrl: v.optional(v.string()),
+    quizPolicy: v.optional(
+      v.object({
+        enabled: v.boolean(),
+        passScore: v.number(),
+        allowRetake: v.boolean(),
+        maxAttempts: v.number(),
+      }),
+    ),
     prerequisites: v.optional(
       v.array(
         v.object({

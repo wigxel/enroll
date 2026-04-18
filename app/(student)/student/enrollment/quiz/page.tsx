@@ -8,8 +8,11 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 export default function QuizLandingPage() {
+  const searchParams = useSearchParams();
+  const courseId = searchParams.get("courseId");
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6">
       <div className="w-full max-w-2xl">
@@ -95,7 +98,11 @@ export default function QuizLandingPage() {
                 Ready to begin? The quiz will open in this window.
               </p>
               <Link
-                href="/student/enrollment/quiz/take"
+                href={
+                  courseId
+                    ? `/student/enrollment/quiz/take?courseId=${courseId}`
+                    : "/student/enrollment/quiz/take"
+                }
                 className="group inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow active:scale-[0.98]"
               >
                 <PlayCircle className="h-5 w-5 transition-transform group-hover:scale-110" />

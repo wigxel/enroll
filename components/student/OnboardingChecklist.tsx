@@ -17,19 +17,17 @@ interface Task {
 const TASKS: Task[] = [
   { id: "profile", label: "Complete your profile" },
   { id: "courses", label: "Explore your courses", href: "/student/courses" },
-  {
-    id: "enrollment",
-    label: "Check enrollment details",
-    href: "/student/enrollment",
-  },
-  {
-    id: "certifications",
-    label: "Browse certifications",
-    href: "/student/certifications",
-  },
 ];
 
-export function OnboardingChecklist() {
+interface OnboardingChecklistProps {
+  enrollment?: {
+    courseId: string;
+    courseSlug: string;
+    status: string;
+  };
+}
+
+export function OnboardingChecklist({ enrollment }: OnboardingChecklistProps) {
   const router = useRouter();
   const userResult = useQuery(api.users.getCurrentUser);
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
@@ -37,6 +35,31 @@ export function OnboardingChecklist() {
 
   const user = userResult?.success ? userResult.data : null;
   const userId = user?._id;
+
+  // Dynamically add enrollment task if enrollment is provided
+  const activeTasks = TASKS.concat(
+    enrollment
+      ? [
+          {
+            id: "enrollment",
+            label: "Check enrollment details",
+            href: `/student/enrollment?courseId=${enrollment.courseId}`,
+          },
+        ]
+      : [],
+  );
+
+  // If enrollment is completed, add certifications task
+  const allTasks =
+    enrollment && enrollment.status === "completed"
+      ? activeTasks.concat([
+          {
+            id: "certifications",
+            label: "Browse certifications",
+            href: "/student/certifications",
+          },
+        ])
+      : activeTasks;
 
   useEffect(() => {
     if (userId) {
@@ -70,7 +93,7 @@ export function OnboardingChecklist() {
 
   if (!user) return null;
 
-  const progress = (completedTasks.length / TASKS.length) * 100;
+  const progress = (completedTasks.length / allTasks.length) * 100;
   const radius = 14;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
@@ -80,7 +103,7 @@ export function OnboardingChecklist() {
       {!isExpanded ? (
         <motion.span className="text-sm font-bold">
           <span className="text-red-600">{completedTasks.length}</span>
-          <span className="text-gray-400"> / {TASKS.length}</span>
+          <span className="text-gray-400"> / {allTasks.length}</span>
         </motion.span>
       ) : null}
 
@@ -166,7 +189,7 @@ export function OnboardingChecklist() {
             </div>
 
             <div className="space-y-3">
-              {TASKS.map((task) => {
+              {allTasks.map((task) => {
                 const isCompleted = completedTasks.includes(task.id);
                 return (
                   <div

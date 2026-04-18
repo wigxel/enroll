@@ -2,12 +2,14 @@
 
 import { useMutation, useQuery } from "convex/react";
 import { CheckCircle2, ChevronRight, Loader2, XCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/convex/_generated/api";
 
 export default function ActiveQuizPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const courseIdParam = searchParams.get("courseId");
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{
@@ -16,7 +18,10 @@ export default function ActiveQuizPage() {
   } | null>(null);
 
   const activeQuestionsResult = useQuery(api.quizzes.listActiveForStudents);
-  const enrollmentResult = useQuery(api.enrollments.get);
+  const enrollmentResult = useQuery(
+    api.enrollments.getByCourseId,
+    courseIdParam ? { courseId: courseIdParam as any } : "skip",
+  );
   const submitQuiz = useMutation(api.enrollments.submitQuiz);
 
   const activeQuestions = activeQuestionsResult?.success

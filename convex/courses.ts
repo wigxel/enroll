@@ -200,6 +200,14 @@ export const update = mutation({
     instructorIds: v.optional(v.array(v.id("instructors"))),
     faqIds: v.optional(v.array(v.id("faqs"))),
     brochureUrl: v.optional(v.string()),
+    quizPolicy: v.optional(
+      v.object({
+        enabled: v.boolean(),
+        passScore: v.number(),
+        allowRetake: v.boolean(),
+        maxAttempts: v.number(),
+      }),
+    ),
     prerequisites: v.optional(
       v.array(
         v.object({
@@ -234,6 +242,7 @@ export const update = mutation({
       }),
       ...(args.faqIds !== undefined && { faqIds: args.faqIds }),
       ...(args.brochureUrl !== undefined && { brochureUrl: args.brochureUrl }),
+      ...(args.quizPolicy !== undefined && { quizPolicy: args.quizPolicy }),
       ...(args.prerequisites !== undefined && {
         prerequisites: args.prerequisites,
       }),

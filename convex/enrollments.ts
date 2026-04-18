@@ -97,6 +97,7 @@ export const getClassmates = query({
 
 /**
  * Retrieves the current user's enrollment checklist.
+ * @deprecated - Use getByCourseId instead to avoid getting the wrong enrollment when user has multiple enrollments.
  */
 export const get = query({
   args: {},
@@ -137,6 +138,50 @@ export const get = query({
 });
 
 /**
+ * Retrieves the current user's enrollment for a specific course.
+ * Use this instead of `get` when user has multiple enrollments.
+ */
+export const getByCourseId = query({
+  args: { courseId: v.id("courses") },
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const authResult = await requireAuth(ctx);
+    if (!authResult.success) return authResult;
+
+    const user = authResult.data;
+
+    // Find enrollment by matching courseId from application
+    const enrollments = await ctx.db
+      .query("enrollments")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .collect();
+
+    // Find the enrollment whose application references this course
+    for (const enrollment of enrollments) {
+      const application = await ctx.db.get(enrollment.applicationId);
+      if (application?.data?.courseId === args.courseId) {
+        const cohort = enrollment.cohortId
+          ? await ctx.db.get(enrollment.cohortId)
+          : null;
+
+        const course = await ctx.db.get(args.courseId);
+
+        return {
+          success: true,
+          data: {
+            ...enrollment,
+            cohortName: cohort?.name ?? "—",
+            courseId: args.courseId,
+            quizRequired: (course as any)?.quizPolicy?.enabled ?? false,
+          },
+        };
+      }
+    }
+
+    return { success: false, error: "Enrollment not found for this course." };
+  },
+});
+
+/**
  * Student: Lists all enrollments for the current user.
  * Returns all enrollments (ongoing and completed) with course info.
  */
@@ -172,6 +217,7 @@ export const getAll = query({
           courseId: application?.data?.courseId ?? null,
           courseSlug: courseSlug,
           courseName: course?.name ?? "—",
+          quizRequired: (course as any)?.quizPolicy?.enabled ?? false,
           createdAt: e.createdAt,
         };
       }),
@@ -410,12 +456,24 @@ export const complete = mutation({
       return { success: false, error: "Enrollment is already completed." };
     }
 
+    // Get course to check if quiz is required
+    const application = await ctx.db.get(enrollment.applicationId);
+    const course = application?.data?.courseId
+      ? await ctx.db.get(application.data.courseId as any)
+      : null;
+
+    const quizRequired = (course as any)?.quizPolicy?.enabled ?? false;
+
     // Verify all steps are done
     const { tuitionPaid, quizPassed, documentsSigned } = enrollment.steps;
-    if (!tuitionPaid || !quizPassed || !documentsSigned) {
+    if (!tuitionPaid || (quizRequired && !quizPassed) || !documentsSigned) {
+      const missingSteps: string[] = [];
+      if (!tuitionPaid) missingSteps.push("tuition");
+      if (quizRequired && !quizPassed) missingSteps.push("quiz");
+      if (!documentsSigned) missingSteps.push("documents");
       return {
         success: false,
-        error: "All enrollment steps must be completed before finalizing.",
+        error: `Please complete the following: ${missingSteps.join(", ")}`,
       };
     }
 
@@ -457,7 +515,7 @@ export const complete = mutation({
 
 /**
  * Grades the orientation quiz and updates the enrollment step if passed.
- * Requires an 80% score to pass (4/5 questions correct).
+ * Respects course-specific quiz policy.
  */
 export const submitQuiz = mutation({
   args: {
@@ -479,6 +537,49 @@ export const submitQuiz = mutation({
       return {
         success: false,
         error: "You must complete the 'Pay Tuition' step first.",
+      };
+    }
+
+    // Fetch course to get quiz policy
+    const application = await ctx.db.get(enrollment.applicationId);
+    const course = application?.data?.courseId
+      ? await ctx.db.get(application.data.courseId as any)
+      : null;
+
+    const quizPolicy = (course as any)?.quizPolicy as
+      | {
+          enabled: boolean;
+          passScore: number;
+          allowRetake: boolean;
+          maxAttempts: number;
+        }
+      | undefined;
+
+    // Check if quiz is enabled
+    if (!quizPolicy?.enabled) {
+      return {
+        success: false,
+        error: "Quiz is not enabled for this course.",
+      };
+    }
+
+    // Check max attempts - track by quizAttempts field
+    const currentAttempts = enrollment.quizAttempts ?? 0;
+    const maxAttempts = quizPolicy.maxAttempts ?? 1;
+
+    // Already passed and retakes not allowed
+    if (enrollment.steps.quizPassed && !quizPolicy.allowRetake) {
+      return {
+        success: false,
+        error: "You have already passed the quiz and retakes are not allowed.",
+      };
+    }
+
+    // Check if attempts exhausted
+    if (currentAttempts >= maxAttempts) {
+      return {
+        success: false,
+        error: `You have used all ${maxAttempts} attempt(s) for this quiz.`,
       };
     }
 
@@ -507,7 +608,7 @@ export const submitQuiz = mutation({
 
     const totalQuestions = activeQuestions.length;
     const score = (correctCount / totalQuestions) * 100;
-    const requiredScore = 80;
+    const requiredScore = quizPolicy.passScore ?? 80;
     const passed = score >= requiredScore;
 
     if (passed && !enrollment.steps.quizPassed) {
@@ -531,12 +632,20 @@ export const submitQuiz = mutation({
         targetAdmins: false,
         targetUserId: user._id,
       });
-    } else if (!passed) {
-      // Optionally notify failure (can be noisy, UI feedback usually enough)
+    }
+
+    // Increment attempts on every submission
+    await ctx.db.patch(args.enrollmentId, {
+      quizAttempts: currentAttempts + 1,
+      updatedAt: now(),
+    });
+
+    if (!passed && quizPolicy.allowRetake) {
+      // Notify failure when retakes are allowed
       await ctx.runMutation(internal.notifications.sendNotification, {
-        type: "enrollment_step_complete", // Reuse type or create a specific 'quiz_failed'
+        type: "enrollment_step_complete",
         title: "Orientation Quiz Result",
-        body: `You scored ${score}%. A minimum of ${requiredScore}% is required. Please review the materials and try again.`,
+        body: `You scored ${score}%. A minimum of ${requiredScore}% is required. You have ${maxAttempts - currentAttempts} attempt(s) remaining.`,
         relatedEntityId: args.enrollmentId,
         relatedEntityType: "enrollment",
         targetAdmins: false,
@@ -606,6 +715,7 @@ export const createForStudent = mutation({
         quizPassed: args.isPaid,
         documentsSigned: args.isPaid,
       },
+      quizAttempts: 0,
       status: isComplete ? "completed" : "pending",
       completedAt: isComplete ? timestamp : undefined,
       createdAt: timestamp,
