@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { api } from "@/convex/_generated/api";
+import { Button } from "~/components/ui/button";
 import { safeObj } from "~/lib/data.helpers";
 
 interface EnrollmentStep {
@@ -199,16 +200,16 @@ export default function EnrollmentChecklistPage() {
     },
     ...(quizRequired
       ? [
-          {
-            id: "quiz",
-            number: 2,
-            title: "Complete Orientation Quiz",
-            description:
-              "Take the orientation assessment to demonstrate your readiness.",
-            icon: BookOpen,
-            href: `/student/enrollment/quiz?courseId=${enrollment.courseId}`,
-          },
-        ]
+        {
+          id: "quiz",
+          number: 2,
+          title: "Complete Orientation Quiz",
+          description:
+            "Take the orientation assessment to demonstrate your readiness.",
+          icon: BookOpen,
+          href: `/student/enrollment/quiz?courseId=${enrollment.courseId}`,
+        },
+      ]
       : []),
     {
       id: "documents",
@@ -259,23 +260,21 @@ export default function EnrollmentChecklistPage() {
           return (
             <div
               key={step.id}
-              className={`rounded-xl border p-5 transition-all ${
-                isCompleted
-                  ? "border-emerald-200 bg-emerald-50/50"
-                  : isCurrent
-                    ? "border-primary/30 bg-white shadow-sm ring-1 ring-primary/10"
-                    : "border-gray-200 bg-gray-50/50 opacity-60"
-              }`}
+              className={`rounded-xl border p-5 transition-all ${isCompleted
+                ? "border-emerald-200 bg-emerald-50/50"
+                : isCurrent
+                  ? "border-primary/30 bg-white shadow-sm ring-1 ring-primary/10"
+                  : "border-gray-200 bg-gray-50/50 opacity-60"
+                }`}
             >
               <div className="flex items-start gap-4">
                 <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
-                    isCompleted
-                      ? "bg-emerald-100 text-emerald-600"
-                      : isCurrent
-                        ? "bg-primary/10 text-primary"
-                        : "bg-gray-200 text-gray-400"
-                  }`}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isCompleted
+                    ? "bg-emerald-100 text-emerald-600"
+                    : isCurrent
+                      ? "bg-primary/10 text-primary"
+                      : "bg-gray-200 text-gray-400"
+                    }`}
                 >
                   {isCompleted ? (
                     <CheckCircle2 className="h-5 w-5" />
@@ -308,16 +307,14 @@ export default function EnrollmentChecklistPage() {
                     )}
                   </div>
                   <h3
-                    className={`mt-1 text-sm font-semibold ${
-                      isLocked ? "text-gray-400" : "text-gray-900"
-                    }`}
+                    className={`mt-1 text-sm font-semibold ${isLocked ? "text-gray-400" : "text-gray-900"
+                      }`}
                   >
                     {step.title}
                   </h3>
                   <p
-                    className={`mt-0.5 text-xs ${
-                      isLocked ? "text-gray-400" : "text-gray-500"
-                    }`}
+                    className={`mt-0.5 text-xs ${isLocked ? "text-gray-400" : "text-gray-500"
+                      }`}
                   >
                     {step.description}
                   </p>
@@ -360,26 +357,29 @@ export default function EnrollmentChecklistPage() {
 
       {/* Completion Section - Show when all steps are done */}
       {completedCount === totalSteps && (
-        <div className="mt-8 p-6 bg-emerald-50 rounded-xl border border-emerald-200">
+        <div className="mt-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
           <div className="text-center">
             <CheckCircle2 className="h-12 w-12 text-emerald-600 mx-auto" />
-            <h3 className="mt-4 text-lg font-semibold text-emerald-900">
+            <h3 className="mt-4 text-lg font-semibold text-gray-900">
               You're all set!
             </h3>
-            <p className="mt-2 text-sm text-emerald-700">
+
+            <p className="mt-2 pb-8 text-sm text-gray-700">
               You've completed all enrollment steps.
             </p>
-            <Link
-              href={
-                enrollment.courseSlug
-                  ? `/student/courses/${enrollment.courseSlug}`
-                  : "/student/courses"
-              }
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
-            >
-              Go to Course
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+
+            <Button asChild>
+              <Link
+                href={
+                  enrollment.courseSlug
+                    ? `/student/courses/${enrollment.courseSlug}`
+                    : "/student/courses"
+                }
+              >
+                Go to Course
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       )}

@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { api } from "@/convex/_generated/api";
 import { OnboardingChecklist } from "@/components/student/OnboardingChecklist";
+import { api } from "@/convex/_generated/api";
 
 const resourceCards = [
   {
@@ -134,11 +134,10 @@ function RecentEnrollments() {
           </div>
           <div className="flex items-center gap-2">
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                enrollment.status === "completed"
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-blue-100 text-blue-700"
-              }`}
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${enrollment.status === "completed"
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-blue-100 text-blue-700"
+                }`}
             >
               {enrollment.status === "completed" ? "Completed" : "In Progress"}
             </span>
@@ -216,10 +215,10 @@ export default function StudentDashboardPage() {
 
   const initials = user.name
     ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
     : "U";
 
   return (
