@@ -47,6 +47,7 @@ export default function ApplicationForm({
 
   const [formData, setFormData] = useState<{
     firstName: string;
+    middleName: string;
     lastName: string;
     email: string;
     gender: string;
@@ -59,6 +60,7 @@ export default function ApplicationForm({
     const isDev = isDevelopment();
     return {
       firstName: isDev ? "John" : "",
+      middleName: isDev ? "Michael" : "",
       lastName: isDev ? "Doe" : "",
       email: isDev ? "john.doe@example.com" : "",
       gender: isDev ? "Male" : "",
@@ -127,6 +129,7 @@ export default function ApplicationForm({
       const res = await createApplication({
         data: {
           firstName: formData.firstName,
+          middleName: formData.middleName || undefined,
           lastName: formData.lastName,
           email: formData.email,
           gender: formData.gender,

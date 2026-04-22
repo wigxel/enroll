@@ -595,6 +595,7 @@ export const updateUserProfile = mutation({
 export const createStudent = action({
   args: {
     firstName: v.string(),
+    middleName: v.optional(v.string()),
     lastName: v.string(),
     email: v.string(),
   },
@@ -625,7 +626,7 @@ export const createStudent = action({
       };
     }
 
-    const { firstName, lastName, email } = args;
+    const { firstName, middleName, lastName, email } = args;
 
     const existingUser = await ctx.runQuery(internal.users.getUserByEmail, {
       email,
@@ -642,6 +643,7 @@ export const createStudent = action({
     try {
       const clerkResponse = await createClerkUser({
         firstName,
+        middleName,
         lastName,
         emailAddress: email,
       });
@@ -653,10 +655,14 @@ export const createStudent = action({
       };
     }
 
+    const fullName = [firstName, middleName, lastName]
+      .filter(Boolean)
+      .join(" ");
+
     return await ctx.runMutation(internal.users.createStudentRecord, {
       clerkId: clerkUserId,
       email,
-      name: `${firstName} ${lastName}`,
+      name: fullName,
     });
   },
 });

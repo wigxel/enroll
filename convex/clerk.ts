@@ -118,6 +118,7 @@ export async function updateUserMetadata(opts: UpdateUserMetadataOptions) {
 export interface CreateUserOptions {
   emailAddress: string;
   firstName: string;
+  middleName?: string;
   lastName: string;
 }
 
@@ -128,6 +129,7 @@ export async function createUser(opts: CreateUserOptions) {
     body: JSON.stringify({
       email_address: [opts.emailAddress],
       first_name: opts.firstName,
+      middle_name: opts.middleName,
       last_name: opts.lastName,
       skip_password_checks: true,
       skip_password_requirement: true,

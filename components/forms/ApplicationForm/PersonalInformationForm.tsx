@@ -28,6 +28,7 @@ import { PhoneNumberInputField } from "../../fields/PhoneNumberInputField";
 
 export const personalInformationSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
+  middleName: z.string().optional(),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
   gender: z.string().min(1, "Please select your gender"),
@@ -51,6 +52,7 @@ export type PersonalInformationValues = z.infer<
 
 export const defaultPersonalInformationState: PersonalInformationValues = {
   firstName: "",
+  middleName: "",
   lastName: "",
   email: "",
   gender: "",
@@ -246,7 +248,7 @@ export const PersonalInformationForm = React.forwardRef<
 
           {isInitialValidated && (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -257,6 +259,20 @@ export const PersonalInformationForm = React.forwardRef<
                       </FormLabel>
                       <FormControl>
                         <Input placeholder="John" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="middleName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Middle Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Michael" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

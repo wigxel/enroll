@@ -167,6 +167,38 @@ export const update = mutation({
 });
 
 /**
+ * Admin/Staff: Deletes a cohort.
+ * Shows an error if the cohort has enrolled students.
+ */
+export const remove = mutation({
+  args: { cohortId: v.id("cohorts") },
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const privResult = await requirePrivilege(ctx, "cohort:manage");
+    if (!privResult.success) return privResult;
+
+    const cohort = await ctx.db.get(args.cohortId);
+    if (!cohort) {
+      return { success: false, error: "Cohort not found." };
+    }
+
+    const enrollments = await ctx.db
+      .query("enrollments")
+      .withIndex("by_cohortId", (q) => q.eq("cohortId", args.cohortId))
+      .collect();
+
+    if (enrollments.length > 0) {
+      return {
+        success: false,
+        error: `Cannot delete cohort with ${enrollments.length} enrolled student(s). Remove students first.`,
+      };
+    }
+
+    await ctx.db.delete(args.cohortId);
+    return { success: true, data: null };
+  },
+});
+
+/**
  * Admin/Staff: Assigns an enrolled student to a cohort.
  */
 export const assignStudent = mutation({

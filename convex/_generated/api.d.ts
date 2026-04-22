@@ -27,6 +27,7 @@ import type * as partners from "../partners.js";
 import type * as payments from "../payments.js";
 import type * as quizzes from "../quizzes.js";
 import type * as reviews from "../reviews.js";
+import type * as roles from "../roles.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
 import type * as storage from "../storage.js";
@@ -61,6 +62,7 @@ declare const fullApi: ApiFromModules<{
   payments: typeof payments;
   quizzes: typeof quizzes;
   reviews: typeof reviews;
+  roles: typeof roles;
   seed: typeof seed;
   settings: typeof settings;
   storage: typeof storage;

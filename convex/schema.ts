@@ -44,6 +44,7 @@ export default defineSchema({
     paymentStatus: v.union(v.literal("unpaid"), v.literal("paid")),
     data: v.object({
       firstName: v.string(),
+      middleName: v.optional(v.string()),
       lastName: v.string(),
       email: v.string(),
       dateOfBirth: v.string(),

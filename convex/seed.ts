@@ -343,6 +343,7 @@ const seedApplications = async (
       paymentStatus: "paid" as const,
       data: {
         firstName: "John",
+        middleName: "",
         lastName: "Doe",
         email: "john.doe@gmail.com",
         dateOfBirth: "1998-06-15",
@@ -363,6 +364,7 @@ const seedApplications = async (
       paymentStatus: "unpaid" as const,
       data: {
         firstName: "Jane",
+        middleName: "",
         lastName: "Smith",
         email: "jane.smith@outlook.com",
         dateOfBirth: "2000-03-22",
@@ -382,6 +384,7 @@ const seedApplications = async (
       paymentStatus: "paid" as const,
       data: {
         firstName: "Kwame",
+        middleName: "",
         lastName: "Asante",
         email: "kwame.asante@yahoo.com",
         dateOfBirth: "1997-11-08",
@@ -401,6 +404,7 @@ const seedApplications = async (
       paymentStatus: "paid" as const,
       data: {
         firstName: "Amara",
+        middleName: "",
         lastName: "Obi",
         email: "amara.obi@gmail.com",
         dateOfBirth: "1999-04-12",
@@ -422,6 +426,7 @@ const seedApplications = async (
       paymentStatus: "paid" as const,
       data: {
         firstName: "Chioma",
+        middleName: "",
         lastName: "Nwosu",
         email: "chioma.nwosu@gmail.com",
         dateOfBirth: "2001-07-30",

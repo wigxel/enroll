@@ -123,6 +123,7 @@ export const update = mutation({
     applicationId: v.id("applications"),
     data: v.object({
       firstName: v.string(),
+      middleName: v.optional(v.string()),
       lastName: v.string(),
       email: v.string(),
       dateOfBirth: v.string(),

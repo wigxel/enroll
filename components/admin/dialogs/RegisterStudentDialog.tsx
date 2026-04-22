@@ -26,6 +26,7 @@ import { api } from "~/convex/_generated/api";
 
 const registerStudentSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
+  middleName: z.string().optional(),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email address"),
 });
@@ -34,6 +35,7 @@ type RegisterStudentValues = z.infer<typeof registerStudentSchema>;
 
 const defaultRegisterStudentState: RegisterStudentValues = {
   firstName: "",
+  middleName: "",
   lastName: "",
   email: "",
 };
@@ -60,6 +62,7 @@ export function RegisterStudentDialog({
     try {
       const res = await createStudent({
         firstName: values.firstName,
+        middleName: values.middleName || undefined,
         lastName: values.lastName,
         email: values.email,
       });
@@ -96,7 +99,7 @@ export function RegisterStudentDialog({
 
         <Form {...form}>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <FormField
                 control={form.control}
                 name="firstName"
@@ -106,6 +109,23 @@ export function RegisterStudentDialog({
                     <FormControl>
                       <Input
                         placeholder="John"
+                        {...field}
+                        disabled={form.formState.isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="middleName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Middle Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Michael"
                         {...field}
                         disabled={form.formState.isSubmitting}
                       />
