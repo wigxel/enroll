@@ -82,7 +82,7 @@ export default async function CourseApplicationPage({
             ]}
           />
 
-          <div className="flex-1 text-center font-semibold text-gray-900 dark:text-white line-clamp-1">
+          <div className="flex-1 text-center text-sm font-medium text-gray-900 dark:text-white line-clamp-1">
             {course.name}
           </div>
 

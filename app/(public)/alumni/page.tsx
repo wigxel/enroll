@@ -1,64 +1,21 @@
 "use client";
 
+import { RiCertificateLine } from "@remixicon/react";
 import { useQuery } from "convex/react";
-import { ArrowRight, BookOpen, GraduationCap, Layers, Search, Users } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  GraduationCap,
+  Layers,
+  Search,
+  Users,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useProfileImageUrl } from "~/hooks/use-profile-image-url";
-
-function Avatar({
-  name,
-  src,
-  size = 56,
-}: {
-  name: string;
-  src?: string | null;
-  size?: number;
-}) {
-  const { url: resolvedSrc } = useProfileImageUrl({ value: src });
-
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-  const colors = [
-    "from-violet-500 to-purple-600",
-    "from-indigo-500 to-blue-600",
-    "from-emerald-500 to-teal-600",
-    "from-rose-500 to-pink-600",
-    "from-amber-500 to-orange-600",
-    "from-sky-500 to-cyan-600",
-  ];
-  const color = colors[name.charCodeAt(0) % colors.length];
-
-  if (resolvedSrc) {
-    return (
-      <Image
-        src={resolvedSrc}
-        alt={name}
-        width={size}
-        height={size}
-        className="rounded-full object-cover ring-2 ring-white dark:ring-zinc-900"
-        style={{ width: size, height: size }}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={`flex items-center justify-center rounded-full bg-gradient-to-br ${color} ring-2 ring-white dark:ring-zinc-900 text-white font-bold`}
-      style={{ width: size, height: size, fontSize: size * 0.35 }}
-    >
-      {initials}
-    </div>
-  );
-}
 
 export default function AlumniPage() {
   const [courseFilter, setCourseFilter] = useState<Id<"courses"> | "">("");
@@ -240,90 +197,7 @@ export default function AlumniPage() {
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {alumni.map((alumnus) => {
-              // Use the cover photo from the most recently graduated course
-              const primaryCourse = alumnus.courses[0];
-
-              return (
-                <div
-                  key={alumnus.userId}
-                  className="group flex flex-col rounded-2xl border border-gray-100 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:shadow-black/40"
-                >
-                  {/* Course cover strip */}
-                  <div className="relative h-24 overflow-hidden rounded-t-2xl bg-gradient-to-br from-indigo-500 to-purple-600">
-                    {primaryCourse.coverPhotoUrl && (
-                      <Image
-                        src={primaryCourse.coverPhotoUrl}
-                        alt={primaryCourse.courseName}
-                        fill
-                        className="object-cover opacity-50"
-                      />
-                    )}
-                    <div className="absolute right-4 top-4 rounded-full bg-white/20 p-1.5 backdrop-blur-sm">
-                      <GraduationCap className="h-4 w-4 text-white" />
-                    </div>
-                    {/* Badge count for multiple certifications */}
-                    {alumnus.courses.length > 1 && (
-                      <div className="absolute left-4 top-4 rounded-full bg-black/40 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">
-                        {alumnus.courses.length} certifications
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Card body */}
-                  <div className="flex flex-1 flex-col px-5 pb-5">
-                    {/* Avatar overlapping the cover */}
-                    <div className="-mt-7 mb-3 flex items-end justify-between">
-                      <Avatar
-                        name={alumnus.name}
-                        src={alumnus.profileImage}
-                        size={56}
-                      />
-                      <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
-                        {new Date(alumnus.latestGraduatedAt).getFullYear()}
-                      </span>
-                    </div>
-
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
-                      {alumnus.name}
-                    </h3>
-
-                    {/* All courses / certifications */}
-                    <div className="mt-3 space-y-2">
-                      {alumnus.courses.map((c) => (
-                        <div
-                          key={c.courseId}
-                          className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-800/50"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 line-clamp-1">
-                              <BookOpen className="h-3 w-3 shrink-0 text-indigo-500" />
-                              {c.courseName}
-                            </span>
-                            <time
-                              dateTime={c.graduatedAt}
-                              className="shrink-0 text-xs text-gray-400 dark:text-gray-500"
-                            >
-                              {new Date(c.graduatedAt).toLocaleDateString(
-                                undefined,
-                                { month: "short", year: "numeric" },
-                              )}
-                            </time>
-                          </div>
-                          <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-                            {c.certification}
-                          </p>
-                          {c.cohortName && (
-                            <span className="mt-1 inline-flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
-                              <Layers className="h-3 w-3" />
-                              {c.cohortName}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
+              return <AlumnusCard key={alumnus.id} data={alumnus} />;
             })}
           </div>
         )}
@@ -346,6 +220,106 @@ export default function AlumniPage() {
           <ArrowRight />
         </Link>
       </section>
+    </div>
+  );
+}
+
+function AlumnusCard({ data: alumnus }: { data: any }) {
+  return (
+    <div
+      key={alumnus.userId}
+      className="group flex flex-col rounded-2xl border border-gray-100 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:shadow-black/40"
+    >
+      {/* Card body */}
+      <div className="flex flex-1 flex-col px-5 py-5">
+        <div className="overflow-hidden rounded-md -mx-4 -mt-4">
+          <AlumusImage
+            size={150}
+            name={alumnus.name}
+            src={alumnus.profileImage}
+          />
+        </div>
+
+        {/* All courses / certifications */}
+        <div className="mt-3 flex flex-col space-y-2 text-muted-foreground">
+          <h3 className="font-semibold text-xl text-foreground">
+            {alumnus.name}
+          </h3>
+
+          {alumnus.courses.map((c) => (
+            <div key={c.courseId} className="text-sm flex flex-col gap-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-1.5 font-medium line-clamp-1">
+                  <BookOpen className="size-[1em] shrink-0" />
+                  {c.courseName}
+                </span>
+
+                <time
+                  dateTime={c.cohortYear}
+                  className="shrink-0 text-gray-400 dark:text-gray-500"
+                >
+                  {new Date(c.cohortYear).toLocaleDateString(undefined, {
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </time>
+              </div>
+
+              {c.cohortName && (
+                <span className="mt-1 inline-flex items-center gap-1">
+                  <Layers className="size-[1em]" />
+                  {c.cohortName}
+                </span>
+              )}
+
+              <p className="mt-0.5 flex gap-1.5 items-center">
+                <RiCertificateLine className="size-[1em] shrink-0 text-purple-600 dark:text-purple-400" />
+                {c.certification}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AlumusImage({
+  name,
+  src,
+  size = 56,
+}: {
+  name: string;
+  src?: string | null;
+  size?: number;
+}) {
+  const { url: resolvedSrc } = useProfileImageUrl({ value: src });
+
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const className =
+    "object-cover flex items-center aspect-4/3 justify-center w-full font-bold";
+
+  if (resolvedSrc) {
+    return (
+      <Image
+        src={resolvedSrc}
+        alt={name}
+        width={size}
+        height={size}
+        className={className}
+      />
+    );
+  }
+
+  return (
+    <div className={className} style={{ fontSize: size * 0.35 }}>
+      {initials}
     </div>
   );
 }

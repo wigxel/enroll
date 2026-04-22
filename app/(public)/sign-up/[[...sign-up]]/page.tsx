@@ -1,5 +1,9 @@
 import { SignUp } from "@clerk/nextjs";
 
+export const metadata = {
+  title: "Sign Up | CMK",
+};
+
 export default function SignUpPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">

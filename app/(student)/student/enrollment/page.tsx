@@ -200,16 +200,16 @@ export default function EnrollmentChecklistPage() {
     },
     ...(quizRequired
       ? [
-        {
-          id: "quiz",
-          number: 2,
-          title: "Complete Orientation Quiz",
-          description:
-            "Take the orientation assessment to demonstrate your readiness.",
-          icon: BookOpen,
-          href: `/student/enrollment/quiz?courseId=${enrollment.courseId}`,
-        },
-      ]
+          {
+            id: "quiz",
+            number: 2,
+            title: "Complete Orientation Quiz",
+            description:
+              "Take the orientation assessment to demonstrate your readiness.",
+            icon: BookOpen,
+            href: `/student/enrollment/quiz?courseId=${enrollment.courseId}`,
+          },
+        ]
       : []),
     {
       id: "documents",
@@ -260,21 +260,23 @@ export default function EnrollmentChecklistPage() {
           return (
             <div
               key={step.id}
-              className={`rounded-xl border p-5 transition-all ${isCompleted
-                ? "border-emerald-200 bg-emerald-50/50"
-                : isCurrent
-                  ? "border-primary/30 bg-white shadow-sm ring-1 ring-primary/10"
-                  : "border-gray-200 bg-gray-50/50 opacity-60"
-                }`}
+              className={`rounded-xl border p-5 transition-all ${
+                isCompleted
+                  ? "border-emerald-200 bg-emerald-50/50"
+                  : isCurrent
+                    ? "border-primary/30 bg-white shadow-sm ring-1 ring-primary/10"
+                    : "border-gray-200 bg-gray-50/50 opacity-60"
+              }`}
             >
               <div className="flex items-start gap-4">
                 <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isCompleted
-                    ? "bg-emerald-100 text-emerald-600"
-                    : isCurrent
-                      ? "bg-primary/10 text-primary"
-                      : "bg-gray-200 text-gray-400"
-                    }`}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                    isCompleted
+                      ? "bg-emerald-100 text-emerald-600"
+                      : isCurrent
+                        ? "bg-primary/10 text-primary"
+                        : "bg-gray-200 text-gray-400"
+                  }`}
                 >
                   {isCompleted ? (
                     <CheckCircle2 className="h-5 w-5" />
@@ -307,14 +309,16 @@ export default function EnrollmentChecklistPage() {
                     )}
                   </div>
                   <h3
-                    className={`mt-1 text-sm font-semibold ${isLocked ? "text-gray-400" : "text-gray-900"
-                      }`}
+                    className={`mt-1 text-sm font-semibold ${
+                      isLocked ? "text-gray-400" : "text-gray-900"
+                    }`}
                   >
                     {step.title}
                   </h3>
                   <p
-                    className={`mt-0.5 text-xs ${isLocked ? "text-gray-400" : "text-gray-500"
-                      }`}
+                    className={`mt-0.5 text-xs ${
+                      isLocked ? "text-gray-400" : "text-gray-500"
+                    }`}
                   >
                     {step.description}
                   </p>

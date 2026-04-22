@@ -74,6 +74,7 @@ export const list = query({
             certification: course.certification,
             cohortId: cohort?._id ?? null,
             cohortName: cohort?.name ?? null,
+            cohortYear: cohort?.startDate,
             graduatedAt: enrollment.completedAt ?? enrollment.updatedAt,
           },
         };

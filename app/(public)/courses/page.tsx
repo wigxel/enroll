@@ -153,7 +153,7 @@ function CourseCard({ data: course }: { data: any }) {
             <div className="text-4xl font-medium font-cnd text-end tracking-tight text-gray-900">
               {course.tuitionFee ? (
                 <>
-                  <span className="text-gray-500 text-base">NGN</span>
+                  <span className="text-gray-500 text-base"></span>
                   {formatCurrency(course.tuitionFee).replace("NGN", "")}
                 </>
               ) : (
