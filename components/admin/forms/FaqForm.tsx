@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogTrigger } from "@radix-ui/react-dialog";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "~/components/ui/button";
@@ -47,6 +48,13 @@ export function FaqForm({
       answer: initialFormData?.answer ?? "",
     },
   });
+
+  useEffect(() => {
+    form.reset({
+      question: initialFormData?.question ?? "",
+      answer: initialFormData?.answer ?? "",
+    });
+  }, [initialFormData, form]);
 
   return (
     <Form {...form}>

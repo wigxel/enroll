@@ -157,6 +157,14 @@ export default function FaqsPage() {
     setLocalFaqs(safeArray(faqsResult?.data));
   }, [faqsResult]);
 
+  const handleOpenChange = (open: boolean) => {
+    setShowDialog(open);
+    if (!open) {
+      // Small delay to prevent layout shift during close animation
+      setTimeout(() => setEditingFaq(null), 300);
+    }
+  };
+
   return (
     <div className="py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -164,12 +172,12 @@ export default function FaqsPage() {
           <h1 className="text-2xl font-semibold text-gray-900">Manage FAQs</h1>
           <FaqDialog
             isOpen={showDialog}
-            onOpenChange={setShowDialog}
-            isEdit={editingFaq === null}
+            onOpenChange={handleOpenChange}
+            isEdit={editingFaq !== null}
             initialFormData={editingFaq ?? undefined}
-            onSubmit={handleCreate}
+            onSubmit={editingFaq ? handleUpdate : handleCreate}
           >
-            <Button>
+            <Button onClick={() => setEditingFaq(null)}>
               <Plus className="mr-2 h-4 w-4" />
               Add New FAQ
             </Button>
