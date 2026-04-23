@@ -24,7 +24,7 @@ interface LinkFaqsSheetProps {
   onOpenChange: (open: boolean) => void;
   availableFaqs: Faq[];
   linkedFaqs: Faq[];
-  onLink: (faqId: Id<"faqs">) => void;
+  onLink: (faqIds: Id<"faqs">[]) => void;
   onUnlink: (faqId: Id<"faqs">) => void;
   onCreateNew: () => void;
 }
@@ -38,7 +38,7 @@ export function LinkFaqsSheet({
   onCreateNew,
 }: LinkFaqsSheetProps) {
   const [search, setSearch] = useState("");
-  const [selectedId, setSelectedId] = useState<Id<"faqs"> | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Id<"faqs">[]>([]);
 
   const allFaqs = [...linkedFaqs, ...availableFaqs];
   const filteredFaqs = allFaqs.filter(
@@ -50,10 +50,13 @@ export function LinkFaqsSheet({
   const linkedIds = linkedFaqs.map((f) => f._id);
 
   const handleLink = () => {
-    if (selectedId && !linkedIds.includes(selectedId)) {
-      onLink(selectedId);
+    if (selectedIds.length > 0) {
+      const newIds = selectedIds.filter(id => !linkedIds.includes(id));
+      if (newIds.length > 0) {
+        onLink(newIds);
+      }
     }
-    setSelectedId(null);
+    setSelectedIds([]);
     setSearch("");
     onOpenChange(false);
   };
@@ -86,14 +89,22 @@ export function LinkFaqsSheet({
             ) : (
               filteredFaqs.map((faq) => {
                 const linked = isLinked(faq._id);
-                const selected = selectedId === faq._id;
+                const selected = selectedIds.includes(faq._id);
 
                 return (
                   <button
                     key={faq._id}
                     type="button"
                     disabled={linked}
-                    onClick={() => !linked && setSelectedId(faq._id)}
+                    onClick={() => {
+                      if (!linked) {
+                        setSelectedIds((prev) =>
+                          prev.includes(faq._id)
+                            ? prev.filter((id) => id !== faq._id)
+                            : [...prev, faq._id]
+                        );
+                      }
+                    }}
                     className={`flex w-full items-start gap-3 rounded-lg border p-3 text-left ${
                       linked
                         ? "border-gray-200 bg-gray-50 opacity-50"
@@ -103,12 +114,27 @@ export function LinkFaqsSheet({
                     }`}
                   >
                     <div
-                      className={`mt-1 h-4 w-4 rounded-full border ${
+                      className={`mt-1 flex h-4 w-4 items-center justify-center rounded-sm border ${
                         selected
                           ? "border-primary bg-primary"
-                          : "border-gray-300"
+                          : "border-gray-300 bg-white"
                       }`}
-                    />
+                    >
+                      {selected && (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-3 w-3 text-white"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p
                         className={`font-medium text-sm ${
@@ -156,8 +182,8 @@ export function LinkFaqsSheet({
           >
             Cancel
           </Button>
-          <Button type="button" onClick={handleLink} disabled={!selectedId}>
-            Link FAQ
+          <Button type="button" onClick={handleLink} disabled={selectedIds.length === 0}>
+            Link FAQ{selectedIds.length > 1 ? "s" : ""}
           </Button>
         </SheetFooter>
       </SheetContent>

@@ -40,19 +40,28 @@ export function FAQsSection({ courseId }: FAQsSectionProps) {
     (faq) => !(course?.faqIds ?? []).includes(faq._id),
   );
 
-  const handleLinkFaq = async (faqId: Id<"faqs">) => {
+  const handleLinkFaqs = async (faqIds: Id<"faqs">[]) => {
     if (!course) return;
-    const newFaqIds = [...(course.faqIds ?? []), faqId];
+    // ensure no duplicates
+    const currentFaqIds = course.faqIds ?? [];
+    const newFaqsToAdd = faqIds.filter((id) => !currentFaqIds.includes(id));
+    
+    if (newFaqsToAdd.length === 0) {
+      setShowLinkFaqSheet(false);
+      return;
+    }
+
+    const newFaqIds = [...currentFaqIds, ...newFaqsToAdd];
     try {
       const res = await updateCourseFaqs({ courseId, faqIds: newFaqIds });
       if (!res.success) {
         toast.error(res.error);
       } else {
-        toast.success("FAQ linked");
+        toast.success(newFaqsToAdd.length > 1 ? "FAQs linked" : "FAQ linked");
         setShowLinkFaqSheet(false);
       }
     } catch (error) {
-      toast.error("Failed to link FAQ");
+      toast.error("Failed to link FAQs");
     }
   };
 
@@ -147,7 +156,7 @@ export function FAQsSection({ courseId }: FAQsSectionProps) {
         onOpenChange={setShowLinkFaqSheet}
         availableFaqs={availableFaqs}
         linkedFaqs={linkedFaqs}
-        onLink={handleLinkFaq}
+        onLink={handleLinkFaqs}
         onUnlink={handleUnlinkFaq}
         onCreateNew={() => {
           setShowLinkFaqSheet(false);
