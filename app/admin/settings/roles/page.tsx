@@ -29,9 +29,7 @@ export default function RolesSettingsPage() {
     name: string;
   } | null>(null);
 
-  const handleEdit = (
-    role: typeof roles extends Array<infer T> ? T : never,
-  ) => {
+  const handleEdit = (role: any) => {
     setSelectedRole({
       _id: role._id,
       name: role.name,
@@ -41,9 +39,7 @@ export default function RolesSettingsPage() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (
-    role: typeof roles extends Array<infer T> ? T : never,
-  ) => {
+  const handleDelete = (role: any) => {
     setRoleToDelete({
       _id: role._id,
       name: role.name,
@@ -53,7 +49,7 @@ export default function RolesSettingsPage() {
 
   useEffect(() => {
     if (userResult !== undefined) {
-      if (!userResult?.success || userResult.data.role !== "Admin") {
+      if (!userResult?.success || userResult.data?.role !== "Admin") {
         router.replace("/admin/settings");
       }
     }
@@ -62,7 +58,7 @@ export default function RolesSettingsPage() {
   if (
     userResult === undefined ||
     !userResult.success ||
-    userResult.data.role !== "Admin"
+    userResult.data?.role !== "Admin"
   ) {
     return (
       <div className="flex justify-center p-8">

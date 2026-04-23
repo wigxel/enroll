@@ -26,7 +26,7 @@ export default function SettingsLayout({
 }) {
   const pathname = usePathname();
   const userResult = useQuery(api.users.getCurrentUser);
-  const isAdmin = userResult?.success && userResult.data.role === "Admin";
+  const isAdmin = userResult?.success && userResult.data?.role === "Admin";
 
   return (
     <div className="py-8">
