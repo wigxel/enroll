@@ -355,12 +355,23 @@ export const listStudents = query({
           }
         }
 
+        let profileImageUrl = user.profileImage ?? undefined;
+        if (
+          user.profileImage &&
+          !user.profileImage.startsWith("http") &&
+          !user.profileImage.startsWith("data:")
+        ) {
+          profileImageUrl =
+            (await ctx.storage.getUrl(user.profileImage)) ?? undefined;
+        }
+
         return {
           ...user,
           studentCode: student?.code ?? null,
           courseName,
           cohortName,
           enrolledAt,
+          profileImageUrl,
         };
       }),
     );

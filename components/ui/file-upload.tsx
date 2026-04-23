@@ -25,6 +25,8 @@ interface FileUploadProps {
   className?: string;
   /** Whether the upload is disabled */
   disabled?: boolean;
+  /** Marks that the user explicitly removed the file — suppresses useEffect restore */
+  removed?: boolean;
 }
 
 type UploadState =
@@ -53,6 +55,7 @@ export function FileUpload({
   previewUrl = null,
   className,
   disabled = false,
+  removed = false,
 }: FileUploadProps) {
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -62,18 +65,19 @@ export function FileUpload({
       : { status: "idle" },
   );
   const [isDragging, setIsDragging] = useState(false);
+  const [isRemoved, setIsRemoved] = useState(() => removed);
 
-  // Sync the previewUrl prop into state when it resolves asynchronously
+  // Sync the removed prop into state when it resolves asynchronously
   // (e.g. from a useQuery call that returns undefined initially)
   useEffect(() => {
-    if (previewUrl && state.status === "idle") {
+    if (previewUrl && state.status === "idle" && !isRemoved) {
       setState({
         status: "complete",
         storageId: "" as Id<"_storage">,
         previewUrl,
       });
     }
-  }, [previewUrl, state.status]);
+  }, [previewUrl, state.status, isRemoved]);
 
   // ── Upload logic ──────────────────────────────────────────────────────
 
@@ -170,6 +174,7 @@ export function FileUpload({
 
   const handleRemove = useCallback(() => {
     setState({ status: "idle" });
+    setIsRemoved(true);
     onRemove?.();
   }, [onRemove]);
 

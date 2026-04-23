@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "convex/react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { FileUpload } from "~/components/ui/file-upload";
@@ -70,6 +71,21 @@ export function InstructorFormDialog({
 
   const { register, handleSubmit, reset, setValue, formState } = form;
   const { isSubmitting } = formState;
+
+  useEffect(() => {
+    if (open) {
+      if (instructor) {
+        reset({
+          name: instructor.name,
+          title: instructor.title,
+          bio: instructor.bio,
+          photo: instructor.photo,
+        });
+      } else {
+        reset(defaultState);
+      }
+    }
+  }, [open, instructor, reset]);
 
   const onSubmit = async (data: InstructorFormValues) => {
     try {

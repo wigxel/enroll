@@ -319,9 +319,9 @@ export function CourseFormDialog({
                   onUploadComplete={(storageId) =>
                     setFormData({ ...formData, coverPhoto: storageId })
                   }
-                  onRemove={() =>
-                    setFormData({ ...formData, coverPhoto: undefined })
-                  }
+                  onRemove={() => {
+                    setFormData({ ...formData, coverPhoto: undefined });
+                  }}
                   previewUrl={existingCoverPhotoUrl}
                   disabled={isSubmitting}
                 />

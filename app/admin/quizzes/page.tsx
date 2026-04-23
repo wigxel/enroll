@@ -4,14 +4,15 @@ import { useMutation, useQuery } from "convex/react";
 import {
   AlertCircle,
   CheckCircle2,
-  Edit2,
   Loader2,
+  Pencil,
   Plus,
   Trash2,
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -292,8 +293,9 @@ export default function AdminQuizzesPage() {
                           </td>
                           <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                             <div className="flex items-center justify-end gap-2">
-                              <button
-                                type="button"
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={() =>
                                   handleOpenDialog("edit", {
                                     id: q._id,
@@ -302,21 +304,22 @@ export default function AdminQuizzesPage() {
                                     correctOptionIndex: q.correctOptionIndex,
                                   })
                                 }
-                                className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                                className="h-8 w-8 text-gray-400 hover:text-gray-900 hover:bg-gray-100"
                                 title="Edit Question"
                               >
-                                <Edit2 className="h-4 w-4" />
+                                <Pencil className="h-4 w-4" />
                                 <span className="sr-only">Edit</span>
-                              </button>
-                              <button
-                                type="button"
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={() => handleDelete(q._id)}
-                                className="rounded p-1 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                                className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50"
                                 title="Delete Question"
                               >
                                 <Trash2 className="h-4 w-4" />
                                 <span className="sr-only">Delete</span>
-                              </button>
+                              </Button>
                             </div>
                           </td>
                         </tr>

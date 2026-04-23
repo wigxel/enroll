@@ -5,6 +5,8 @@ import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ChangeRoleDialog } from "~/components/admin/dialogs/ChangeRoleDialog";
 import { InviteButton } from "~/components/admin/InviteButton";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
 import { cn } from "~/lib/utils";
@@ -125,15 +127,16 @@ export function AdminUsersTable() {
                       <div className="text-gray-500 text-xs">{admin.email}</div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-3 text-sm">
-                      <span
+                      <Badge
+                        variant="outline"
                         className={cn(
-                          "inline-flex rounded-full px-2 text-xs font-semibold leading-5",
+                          "rounded-full font-semibold",
                           roleBadgeStyles[admin.roleName ?? ""] ??
-                            "bg-gray-100 text-gray-800",
+                            "bg-gray-100 text-gray-800 hover:bg-gray-200 border-transparent",
                         )}
                       >
                         {admin.roleName}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="whitespace-nowrap px-3 py-3 text-sm text-gray-500">
                       {new Date(admin.createdAt).toLocaleDateString()}
@@ -141,8 +144,9 @@ export function AdminUsersTable() {
                     <td className="relative whitespace-nowrap py-3 pl-3 pr-4 text-right text-sm">
                       {admin.roleName !== "Admin" && (
                         <div className="flex items-center justify-end gap-2">
-                          <button
-                            type="button"
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() =>
                               setRoleChangeUser({
                                 id: admin._id,
@@ -151,19 +155,22 @@ export function AdminUsersTable() {
                                 roleId: admin.role,
                               })
                             }
-                            className="text-gray-400 hover:text-primary"
+                            className="h-8 w-8 text-gray-400 hover:text-gray-900 hover:bg-gray-100"
                             title="Change Role"
                           >
                             <Pencil className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
+                            <span className="sr-only">Edit</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleRemoveAdmin(admin._id)}
-                            className="text-gray-400 hover:text-red-600"
-                            title="Remove"
+                            className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                            title="Remove User"
                           >
                             <Trash2 className="h-4 w-4" />
-                          </button>
+                            <span className="sr-only">Delete</span>
+                          </Button>
                         </div>
                       )}
                     </td>

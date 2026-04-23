@@ -5,7 +5,6 @@ import {
   ArrowDown,
   ArrowUp,
   Loader2,
-  MoreHorizontal,
   Pencil,
   Plus,
   Trash2,
@@ -13,6 +12,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { FileUpload } from "~/components/ui/file-upload";
+import { Button } from "~/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -20,12 +20,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "~/components/ui/sheet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
+
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
 import { formatCurrency } from "~/lib/utils";
@@ -283,32 +278,29 @@ export default function PartnersSettingsPage() {
                       {partner.isActive ? "Active" : "Inactive"}
                     </button>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          className="p-2 text-gray-400 hover:text-gray-600"
-                        >
-                          <MoreHorizontal className="h-5 w-5" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleOpenSheet(partner)}
-                        >
-                          <Pencil className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(partner._id)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleOpenSheet(partner)}
+                        className="h-8 w-8 text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+                        title="Edit Partner"
+                      >
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Edit</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(partner._id)}
+                        className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                        title="Delete Partner"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Delete</span>
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}

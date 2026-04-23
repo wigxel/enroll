@@ -166,12 +166,20 @@ function StudentsContent() {
                   </td>
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                     <div className="flex items-center">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-100 text-green-700 text-xs font-semibold">
-                        {student.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </div>
+                      {student.profileImageUrl ? (
+                        <img
+                          src={student.profileImageUrl}
+                          alt={student.name}
+                          className="h-9 w-9 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                          {student.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </div>
+                      )}
                       <div className="ml-3">
                         <div className="font-medium text-gray-900">
                           {student.name}

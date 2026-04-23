@@ -1,20 +1,11 @@
 "use client";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useMutation, useQuery } from "convex/react";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { useQuery } from "convex/react";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "sonner";
+import { Button } from "~/components/ui/button";
+import { CohortDeleteDialog } from "~/components/admin/dialogs/CohortDeleteDialog";
 import { CohortFormDialog } from "~/components/admin/dialogs/CreateCohortDialog";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
@@ -41,8 +32,6 @@ export default function CohortsPage() {
     name: string;
   } | null>(null);
 
-  const deleteMutation = useMutation(api.cohorts.remove);
-
   const resultRaw = useQuery(api.cohorts.list, {});
   const cohorts = resultRaw?.success ? resultRaw.data.cohorts : [];
 
@@ -60,17 +49,6 @@ export default function CohortsPage() {
   }) => {
     setEditingCohort(cohort);
     setShowDialog(true);
-  };
-
-  const handleDelete = async () => {
-    if (!deletingCohort) return;
-    const res = await deleteMutation({ cohortId: deletingCohort._id });
-    if (res.success) {
-      toast.success(`Cohort "${deletingCohort.name}" deleted.`);
-      setDeletingCohort(null);
-    } else {
-      toast.error(res.error || "Failed to delete cohort.");
-    }
   };
 
   const isLoading = resultRaw === undefined;
@@ -178,29 +156,35 @@ export default function CohortsPage() {
                           cohort.status.slice(1)}
                       </span>
                     </td>
-<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                       <div className="flex items-center justify-end gap-2">
-                         <button
-                           type="button"
-                           onClick={() => openEditDialog(cohort)}
-                           className="text-primary hover:text-primary/80"
-                         >
-                           Edit
-                         </button>
-                         <button
-                           type="button"
-                           onClick={() =>
-                             setDeletingCohort({
-                               _id: cohort._id as Id<"cohorts">,
-                               name: cohort.name,
-                             })
-                           }
-                           className="text-red-600 hover:text-red-800"
-                         >
-                           <Trash2 className="h-4 w-4" />
-                         </button>
-                       </div>
-                     </td>
+                    <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEditDialog(cohort)}
+                          className="h-8 w-8 text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+                          title="Edit Cohort"
+                        >
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Edit</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            setDeletingCohort({
+                              _id: cohort._id as Id<"cohorts">,
+                              name: cohort.name,
+                            })
+                          }
+                          className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                          title="Delete Cohort"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Delete</span>
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -215,42 +199,10 @@ export default function CohortsPage() {
         cohort={editingCohort}
       />
 
-      <AlertDialog
-        open={!!deletingCohort}
+      <CohortDeleteDialog
+        cohort={deletingCohort}
         onOpenChange={(open) => !open && setDeletingCohort(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Cohort</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div>
-                <p className="text-sm text-gray-500">
-                  Are you sure you want to delete the cohort "
-                  <span className="font-semibold text-gray-900">
-                    {deletingCohort?.name}
-                  </span>
-                  "? This action cannot be undone.
-                </p>
-                <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3">
-                  <p className="text-sm font-medium text-red-800">
-                    Warning: Deleting a cohort is permanent. Enrolled students will
-                    need to be reassigned to another cohort.
-                  </p>
-                </div>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Flex, Text } from "@tremor/react";
+import { Badge } from "~/components/ui/badge";
 import {
   Activity,
   Calendar,
@@ -80,7 +80,9 @@ export function TransactionDetailDialog({
       <DialogContent className="sm:max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-2xl">
         <div className="bg-indigo-600 px-6 py-8 text-white relative overflow-hidden">
           <div className="relative z-10">
-            <Text className="text-indigo-100 font-medium">Amount Received</Text>
+            <p className="text-indigo-100 font-medium text-sm">
+              Amount Received
+            </p>
             <div className="text-4xl font-black mt-1">
               ₦{payment.amount.toLocaleString()}
             </div>
@@ -94,15 +96,22 @@ export function TransactionDetailDialog({
               <Activity className="w-5 h-5 text-gray-500" />
             </div>
             <div>
-              <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest">
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">
                 Status
-              </Text>
-              <Text className="text-indigo-600 font-bold capitalize">
+              </p>
+              <p className="text-indigo-600 font-bold capitalize text-sm">
                 {payment.status}
-              </Text>
+              </p>
             </div>
           </div>
-          <Badge color={payment.status === "succeeded" ? "emerald" : "amber"}>
+          <Badge
+            variant={payment.status === "succeeded" ? "default" : "destructive"}
+            className={
+              payment.status === "succeeded"
+                ? "bg-emerald-500 hover:bg-emerald-600"
+                : "bg-amber-500 hover:bg-amber-600"
+            }
+          >
             {payment.status.toUpperCase()}
           </Badge>
         </div>
@@ -110,29 +119,23 @@ export function TransactionDetailDialog({
         <div className="p-6 space-y-6">
           <div className="grid gap-6">
             {details.map((item: any) => (
-              <Flex
+              <div
                 key={item.label}
-                justifyContent="between"
-                alignItems="center"
-                className="gap-4"
+                className="flex justify-between items-center gap-4"
               >
-                <Flex
-                  justifyContent="start"
-                  alignItems="center"
-                  className="gap-4"
-                >
+                <div className="flex justify-start items-center gap-4">
                   <div className="p-2 bg-gray-50 rounded-lg">
                     <item.icon className="w-4 h-4 text-gray-400" />
                   </div>
                   <div className="space-y-0.5">
-                    <Text className="text-xs font-medium text-gray-400">
+                    <p className="text-xs font-medium text-gray-400">
                       {item.label}
-                    </Text>
-                    <Text className="text-sm font-semibold text-gray-900">
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900">
                       {item.value}
-                    </Text>
+                    </p>
                   </div>
-                </Flex>
+                </div>
                 {item.copyable && (
                   <button
                     onClick={() => handleCopy(item.value)}
@@ -146,7 +149,7 @@ export function TransactionDetailDialog({
                     )}
                   </button>
                 )}
-              </Flex>
+              </div>
             ))}
           </div>
         </div>

@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { BookOpen, GraduationCap, LogIn } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Button } from "~/components/ui/button";
 
 export async function Header() {
   const { userId } = await auth();
@@ -50,22 +51,22 @@ export async function Header() {
           ) : (
             <div className="ml-2 flex items-center gap-2">
               <SignInButton mode="redirect">
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50 dark:border-zinc-700 dark:text-gray-200 dark:hover:bg-zinc-800"
+                <Button
+                  size="sm"
+                  variant={"outline"}
+                  className="bg-transparent"
                 >
                   <LogIn className="h-4 w-4" />
                   Log in
-                </button>
+                </Button>
               </SignInButton>
-              <SignUpButton mode="redirect">
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
-                >
+
+              {/* We don't want to encourage direct signup */}
+              {/*<SignUpButton mode="redirect">
+                <Button size="sm" type="button">
                   Sign up
-                </button>
-              </SignUpButton>
+                </Button>
+              </SignUpButton>*/}
             </div>
           )}
         </nav>

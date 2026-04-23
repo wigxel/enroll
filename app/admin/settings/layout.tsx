@@ -1,9 +1,11 @@
 "use client";
 
-import { Calendar, DollarSign, Handshake, Users } from "lucide-react";
+import { useQuery } from "convex/react";
+import { Calendar, DollarSign, Handshake, Shield, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type React from "react";
+import { api } from "~/convex/_generated/api";
 
 const settingsTabs = [
   { name: "Team", href: "/admin/settings/team", icon: Users },
@@ -14,6 +16,7 @@ const settingsTabs = [
   },
   { name: "Fees", href: "/admin/settings/fees", icon: DollarSign },
   { name: "Partners", href: "/admin/settings/partners", icon: Handshake },
+  { name: "Roles & Privileges", href: "/admin/settings/roles", icon: Shield },
 ];
 
 export default function SettingsLayout({
@@ -22,6 +25,8 @@ export default function SettingsLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const userResult = useQuery(api.users.getCurrentUser);
+  const isAdmin = userResult?.success && userResult.data.role === "Admin";
 
   return (
     <div className="py-8">
@@ -33,16 +38,20 @@ export default function SettingsLayout({
           <nav className="w-[30%] flex-shrink-0">
             <ul className="space-y-1">
               {settingsTabs.map((tab) => {
+                if (tab.name === "Roles & Privileges" && !isAdmin) {
+                  return null;
+                }
                 const isActive = pathname === tab.href;
                 const Icon = tab.icon;
                 return (
                   <li key={tab.href}>
                     <Link
                       href={tab.href as any}
-                      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                        }`}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                        isActive
+                          ? "bg-primary/10 text-primary"
+                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      }`}
                     >
                       <Icon className="h-4 w-4 flex-shrink-0" />
                       {tab.name}
