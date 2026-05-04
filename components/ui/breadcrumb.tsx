@@ -1,5 +1,7 @@
-import * as React from "react";
+"use client"
+import { useMediaQuery } from "hooks-ts";
 import Link from "next/link";
+import * as React from "react";
 import { cn } from "~/lib/utils";
 
 export interface BreadcrumbItem {
@@ -12,7 +14,17 @@ export interface BreadcrumbProps {
   className?: string;
 }
 
-export function Breadcrumb({ items, className }: BreadcrumbProps) {
+export function Breadcrumb({ items: items_, className }: BreadcrumbProps) {
+  const isMobile = useMediaQuery("(max-width: 768px) and (orientation: portrait)");
+
+  const items: BreadcrumbItem[] = isMobile
+    ? items_.length > 1
+      ? [items_.at(0), { label: "...", href: "#" }, items_.at(-1)] as BreadcrumbItem[]
+      : items_
+    : items_;
+
+  console.log(items_);
+
   return (
     <nav className={className} aria-label="Breadcrumb">
       <ol className="flex items-center space-x-2">
@@ -24,7 +36,7 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
 
           return (
             <React.Fragment key={key}>
-              <li>
+              <li className="whitespace-nowrap">
                 {isLink && href ? (
                   <Link
                     href={href as any}
@@ -35,7 +47,7 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
                 ) : (
                   <span
                     className={cn(
-                      "text-sm font-medium",
+                      "text-sm font-semibold",
                       isLast
                         ? "text-gray-900 dark:text-white"
                         : "text-gray-500 dark:text-gray-400",

@@ -51,7 +51,7 @@ export function LinkFaqsSheet({
 
   const handleLink = () => {
     if (selectedIds.length > 0) {
-      const newIds = selectedIds.filter(id => !linkedIds.includes(id));
+      const newIds = selectedIds.filter((id) => !linkedIds.includes(id));
       if (newIds.length > 0) {
         onLink(newIds);
       }
@@ -101,7 +101,7 @@ export function LinkFaqsSheet({
                         setSelectedIds((prev) =>
                           prev.includes(faq._id)
                             ? prev.filter((id) => id !== faq._id)
-                            : [...prev, faq._id]
+                            : [...prev, faq._id],
                         );
                       }
                     }}
@@ -182,7 +182,11 @@ export function LinkFaqsSheet({
           >
             Cancel
           </Button>
-          <Button type="button" onClick={handleLink} disabled={selectedIds.length === 0}>
+          <Button
+            type="button"
+            onClick={handleLink}
+            disabled={selectedIds.length === 0}
+          >
             Link FAQ{selectedIds.length > 1 ? "s" : ""}
           </Button>
         </SheetFooter>

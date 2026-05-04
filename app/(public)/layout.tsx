@@ -14,7 +14,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <Header />
-      {children}
+      <div className="relative z-20">
+        {children}
+      </div>
       <Footer />
       <div className="z-0 translate-x-1/2 blur-[45px] pointer-events-none translate-y-1/2 w-[50svh] aspect-square rounded-full bg-gradient-to-bl opacity-50 from-red-400 to-red-600 fixed bottom-0 right-0" />
     </>

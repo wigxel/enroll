@@ -45,7 +45,7 @@ export function FAQsSection({ courseId }: FAQsSectionProps) {
     // ensure no duplicates
     const currentFaqIds = course.faqIds ?? [];
     const newFaqsToAdd = faqIds.filter((id) => !currentFaqIds.includes(id));
-    
+
     if (newFaqsToAdd.length === 0) {
       setShowLinkFaqSheet(false);
       return;

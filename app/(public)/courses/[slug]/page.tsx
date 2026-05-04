@@ -73,7 +73,7 @@ export default async function CourseApplicationPage({
     <div className="min-h-screen">
       {/* ── Sticky header ── */}
       <div className="sticky top-0 z-50 bg-background/90 backdrop-blur-sm border-b border-gray-100 dark:border-zinc-800">
-        <div className="h-16 flex items-center justify-between mx-auto container">
+        <div className="px-4 h-12 md:h-16 flex items-center justify-between mx-auto container">
           <Breadcrumb
             className="flex-1"
             items={[
@@ -82,19 +82,15 @@ export default async function CourseApplicationPage({
             ]}
           />
 
-          <div className="flex-1 text-center text-sm font-medium text-gray-900 dark:text-white line-clamp-1">
-            {course.name}
-          </div>
-
           <div className="flex-1 flex justify-end"></div>
         </div>
       </div>
 
       {/* ── Main two-column layout ── */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* ── Right Column ── */}
-          <div className="lg:col-span-8 space-y-16">
+          <div className="lg:col-span-8 order-2 md:order-1 space-y-16">
             {/* Prerequisites */}
             <section>
               <SectionHeading
@@ -227,9 +223,9 @@ export default async function CourseApplicationPage({
                     ];
                     const color =
                       colors[
-                        review.userId
-                          ? review.userId.charCodeAt(0) % colors.length
-                          : 0
+                      review.userId
+                        ? review.userId.charCodeAt(0) % colors.length
+                        : 0
                       ];
                     return (
                       <div
@@ -280,7 +276,7 @@ export default async function CourseApplicationPage({
           </div>
 
           {/* ── Left Column: Course summary card ── */}
-          <div className="lg:col-span-4 space-y-8">
+          <div className="lg:col-span-4 order-1 md:order-2 space-y-8">
             <div className="sticky top-24 rounded-2xl bg-background overflow-hidden shadow-sm border border-gray-100 dark:border-zinc-800">
               <div className="relative h-48 bg-gray-100 dark:bg-zinc-800">
                 {course.coverPhoto ? (
