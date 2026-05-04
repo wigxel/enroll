@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { GraduationCap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -171,7 +170,7 @@ export default function ApplicationForm({
               className={`relative z-10 flex flex-col items-center gap-2 ${currentStep > step.id ? "text-primary" : "text-gray-400"}`}
             >
               <div
-                className={`w-8 h-8 font-mono rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                className={`w-8 h-8 tabular-nums rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
                   currentStep >= step.id
                     ? "bg-primary text-primary-foreground font-semibold shadow-sm"
                     : "bg-gray-100 text-gray-500"
@@ -191,7 +190,7 @@ export default function ApplicationForm({
         </div>
       </div>
 
-      <div className="bg-background shadow-lg px-8 py-8 rounded-2xl">
+      <div className="bg-background shadow-lg px-6 py-8 rounded-2xl">
         {currentStep === 1 && (
           <PersonalInformationForm
             initialFormData={formData}

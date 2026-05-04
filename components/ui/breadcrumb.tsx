@@ -1,11 +1,21 @@
-"use client"
+"use client";
 import { useMediaQuery } from "hooks-ts";
+import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
+import { _isoDateTime } from "zod/v4/core";
+import { safeStr } from "~/lib/data.helpers";
 import { cn } from "~/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./dropdown-menu";
 
 export interface BreadcrumbItem {
-  label: string;
+  label: string | null;
+  icon?: React.ReactNode;
   href?: string | readonly string[];
 }
 
@@ -15,15 +25,42 @@ export interface BreadcrumbProps {
 }
 
 export function Breadcrumb({ items: items_, className }: BreadcrumbProps) {
-  const isMobile = useMediaQuery("(max-width: 768px) and (orientation: portrait)");
+  const isMobile = useMediaQuery(
+    "(max-width: 768px) and (orientation: portrait)",
+  );
 
-  const items: BreadcrumbItem[] = isMobile
-    ? items_.length > 1
-      ? [items_.at(0), { label: "...", href: "#" }, items_.at(-1)] as BreadcrumbItem[]
-      : items_
-    : items_;
+  const MoreOptionsDropdown = (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="px-2 block">
+        <MoreHorizontal size="1.2rem" />
+      </DropdownMenuTrigger>
 
-  console.log(items_);
+      <DropdownMenuContent align="start" className="border border-transparent">
+        {items_.slice(0, items_.length - 1).map((e) => {
+          return (
+            <DropdownMenuItem key={e.label} asChild>
+              <Link
+                href={e.href as any}
+                className="text-sm font-medium text-muted-foreground hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              >
+                {e.label}
+              </Link>
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const items: BreadcrumbItem[] =
+    isMobile && items_.length > 2
+      ? items_.length > 1
+        ? ([
+            { label: null, icon: MoreOptionsDropdown, href: "#" },
+            items_.at(-1),
+          ] as BreadcrumbItem[])
+        : items_
+      : items_;
 
   return (
     <nav className={className} aria-label="Breadcrumb">
@@ -32,16 +69,17 @@ export function Breadcrumb({ items: items_, className }: BreadcrumbProps) {
           const isLast = index === items.length - 1;
           const href = item.href;
           const isLink = href && !isLast;
-          const key = `${item.label.toLowerCase().replace(/\s+/g, "-")}-${index}`;
+          const key = `${safeStr(item.label).toLowerCase().replace(/\s+/g, "-")}-${index}`;
 
           return (
             <React.Fragment key={key}>
-              <li className="whitespace-nowrap">
+              <li className="whitespace-nowrap flex items-center">
                 {isLink && href ? (
                   <Link
                     href={href as any}
-                    className="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    className="text-sm font-medium text-muted-foreground hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                   >
+                    {item.icon}
                     {item.label}
                   </Link>
                 ) : (
@@ -50,7 +88,7 @@ export function Breadcrumb({ items: items_, className }: BreadcrumbProps) {
                       "text-sm font-semibold",
                       isLast
                         ? "text-gray-900 dark:text-white"
-                        : "text-gray-500 dark:text-gray-400",
+                        : "text-muted-foreground dark:text-gray-400",
                     )}
                   >
                     {item.label}

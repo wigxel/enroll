@@ -64,28 +64,21 @@ export default async function CourseApplicationPage({
     <div className="min-h-screen">
       {/* ── Sticky header ── */}
       <div className="sticky top-0 z-50 bg-background/40 backdrop-blur-sm">
-        <div className="h-16 flex items-center container justify-between mx-auto">
+        <div className="h-12 px-4 md:h-16 flex items-center container justify-between mx-auto">
           <Breadcrumb
-            className="flex-1 hidden md:flex"
             items={[
               { label: "Courses", href: "/courses" },
               {
                 label: truncate(course.name, { length: 10 }),
                 href: `/courses/${course.slug}`,
               },
-              { label: "Apply" },
+              { label: `Apply for ${course.name}` },
             ]}
           />
-
-          <div className="flex-1 text-center text-sm font-medium text-gray-900 dark:text-white line-clamp-1">
-            {course.name}
-          </div>
-
-          <div className="flex-1 flex justify-end" />
         </div>
       </div>
 
-      <div className="mx-auto py-12 container max-w-xl">
+      <div className="px-4 mx-auto py-4 md:py-12 lg:py-24 container max-w-xl">
         {isAdmin ? (
           <div className="rounded-lg bg-white border border-gray-200 p-6 space-y-4">
             <h6 className="flex items-center gap-2 font-semibold text-foreground">

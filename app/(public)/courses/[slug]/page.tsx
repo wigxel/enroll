@@ -162,7 +162,7 @@ export default async function CourseApplicationPage({
                         <p className="text-xs font-medium mt-0.5">
                           {ins.title}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 leading-relaxed">
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-3 leading-relaxed">
                           {ins.bio}
                         </p>
                       </div>
@@ -189,18 +189,18 @@ export default async function CourseApplicationPage({
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
                         key={i}
-                        className={`h-5 w-5 ${i < Math.round(averageRating) ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
+                        className={`h-5 w-5 ${i < Math.round(averageRating) ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-muted-foreground"}`}
                       />
                     ))}
                   </div>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     Based on {totalReviews} verified alumni reviews
                   </p>
                 </div>
               </div>
 
               {reviews.length === 0 ? (
-                <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">
+                <p className="mt-6 text-sm text-muted-foreground dark:text-muted-foreground">
                   No reviews yet. Be the first to review after completing the
                   course!
                 </p>
@@ -223,9 +223,9 @@ export default async function CourseApplicationPage({
                     ];
                     const color =
                       colors[
-                      review.userId
-                        ? review.userId.charCodeAt(0) % colors.length
-                        : 0
+                        review.userId
+                          ? review.userId.charCodeAt(0) % colors.length
+                          : 0
                       ];
                     return (
                       <div
@@ -238,11 +238,11 @@ export default async function CourseApplicationPage({
                           {Array.from({ length: 5 }).map((_, i) => (
                             <Star
                               key={i}
-                              className={`h-4 w-4 ${i < review.rating ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
+                              className={`h-4 w-4 ${i < review.rating ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-muted-foreground"}`}
                             />
                           ))}
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                        <p className="text-sm text-muted-foreground dark:text-gray-300 leading-relaxed">
                           "{review.text}"
                         </p>
                         <div className="mt-4 flex items-center gap-3">
@@ -278,7 +278,7 @@ export default async function CourseApplicationPage({
           {/* ── Left Column: Course summary card ── */}
           <div className="lg:col-span-4 order-1 md:order-2 space-y-8">
             <div className="sticky top-24 rounded-2xl bg-background overflow-hidden shadow-sm border border-gray-100 dark:border-zinc-800">
-              <div className="relative h-48 bg-gray-100 dark:bg-zinc-800">
+              <section className="relative h-48 bg-gray-100 dark:bg-zinc-800">
                 {course.coverPhoto ? (
                   <Image
                     src={course.coverPhoto}
@@ -293,20 +293,20 @@ export default async function CourseApplicationPage({
                     </span>
                   </div>
                 )}
-              </div>
+              </section>
 
-              <div className="p-6 flex flex-col gap-2">
+              <section className="p-6 flex flex-col gap-2">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   {course.name}
                 </h1>
 
-                <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
+                <p className="text-muted-foreground dark:text-muted-foreground mb-6 text-sm">
                   {course.description}
                 </p>
 
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-sm">
+                    <span className="flex items-center gap-1.5 text-muted-foreground dark:text-muted-foreground text-sm">
                       <Clock className="h-4 w-4" /> Duration
                     </span>
                     <span className="font-medium text-gray-900 dark:text-white text-sm text-end">
@@ -314,7 +314,7 @@ export default async function CourseApplicationPage({
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-sm">
+                    <span className="flex items-center gap-1.5 text-muted-foreground dark:text-muted-foreground text-sm">
                       <Award className="h-4 w-4" /> Certification
                     </span>
                     <span className="font-medium text-gray-900 dark:text-white text-sm text-end">
@@ -322,7 +322,7 @@ export default async function CourseApplicationPage({
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-sm">
+                    <span className="flex items-center gap-1.5 text-muted-foreground dark:text-muted-foreground text-sm">
                       <GraduationCap className="h-4 w-4" /> Tuition
                     </span>
                     <span className="font-medium text-gray-900 dark:text-white text-sm text-end">
@@ -334,12 +334,12 @@ export default async function CourseApplicationPage({
 
                   {appStatus?.applicationFeeAmount ? (
                     <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-zinc-800">
-                      <span className="text-gray-500 dark:text-gray-400 text-sm">
+                      <span className="text-muted-foreground dark:text-muted-foreground text-sm">
                         Application Fee
                       </span>
                       <span className="inline-flex items-center gap-1 font-semibold text-primary">
                         ₦{appStatus.applicationFeeAmount.toLocaleString()}
-                        <span className="text-xs font-normal text-gray-400">
+                        <span className="text-xs font-normal text-muted-foreground">
                           (one-time)
                         </span>
                       </span>
@@ -351,7 +351,7 @@ export default async function CourseApplicationPage({
                   {/* Download Brochure CTA */}
                   <DownloadBrochure courseId={course._id}>
                     {/** biome-ignore lint/a11y/useValidAnchor: Wrapper adds href */}
-                    <a className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 dark:border-zinc-700 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-primary/50 hover:text-primary hover:bg-primary/5 transition-all group">
+                    <a className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 dark:border-zinc-700 px-4 py-3 text-sm font-medium text-muted-foreground dark:text-gray-300 hover:border-primary/50 hover:text-primary hover:bg-primary/5 transition-all group">
                       <Download className="h-4 w-4 group-hover:animate-bounce" />
                       Download Programme Brochure
                     </a>
@@ -363,7 +363,7 @@ export default async function CourseApplicationPage({
                     </Button>
                   </Link>
                 </div>
-              </div>
+              </section>
             </div>
           </div>
         </div>
@@ -393,7 +393,9 @@ function SectionHeading({
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           {title}
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground">
+          {subtitle}
+        </p>
       </div>
     </div>
   );
