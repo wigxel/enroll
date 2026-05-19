@@ -1,14 +1,23 @@
 "use client";
 
+import { RiCurrencyFill, RiCurrencyLine } from "@remixicon/react";
 import { useQuery } from "convex/react";
 import {
+  ArrowRight,
   BookOpen,
   CalendarDays,
+  Check,
   CheckCircle2,
   Clock,
+  Clock2Icon,
+  ClockIcon,
+  Currency,
   FileCheck,
   GraduationCap,
+  Hourglass,
   Loader2,
+  LucideImage,
+  Receipt,
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
@@ -21,6 +30,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { api } from "@/convex/_generated/api";
+import { Badge } from "~/components/ui/badge";
 import { cn } from "~/lib/utils";
 
 interface EnrollmentCard {
@@ -47,7 +57,7 @@ interface ApplicationCard {
 }
 
 const gradientBackgrounds = [
-  "from-primary/20 via-primary/10 to-indigo-50",
+  "from-primary/20 via-orange-200 to-orange-100",
   "from-emerald-100/80 via-teal-50 to-cyan-50",
   "from-violet-100/80 via-purple-50 to-fuchsia-50",
   "from-amber-100/80 via-orange-50 to-yellow-50",
@@ -136,6 +146,30 @@ function EnrollmentCardComponent({
   );
 }
 
+const statusConfig = {
+  draft: { label: "Pending", color: "bg-white text-black", icon: Clock },
+  submitted: {
+    label: "Submitted",
+    color: "bg-blue-100 text-blue-700",
+    icon: FileCheck,
+  },
+  under_review: {
+    label: "Under Review",
+    color: "bg-yellow-100 text-yellow-700",
+    icon: Clock,
+  },
+  approved: {
+    label: "Approved",
+    color: "bg-emerald-100 text-emerald-700",
+    icon: CheckCircle2,
+  },
+  declined: {
+    label: "Declined",
+    color: "bg-red-100 text-red-700",
+    icon: XCircle,
+  },
+};
+
 function ApplicationCardComponent({
   application,
   index,
@@ -146,87 +180,80 @@ function ApplicationCardComponent({
   const isDeclined = application.status === "declined";
   const isApproved = application.status === "approved";
   const bgGradient = gradientBackgrounds[index % gradientBackgrounds.length];
-
-  const statusConfig = {
-    draft: { label: "Draft", color: "bg-gray-100 text-gray-700", icon: Clock },
-    submitted: {
-      label: "Submitted",
-      color: "bg-blue-100 text-blue-700",
-      icon: FileCheck,
-    },
-    under_review: {
-      label: "Under Review",
-      color: "bg-yellow-100 text-yellow-700",
-      icon: Clock,
-    },
-    approved: {
-      label: "Approved",
-      color: "bg-emerald-100 text-emerald-700",
-      icon: CheckCircle2,
-    },
-    declined: {
-      label: "Declined",
-      color: "bg-red-100 text-red-700",
-      icon: XCircle,
-    },
-  };
-
   const config = statusConfig[application.status];
-  const StatusIcon = config.icon;
 
   return (
     <div
-      className={`relative overflow-hidden rounded-xl border border-gray-200 bg-linear-to-br ${bgGradient} p-6 shadow-sm transition-shadow hover:shadow-md`}
+      className={`relative select-none overflow-hidden rounded-xl border border-primary/20 bg-linear-to-br ${bgGradient} p-6 transition-shadow`}
     >
       <div className="mb-4 flex items-start justify-between">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/60">
           <BookOpen className="h-5 w-5 text-primary" />
         </div>
-        <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${config.color}`}
-        >
-          <StatusIcon className="mr-1 h-3 w-3" />
+
+        <Badge variant="outline" className={cn(config.color, "bg-white")}>
           {config.label}
-        </span>
+        </Badge>
       </div>
 
-      <h3 className="mb-1 text-lg font-semibold text-gray-900">
+      <h3 className="mb-4 text-lg font-semibold text-gray-900">
         {application.courseName}
       </h3>
-      <p className="mb-4 text-sm text-gray-500">
-        {application.paymentStatus === "paid" ? "Paid" : "Payment pending"}
-      </p>
 
-      <div className="flex items-center gap-2 text-xs text-gray-400">
-        <CalendarDays className="h-3.5 w-3.5" />
-        <span>
-          {application.submittedAt
-            ? `Applied ${new Date(application.submittedAt).toLocaleDateString(
-                "en-NG",
-                {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                },
-              )}`
-            : "Not submitted"}
-        </span>
+      <div className="mb-4 font-medium">
+        <p className="text-sm">
+          {application.paymentStatus === "paid" ? (
+            <span className="inline-flex gap-2 items-center">
+              <Receipt size="1em" /> Paid
+            </span>
+          ) : (
+            <span className="inline-flex gap-2 items-center">
+              <Clock2Icon size="1em" /> Payment pending
+            </span>
+          )}
+        </p>
+
+        <div className="flex items-center gap-2 text-sm">
+          <CalendarDays className="h-3.5 w-3.5" />
+          <span>
+            {application.submittedAt
+              ? `Applied ${new Date(application.submittedAt).toLocaleDateString(
+                  "en-NG",
+                  {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  },
+                )}`
+              : "Not submitted"}
+          </span>
+        </div>
       </div>
 
-      {isDeclined && application.courseSlug && (
-        <Link
-          href={`/courses/${application.courseSlug}`}
-          className="mt-4 inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Reapply
-        </Link>
-      )}
+      <div className="mt-4">
+        {application.paymentStatus === "unpaid" && (
+          <Link href={`/application/pay?reference=${application._id}`}>
+            <Button variant={"default"} className="w-full">
+              Proceed to Payment <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </Link>
+        )}
 
-      {isApproved && (
-        <div className="mt-4 inline-flex w-full items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white">
-          Enrollment Approved
-        </div>
-      )}
+        {isDeclined && application.courseSlug && (
+          <Link
+            href={`/courses/${application.courseSlug}`}
+            className="mt-4 inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Reapply
+          </Link>
+        )}
+
+        {isApproved && (
+          <div className="mt-4 inline-flex w-full items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white">
+            Enrollment Approved
+          </div>
+        )}
+      </div>
     </div>
   );
 }

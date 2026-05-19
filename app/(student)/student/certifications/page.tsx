@@ -4,14 +4,6 @@ import { useQuery } from "convex/react";
 import Link from "next/link";
 import { api } from "@/convex/_generated/api";
 
-interface Certification {
-  id: string;
-  courseName: string;
-  certification: string;
-  coverPhoto: string | null;
-  completedAt: string;
-}
-
 const gradientBackgrounds = [
   "from-primary/20 via-primary/10 to-indigo-50",
   "from-emerald-100/80 via-teal-50 to-cyan-50",
@@ -21,6 +13,8 @@ const gradientBackgrounds = [
 ];
 
 import { Award, BookOpen, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { Button } from "~/components/ui/button";
 
 export default function CertificationsPage() {
   const result = useQuery(api.enrollments.getOwnCompletedEnrollments);
@@ -58,19 +52,19 @@ export default function CertificationsPage() {
       {/* Certifications Grid */}
       {certifications.length === 0 ? (
         <div className="mt-12 rounded-2xl border border-dashed border-gray-200 py-20 text-center">
-          <Award className="mx-auto h-12 w-12 text-gray-300" />
+          <Award className="mx-auto h-12 w-12" />
+
           <h2 className="mt-4 text-base font-semibold text-gray-700">
             No certifications yet
           </h2>
-          <p className="mx-auto mt-1.5 max-w-sm text-sm text-gray-400">
+
+          <p className="mx-auto mt-1.5 max-w-xs text-balance text-sm text-muted-foreground">
             Complete your enrollment to earn your first certification.
           </p>
-          <Link
-            href="/student/dashboard"
-            className="mt-6 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
-          >
-            Go to Dashboard
-          </Link>
+
+          <Button asChild className="mt-12">
+            <Link href="/student/dashboard">Go to Dashboard</Link>
+          </Button>
         </div>
       ) : (
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -82,10 +76,12 @@ export default function CertificationsPage() {
               {/* Cover / Gradient */}
               {cert.coverPhoto ? (
                 <div className="relative h-36 w-full overflow-hidden">
-                  <img
+                  <Image
                     src={cert.coverPhoto}
                     alt={cert.courseName}
                     className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                    width={80}
+                    height={80}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                 </div>
@@ -111,7 +107,7 @@ export default function CertificationsPage() {
                 </div>
 
                 <div className="mt-4 flex items-center justify-between">
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-muted-foreground">
                     {new Date(cert.completedAt).toLocaleDateString("en-NG", {
                       month: "short",
                       day: "numeric",

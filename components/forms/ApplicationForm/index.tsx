@@ -67,7 +67,7 @@ export default function ApplicationForm({
       phoneNumber: isDev ? "+2348000000000" : "",
       address: isDev ? "123 Development Street, Tech City" : "",
       educationalBackground: isDev
-        ? "BSc in Computer Science from University of Example (2020-2024)."
+        ? "BSc in Computer Science from University (2020-2024)."
         : "",
       courseId: defaultCourseId || "",
     };

@@ -1,10 +1,11 @@
 "use client";
 
-import { useClerk, useUser } from "@clerk/nextjs";
-import { LogOut } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
+import { Award, FileText, Home, LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import React from "react";
 import {
   HoverCard,
   HoverCardContent,
@@ -16,11 +17,20 @@ import { NotificationBell } from "./NotificationBell";
 interface NavItem {
   name: string;
   href: React.ComponentProps<typeof Link>["href"];
+  icon?: React.ReactNode;
 }
 
 const applicantNav: NavItem[] = [
-  { name: "Home", href: "/student/dashboard" },
-  { name: "My Application", href: "/student/courses" },
+  {
+    name: "Home",
+    href: "/student/dashboard",
+    icon: <Home size="1em" />,
+  },
+  {
+    name: "My Application",
+    href: "/student/courses",
+    icon: <FileText size="1em" />,
+  },
 ];
 
 const enrollmentNav: NavItem[] = [
@@ -28,9 +38,21 @@ const enrollmentNav: NavItem[] = [
 ];
 
 const studentNav: NavItem[] = [
-  { name: "Home", href: "/student/dashboard" },
-  { name: "My Courses", href: "/student/courses" },
-  { name: "Certifications", href: "/student/certifications" },
+  {
+    name: "Home",
+    href: "/student/dashboard",
+    icon: <Home size="1em" />,
+  },
+  {
+    name: "My Courses",
+    href: "/student/courses",
+    icon: <FileText size="1em" />,
+  },
+  {
+    name: "Certifications",
+    href: "/student/certifications",
+    icon: <Award size="1em" />,
+  },
 ];
 
 function getInitials(name: string | null | undefined): string {
@@ -47,7 +69,6 @@ export function TopNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoaded } = useUser();
-  const { signOut } = useClerk();
 
   const name = user?.fullName.split(" ")[0] ?? user?.username ?? "User";
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
@@ -63,124 +84,135 @@ export function TopNav() {
     router.push("/logout");
   };
 
-  return (
-    <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur-lg">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Left: Logo + Nav */}
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2">
-            {/* @ts-ignore */}
-            <span className="text-xl font-bold tracking-tight text-primary">
-              <Image
-                src={"/logo.svg"}
-                className="w-30"
-                alt={"CMK Logo"}
-                width={505.74}
-                height={171.5}
-              />
-            </span>
+  const nav_section = (
+    <nav className="items-center gap-1 flex flex-nowrap">
+      {navItems.map((item) => {
+        const href_as_string = String(item.href);
+        const isActive =
+          pathname === item.href ||
+          (item.href !== "/" && pathname.startsWith(href_as_string));
+
+        return (
+          <Link
+            key={href_as_string}
+            href={item.href}
+            className={cn(
+              "inline-flex gap-1 items-center rounded-lg px-3 py-2 text-sm whitespace-nowrap font-medium transition-colors",
+              isActive
+                ? "bg-primary/10 text-primary"
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+            )}
+          >
+            <span>{item.icon}</span>
+            <span>{item.name}</span>
           </Link>
-          <nav className="hidden items-center gap-1 sm:flex">
-            {navItems.map((item) => {
-              const href_as_string = String(item.href);
-              const isActive =
-                pathname === item.href ||
-                (item.href !== "/" && pathname.startsWith(href_as_string));
+        );
+      })}
+    </nav>
+  );
 
-              return (
-                <Link
-                  key={href_as_string}
-                  href={item.href}
-                  className={cn(
-                    "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
-                  )}
-                >
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* Right: Notification Bell + User avatar */}
-        <div className="flex items-center gap-2">
-          <NotificationBell />
-
-          <HoverCard openDelay={200} closeDelay={300}>
-            <HoverCardTrigger asChild>
-              <button
-                type="button"
-                className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100"
-              >
-                {/* Avatar — photo if available, else initials */}
-                <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10">
-                  {isLoaded && imageUrl ? (
-                    <Image
-                      src={imageUrl}
-                      alt={name}
-                      fill
-                      sizes="32px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <span className="text-xs font-semibold leading-none text-primary">
-                      {isLoaded ? initials : "…"}
-                    </span>
-                  )}
-                </div>
-                <span className="hidden text-sm font-medium text-gray-700 sm:inline-block">
-                  {isLoaded ? name : "Loading…"}
-                </span>
-              </button>
-            </HoverCardTrigger>
-            <HoverCardContent
-              side="bottom"
-              align="end"
-              sideOffset={8}
-              className="w-56 p-2"
-            >
-              <div className="mb-1 flex items-center gap-3 border-b border-gray-100 px-2 py-2">
-                {/* Mini avatar inside dropdown */}
-                <div className="relative flex h-9 w-9 shrink-0 overflow-hidden rounded-full bg-primary/10">
-                  {isLoaded && imageUrl ? (
-                    <Image
-                      src={imageUrl}
-                      alt={name}
-                      fill
-                      sizes="36px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <span className="m-auto text-xs font-semibold text-primary">
-                      {isLoaded ? initials : "…"}
-                    </span>
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-gray-900">
-                    {name}
-                  </p>
-                  <p className="truncate text-xs text-gray-500">{email}</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                onClick={handleSignOut}
-              >
-                <LogOut
-                  className="mr-3 h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
-                  aria-hidden="true"
+  return (
+    <React.Fragment>
+      <header className="sticky flex-col flex top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur-lg">
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Left: Logo + Nav */}
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center gap-2">
+              <span className="text-xl font-bold tracking-tight text-primary">
+                <Image
+                  src={"/logo.svg"}
+                  className="w-30"
+                  alt={"CMK Logo"}
+                  width={505.74}
+                  height={171.5}
                 />
-                Sign Out
-              </button>
-            </HoverCardContent>
-          </HoverCard>
+              </span>
+            </Link>
+
+            <div className="hidden md:block">{nav_section}</div>
+          </div>
+
+          {/* Right: Notification Bell + User avatar */}
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+
+            <HoverCard openDelay={200} closeDelay={300}>
+              <HoverCardTrigger asChild>
+                <button
+                  type="button"
+                  className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100"
+                >
+                  {/* Avatar — photo if available, else initials */}
+                  <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10">
+                    {isLoaded && imageUrl ? (
+                      <Image
+                        src={imageUrl}
+                        alt={name}
+                        fill
+                        sizes="32px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs font-semibold leading-none text-primary">
+                        {isLoaded ? initials : "…"}
+                      </span>
+                    )}
+                  </div>
+                  <span className="hidden text-sm font-medium text-gray-700 sm:inline-block">
+                    {isLoaded ? name : "Loading…"}
+                  </span>
+                </button>
+              </HoverCardTrigger>
+              <HoverCardContent
+                side="bottom"
+                align="end"
+                sideOffset={8}
+                className="w-56 p-2"
+              >
+                <div className="mb-1 flex items-center gap-3 border-b border-gray-100 px-2 py-2">
+                  {/* Mini avatar inside dropdown */}
+                  <div className="relative flex h-9 w-9 shrink-0 overflow-hidden rounded-full bg-primary/10">
+                    {isLoaded && imageUrl ? (
+                      <Image
+                        src={imageUrl}
+                        alt={name}
+                        fill
+                        sizes="36px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span className="m-auto text-xs font-semibold text-primary">
+                        {isLoaded ? initials : "…"}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-gray-900">
+                      {name}
+                    </p>
+                    <p className="truncate text-xs text-gray-500">{email}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  onClick={handleSignOut}
+                >
+                  <LogOut
+                    className="mr-3 h-4 w-4 shrink-0 text-gray-400 group-hover:text-gray-500"
+                    aria-hidden="true"
+                  />
+                  Sign Out
+                </button>
+              </HoverCardContent>
+            </HoverCard>
+          </div>
         </div>
-      </div>
-    </header>
+
+        <div className="w-full overflow-x-scroll relative overflow-y-hidden md:hidden h-12 px-4 flex items-center">
+          {nav_section}
+        </div>
+      </header>
+    </React.Fragment>
   );
 }

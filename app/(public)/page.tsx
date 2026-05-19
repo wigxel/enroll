@@ -2,7 +2,7 @@ import { ArrowRight, GraduationCap } from "lucide-react";
 
 import Link from "next/link";
 import { PartnersMarquee } from "~/components/ui/partners-marquee";
-import { TestimonialsMarquee } from "~/components/ui/testimonials-marquee";
+// import { TestimonialsMarquee } from "~/components/ui/testimonials-marquee";
 
 export const metadata = {
   title: "Launch your Culinary career with world-class training | CMK",
@@ -61,7 +61,7 @@ export default async function Home() {
 
       {/* ── Hero testimonial banner ── */}
       <div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/*<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
               <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 mb-3">
@@ -103,7 +103,7 @@ export default async function Home() {
               />
             </div>
           </div>
-        </div>
+        </div>*/}
       </div>
     </main>
   );

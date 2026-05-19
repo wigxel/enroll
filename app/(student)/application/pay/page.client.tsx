@@ -69,7 +69,7 @@ export default function PaymentComponent() {
     (applicationResult !== undefined && !application)
   ) {
     return (
-      <div className="flex flex-1 items-center justify-center p-12 text-gray-500">
+      <div className="flex flex-1 items-center justify-center p-12 text-muted-foreground">
         {applicationResult?.success === false
           ? applicationResult.error
           : "No pending application found or invalid reference."}
@@ -124,20 +124,20 @@ export default function PaymentComponent() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full max-w-md mx-auto px-4">
       {/* Progress breadcrumb */}
       <div className="mb-8 flex items-center justify-center gap-2 text-sm">
-        <span className="text-gray-400">Application</span>
+        <span className="text-muted-foreground">Application</span>
         <span className="text-gray-300">→</span>
         <span className="font-semibold text-primary">Payment</span>
         <span className="text-gray-300">→</span>
-        <span className="text-gray-400">Under Review</span>
+        <span className="text-muted-foreground">Under Review</span>
       </div>
 
       {/* Payment Card */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+      <div className="rounded-2xl border border-gray-200 bg-white px-6 py-8 shadow-sm">
         <h1 className="text-xl font-semibold text-gray-900">Application Fee</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           Complete payment to submit your application for review.
         </p>
 
@@ -145,13 +145,15 @@ export default function PaymentComponent() {
         <div className="mt-6 rounded-xl bg-gray-50 p-4">
           <dl className="space-y-3">
             <div className="flex justify-between">
-              <dt className="text-sm text-gray-500">Applicant</dt>
+              <dt className="text-sm text-muted-foreground">Applicant</dt>
               <dd className="text-sm font-medium text-gray-900">
                 {application.applicantName}
               </dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-sm text-gray-500">Application Number</dt>
+              <dt className="text-sm text-muted-foreground">
+                Application Number
+              </dt>
               <dd className="text-sm font-mono text-gray-900">
                 {application._id.slice(-8).toUpperCase()}
               </dd>
@@ -177,7 +179,7 @@ export default function PaymentComponent() {
         </button>
 
         {/* Security note */}
-        <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-gray-400">
+        <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
           <Shield className="h-3.5 w-3.5" />
           <span>Secured by Paystack</span>
         </div>
@@ -186,8 +188,8 @@ export default function PaymentComponent() {
       {/* Back link */}
       <div className="mt-6 text-center">
         <Link
-          href="/application"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
+          href="/student/courses"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-gray-700 transition-colors disabled:opacity-50"
           onClick={(e) => {
             if (isProcessing) e.preventDefault();
           }}

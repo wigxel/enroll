@@ -65,9 +65,39 @@ export const listActive = query({
           coverPhotoUrl = url ?? undefined;
         }
 
+        // Compute dynamic counts based on applications and enrollments
+        const courseApplications = await ctx.db
+          .query("applications")
+          .withIndex("by_courseId", (q) => q.eq("data.courseId", course._id))
+          .collect();
+
+        let enrolledCount = 0;
+        let alumniCount = 0;
+
+        await Promise.all(
+          courseApplications.map(async (app) => {
+            const enrollments = await ctx.db
+              .query("enrollments")
+              .withIndex("by_applicationId", (q) =>
+                q.eq("applicationId", app._id),
+              )
+              .collect();
+
+            for (const enrollment of enrollments) {
+              if (enrollment.status === "pending") {
+                enrolledCount++;
+              } else if (enrollment.status === "completed") {
+                alumniCount++;
+              }
+            }
+          }),
+        );
+
         return {
           ...course,
           coverPhoto: coverPhotoUrl,
+          enrolledCount,
+          alumniCount,
         };
       }),
     );

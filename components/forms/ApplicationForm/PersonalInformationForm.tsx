@@ -217,10 +217,12 @@ export const PersonalInformationForm = React.forwardRef<
                   <AlertCircle className="w-5 h-5" />
                   Pending Payment
                 </div>
+
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   We found an existing application with these details, but the
                   application fee has not been paid yet.
                 </p>
+
                 <Button asChild className="w-full sm:w-auto mt-4">
                   <Link href={`/application/pay?reference=${existingApp.id}`}>
                     Proceed to Payment <ArrowRight className="ml-2 w-4 h-4" />

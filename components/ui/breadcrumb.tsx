@@ -3,7 +3,6 @@ import { useMediaQuery } from "hooks-ts";
 import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
-import { _isoDateTime } from "zod/v4/core";
 import { safeStr } from "~/lib/data.helpers";
 import { cn } from "~/lib/utils";
 import {
@@ -39,12 +38,7 @@ export function Breadcrumb({ items: items_, className }: BreadcrumbProps) {
         {items_.slice(0, items_.length - 1).map((e) => {
           return (
             <DropdownMenuItem key={e.label} asChild>
-              <Link
-                href={e.href as any}
-                className="text-sm font-medium text-muted-foreground hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-              >
-                {e.label}
-              </Link>
+              <Link href={e.href as any}>{e.label}</Link>
             </DropdownMenuItem>
           );
         })}

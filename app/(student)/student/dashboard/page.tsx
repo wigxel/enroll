@@ -121,31 +121,41 @@ function RecentEnrollments() {
   if (enrollments.length === 0) return null;
 
   return (
-    <div className="space-y-3">
-      {enrollments.slice(0, 3).map((enrollment) => (
-        <Link
-          key={enrollment._id}
-          href={`/student/courses/${enrollment.courseSlug}`}
-          className="flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-white hover:border-primary/30 transition-colors"
-        >
-          <div>
-            <p className="font-medium text-gray-900">{enrollment.courseName}</p>
-            <p className="text-sm text-gray-500">{enrollment.cohortName}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                enrollment.status === "completed"
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-blue-100 text-blue-700"
-              }`}
-            >
-              {enrollment.status === "completed" ? "Completed" : "In Progress"}
-            </span>
-            <ArrowRight className="h-4 w-4 text-gray-400" />
-          </div>
-        </Link>
-      ))}
+    <div className="mt-8">
+      <h3 className="text-md font-semibold text-gray-900 mb-4">
+        Recent Activity
+      </h3>
+
+      <div className="space-y-3">
+        {enrollments.slice(0, 3).map((enrollment) => (
+          <Link
+            key={enrollment._id}
+            href={`/student/courses/${enrollment.courseSlug}`}
+            className="flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-white hover:border-primary/30 transition-colors"
+          >
+            <div>
+              <p className="font-medium text-gray-900">
+                {enrollment.courseName}
+              </p>
+              <p className="text-sm text-gray-500">{enrollment.cohortName}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  enrollment.status === "completed"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-blue-100 text-blue-700"
+                }`}
+              >
+                {enrollment.status === "completed"
+                  ? "Completed"
+                  : "In Progress"}
+              </span>
+              <ArrowRight className="h-4 w-4 text-gray-400" />
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
@@ -197,15 +207,8 @@ export default function StudentDashboardPage() {
 
   const enrollments = enrollmentsResult?.success ? enrollmentsResult.data : [];
 
-  if (enrollments.length === 0) {
-    return (
-      <div className="flex flex-1 items-center justify-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   const user = userResult?.success ? userResult.data : null;
+
   if (!user) return null;
 
   const pendingEnrollments = enrollments.filter((e) => e.status === "pending");
@@ -230,7 +233,7 @@ export default function StudentDashboardPage() {
         <OnboardingChecklist enrollment={activeEnrollment} />
       )}
 
-      <div className="rounded-2xl bg-linear-to-br from-primary/5 via-primary/2 to-transparent border border-primary/10 p-6 sm:p-8">
+      <div className="">
         <div className="flex items-center gap-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
             {user.profileImage ? (
@@ -245,9 +248,21 @@ export default function StudentDashboardPage() {
               <span className="text-lg font-bold">{initials}</span>
             )}
           </div>
+
           <div>
-            <h1 className="text-xl font-semibold text-gray-900 sm:text-2xl">
-              Welcome, {user.name}! 🎉
+            <h1 className="text-gray-900 font-sans! flex flex-col gap-0.5 sm:text-2xl">
+              <span
+                className="text-sm font-medium"
+                style={{ textBoxTrim: "trim-both" }}
+              >
+                Welcome 🎉
+              </span>
+              <span
+                className="font-semibold text-lg text-foreground"
+                style={{ textBoxTrim: "trim-both" }}
+              >
+                {user.name}
+              </span>
             </h1>
           </div>
         </div>
@@ -256,12 +271,12 @@ export default function StudentDashboardPage() {
       <section className="mt-8">
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-semibold text-gray-900">My Courses</h2>
+
           <Link
             href="/student/courses"
-            className="inline-flex gap-1 items-center"
+            className="inline-flex gap-1 hover:underline text-sm text-primary items-center"
           >
             <span>View all</span>
-            <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
@@ -269,12 +284,7 @@ export default function StudentDashboardPage() {
           <DashboardStats />
         </div>
 
-        <div className="mt-8">
-          <h3 className="text-md font-semibold text-gray-900 mb-4">
-            Recent Activity
-          </h3>
-          <RecentEnrollments />
-        </div>
+        <RecentEnrollments />
       </section>
 
       <DashboardResources />

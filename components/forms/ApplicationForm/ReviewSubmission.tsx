@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { parseISO } from "date-fns";
 import React, { useImperativeHandle } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -8,6 +9,8 @@ import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Form } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { DateParse } from "~/lib/date.helpers";
+import { O, pipe } from "~/lib/fp.helpers";
 
 // To submit the final form, they just need to confirm.
 export const reviewSubmissionSchema = z.object({
@@ -69,7 +72,8 @@ export const ReviewSubmission = React.forwardRef<
             <li className="grid grid-cols-3 gap-2 pb-2">
               <span className="font-medium text-gray-500">Name:</span>
               <span className="col-span-2 text-gray-900">
-                {formData.firstName} {formData.lastName}
+                {formData.firstName} {formData.middleName ?? ""}{" "}
+                {formData.lastName}
               </span>
             </li>
             <li className="grid grid-cols-3 gap-2 pb-2">
@@ -85,7 +89,11 @@ export const ReviewSubmission = React.forwardRef<
             <li className="grid grid-cols-3 gap-2 pb-2">
               <span className="font-medium text-gray-500">Date of Birth:</span>
               <span className="col-span-2 text-gray-900">
-                {formData.dateOfBirth}
+                {pipe(
+                  DateParse.parse(formData.dateOfBirth.replaceAll("/", "-")),
+                  O.flatMap((date) => DateParse.format(date, "do MMMM, yyyy")),
+                  O.getOrElse(() => "--"),
+                )}
               </span>
             </li>
             <li className="grid grid-cols-3 gap-2 pb-2">
@@ -149,7 +157,7 @@ export const ReviewSubmission = React.forwardRef<
           </div>
         </div>
 
-        <div className="flex justify-between mt-auto pt-6 border-t font-semibold">
+        <div className="flex justify-between mt-auto pt-6 border-t border-gray-200 font-semibold">
           {onBack ? (
             <Button
               type="button"
