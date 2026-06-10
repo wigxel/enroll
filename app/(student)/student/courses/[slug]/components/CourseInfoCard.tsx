@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery } from "convex/react";
+import { Award, Clock, Download, GraduationCap } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Award, GraduationCap, Download } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "~/components/ui/button";
 import { DownloadBrochure } from "~/components/ui/download-brochure";

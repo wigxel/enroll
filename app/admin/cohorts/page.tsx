@@ -4,9 +4,9 @@ import { useQuery } from "convex/react";
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { Button } from "~/components/ui/button";
 import { CohortDeleteDialog } from "~/components/admin/dialogs/CohortDeleteDialog";
 import { CohortFormDialog } from "~/components/admin/dialogs/CreateCohortDialog";
+import { Button } from "~/components/ui/button";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
 

@@ -4,9 +4,9 @@ import { useMutation, useQuery } from "convex/react";
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "~/components/ui/button";
 import { FaqDialog } from "~/components/admin/dialogs/FaqDialog";
 import { LinkFaqsSheet } from "~/components/admin/dialogs/LinkFaqsSheet";
+import { Button } from "~/components/ui/button";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
 
@@ -60,7 +60,7 @@ export function FAQsSection({ courseId }: FAQsSectionProps) {
         toast.success(newFaqsToAdd.length > 1 ? "FAQs linked" : "FAQ linked");
         setShowLinkFaqSheet(false);
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to link FAQs");
     }
   };
@@ -75,7 +75,7 @@ export function FAQsSection({ courseId }: FAQsSectionProps) {
       } else {
         toast.success("FAQ unlinked");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to unlink FAQ");
     }
   };
@@ -97,7 +97,7 @@ export function FAQsSection({ courseId }: FAQsSectionProps) {
         await updateCourseFaqs({ courseId, faqIds: newFaqIds });
         setShowFaqDialog(false);
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to create FAQ");
     }
   };

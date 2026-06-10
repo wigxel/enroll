@@ -37,6 +37,12 @@
       "skillPath": "plugins/codeceptjs/skills/debugging-codeceptjs-tests/SKILL.md",
       "computedHash": "48a08ff62f7253e269086865cc5a57e340d8b469a2d523ae30076fe541d255b7"
     },
+    "frontend": {
+      "source": "wigxel/ai-rules",
+      "sourceType": "github",
+      "skillPath": "skills/wg-frontend/SKILL.md",
+      "computedHash": "0987683ab13c8eb0dfb1967766ad8745d1c91a116e6ab8c3841abfb3bcc04caf"
+    },
     "refactoring-codeceptjs-tests": {
       "source": "codeceptjs/skills",
       "sourceType": "github",

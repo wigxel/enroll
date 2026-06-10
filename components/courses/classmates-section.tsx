@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "convex/react";
-import Image from "next/image";
-import { api } from "@/convex/_generated/api";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Users } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { api } from "@/convex/_generated/api";
 import { useProfileImageUrl } from "@/hooks/use-profile-image-url";
+import { cn } from "@/lib/utils";
 
 interface Classmate {
   userId: string;

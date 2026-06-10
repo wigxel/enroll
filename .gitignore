@@ -34,3 +34,6 @@ tsconfig.tsbuildinfo
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# codeceptjs session files
+output/*

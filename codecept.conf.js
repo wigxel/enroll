@@ -7,6 +7,8 @@ setHeadlessWhen(process.env.HEADLESS);
 // enable all common plugins https://github.com/codeceptjs/configure#setcommonplugins
 setCommonPlugins();
 
+process.loadEnvFile(".env.local");
+
 /** @type {CodeceptJS.MainConfig} */
 export const config = {
   tests: "./tests/*_test.js",
@@ -22,6 +24,21 @@ export const config = {
     I: "./steps_file.js",
   },
   noGlobals: true,
-  plugins: {},
+  plugins: {
+    auth: {
+      enabled: true,
+      saveToFile: true,
+      inject: "login",
+      users: {
+        admin: {
+          login: async (I) => await I.loginAsAdmin(),
+          check: (I) => {
+            I.amOnPage("/");
+            I.dontSee("Log in");
+          },
+        },
+      },
+    },
+  },
   name: "enroll",
 };

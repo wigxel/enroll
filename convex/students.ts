@@ -1,6 +1,7 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery } from "./_generated/server";
-import { now } from "./utils";
+import type { Doc } from "./_generated/dataModel";
+import { internalMutation, internalQuery, query } from "./_generated/server";
+import { now, type Result } from "./utils";
 
 const CODE_PREFIX = "CMK/";
 
@@ -10,7 +11,7 @@ function getNextStudentCode(existingCodes: string[]): string {
     if (code.startsWith(CODE_PREFIX)) {
       const numPart = code.slice(CODE_PREFIX.length);
       const num = parseInt(numPart, 10);
-      if (!isNaN(num) && num > maxNumber) {
+      if (!Number.isNaN(num) && num > maxNumber) {
         maxNumber = num;
       }
     }
@@ -45,6 +46,47 @@ export const getStudentByCode = internalQuery({
       .query("students")
       .withIndex("by_code", (q) => q.eq("code", args.code))
       .unique();
+  },
+});
+
+export const searchForCombobox = query({
+  args: { search: v.string() },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<
+    Result<Pick<Doc<"users">, "_id" | "name" | "email" | "profileImage">[]>
+  > => {
+    const studentRole = await ctx.db
+      .query("roles")
+      .withIndex("by_name", (q) => q.eq("name", "Student"))
+      .unique();
+
+    if (!studentRole) {
+      return { success: true, data: [] };
+    }
+
+    const users = await ctx.db
+      .query("users")
+      .withIndex("by_role", (q) => q.eq("role", studentRole._id))
+      .collect();
+
+    const lower = args.search.toLowerCase();
+    const filtered = users.filter(
+      (u) =>
+        u.name.toLowerCase().includes(lower) ||
+        u.email.toLowerCase().includes(lower),
+    );
+
+    return {
+      success: true,
+      data: filtered.map((u) => ({
+        _id: u._id,
+        name: u.name,
+        email: u.email,
+        profileImage: u.profileImage,
+      })),
+    };
   },
 });
 

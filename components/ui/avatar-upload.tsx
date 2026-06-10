@@ -3,7 +3,6 @@
 import { Slot } from "@radix-ui/react-slot";
 import { useMutation } from "convex/react";
 import { Camera, Loader2, User } from "lucide-react";
-import Image from "next/image";
 import * as React from "react";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";

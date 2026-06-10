@@ -47,7 +47,7 @@ export function FaqSection({ courseId }: FaqSectionProps) {
 
   return (
     <div className="mt-6 divide-y divide-gray-100 dark:divide-zinc-800 rounded-2xl border border-gray-100 dark:border-zinc-800 bg-background overflow-hidden dark:bg-zinc-900">
-      {faqs.map((faq: any) => (
+      {faqs.map((faq) => (
         <FaqItem key={faq._id} question={faq.question} answer={faq.answer} />
       ))}
     </div>

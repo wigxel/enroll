@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { FileUpload } from "~/components/ui/file-upload";
 import { Button } from "~/components/ui/button";
+import { FileUpload } from "~/components/ui/file-upload";
 import {
   Sheet,
   SheetContent,
@@ -23,7 +23,6 @@ import {
 
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
-import { formatCurrency } from "~/lib/utils";
 
 interface Partner {
   _id: Id<"partners">;
@@ -147,7 +146,7 @@ export default function PartnersSettingsPage() {
 
     if (newIndex < 0 || newIndex >= sorted.length) return;
 
-    const newOrder = sorted.map((p, index) => {
+    const newOrder = sorted.map((p, _index) => {
       if (p._id === partner._id) return sorted[newIndex]._id;
       if (p._id === sorted[newIndex]._id) return partner._id;
       return p._id;

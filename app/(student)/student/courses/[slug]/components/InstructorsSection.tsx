@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { User } from "lucide-react";
+import Image from "next/image";
 import { SectionHeading } from "./SectionHeading";
 
 interface Instructor {

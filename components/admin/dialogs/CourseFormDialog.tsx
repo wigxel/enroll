@@ -4,13 +4,6 @@ import { useMutation, useQuery } from "convex/react";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
 import { FileUpload } from "~/components/ui/file-upload";
 import { MultiSelect } from "~/components/ui/multi-select";
 import { ScrollArea } from "~/components/ui/scroll-area";

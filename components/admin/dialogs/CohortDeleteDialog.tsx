@@ -1,11 +1,11 @@
 "use client";
 
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
+import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 
 interface CohortDeleteDialogProps {
   cohort: {

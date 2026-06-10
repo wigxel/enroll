@@ -46,7 +46,7 @@ export function PrerequisitesSection({ courseId }: PrerequisitesSectionProps) {
         } else {
           toast.success("Order updated");
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error("Failed to reorder prerequisites");
       }
     },
@@ -75,7 +75,7 @@ export function PrerequisitesSection({ courseId }: PrerequisitesSectionProps) {
         setNewPrerequisite("");
         toast.success("Prerequisite added");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to add prerequisite");
     }
   };
@@ -92,7 +92,7 @@ export function PrerequisitesSection({ courseId }: PrerequisitesSectionProps) {
       } else {
         toast.success("Prerequisite removed");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to remove prerequisite");
     }
   };

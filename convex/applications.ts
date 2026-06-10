@@ -281,7 +281,9 @@ export const getMyApplication = query({
     }
 
     // Resolve course name
-    const course = await ctx.db.get(application.data.courseId);
+    const course = application.data.courseId
+      ? await ctx.db.get(application.data.courseId)
+      : null;
 
     return {
       success: true,
@@ -400,7 +402,9 @@ export const getById = query({
       .first();
 
     // Resolve course name
-    const course = await ctx.db.get(application.data.courseId);
+    const course = application.data.courseId
+      ? await ctx.db.get(application.data.courseId)
+      : null;
 
     return {
       success: true,
@@ -533,7 +537,9 @@ export const listAll = query({
     const enriched = await Promise.all(
       applications.map(async (app) => {
         const applicant = app.userId ? await ctx.db.get(app.userId) : null;
-        const course = await ctx.db.get(app.data.courseId);
+        const course = app.data.courseId
+          ? await ctx.db.get(app.data.courseId)
+          : null;
         return {
           ...app,
           applicantName: applicant

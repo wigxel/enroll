@@ -5,16 +5,16 @@ import { Users } from "lucide-react";
 import { useParams } from "next/navigation";
 import { BrochureSection } from "~/components/admin/course-details/BrochureSection";
 import { QuizPolicySection } from "~/components/admin/course-details/QuizPolicySection";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
 import { CourseHeader } from "./course-header";
-import { EnrollmentStats } from "./enrollment-stats";
-import { StudentsTable } from "./students-table";
-import { PrerequisitesSection } from "./prerequisites-section";
-import { InstructorsSection } from "./instructors-section";
-import { FAQsSection } from "./faqs-section";
 import { EditCourseForm } from "./edit-course-form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { EnrollmentStats } from "./enrollment-stats";
+import { FAQsSection } from "./faqs-section";
+import { InstructorsSection } from "./instructors-section";
+import { PrerequisitesSection } from "./prerequisites-section";
+import { StudentsTable } from "./students-table";
 
 export default function CourseDetailsPage() {
   const params = useParams();

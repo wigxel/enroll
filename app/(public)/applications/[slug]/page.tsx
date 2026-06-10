@@ -38,7 +38,7 @@ export default async function CourseApplicationPage({
   const { getToken } = await auth();
   const token = await getToken({ template: "convex" });
 
-  const [courseResult, appStatus, user, enrollmentResult] = await Promise.all([
+  const [courseResult, _appStatus, user, enrollmentResult] = await Promise.all([
     fetchQuery(api.courses.getBySlug, { slug: (await params).slug }),
     fetchQuery(api.settings.getAppStatus),
     fetchQuery(api.users.getCurrentUser, {}, token ? { token } : undefined),

@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "convex/react";
 import {
   CheckCircle2,
   ChevronDown,
@@ -8,7 +9,6 @@ import {
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { useQuery } from "convex/react";
 import { useState } from "react";
 import { api } from "@/convex/_generated/api";
 

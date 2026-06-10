@@ -70,12 +70,15 @@ export default function CourseCatalogPage() {
                   strokeLinejoin="round"
                   className="h-8 w-8 text-gray-400"
                 >
+                  <title>Recheck</title>
                   <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
                 </svg>
               </div>
+
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 Check back soon
               </h3>
+
               <p className="text-gray-500 dark:text-gray-400 max-w-md">
                 We are currently updating our course catalog. Please check back
                 later for exciting new programs.

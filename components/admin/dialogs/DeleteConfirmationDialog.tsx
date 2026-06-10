@@ -10,7 +10,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type * as React from "react";
 
 interface DeleteConfirmationDialogProps {
   open: boolean;

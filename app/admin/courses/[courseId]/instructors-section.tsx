@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "convex/react";
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { InstructorFormDialog } from "~/components/admin/dialogs/InstructorFormDialog";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -11,7 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { InstructorFormDialog } from "~/components/admin/dialogs/InstructorFormDialog";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
 
@@ -60,7 +60,7 @@ export function InstructorsSection({ courseId }: InstructorsSectionProps) {
       } else {
         toast.success("Instructor linked");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to link instructor");
     }
   };
@@ -77,7 +77,7 @@ export function InstructorsSection({ courseId }: InstructorsSectionProps) {
       } else {
         toast.success("Instructor unlinked");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to unlink instructor");
     }
   };

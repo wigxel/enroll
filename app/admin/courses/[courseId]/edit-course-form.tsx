@@ -2,9 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "convex/react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "~/components/ui/button";
+import { FileUpload } from "~/components/ui/file-upload";
 import {
   Form,
   FormControl,
@@ -16,9 +19,6 @@ import {
 import { Input } from "~/components/ui/input";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
-import { toast } from "sonner";
-import { FileUpload } from "~/components/ui/file-upload";
-import { useState } from "react";
 
 const courseSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -88,7 +88,7 @@ export function EditCourseForm({ courseId }: EditCourseFormProps) {
       } else {
         toast.success("Course updated");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to update course");
     }
   };

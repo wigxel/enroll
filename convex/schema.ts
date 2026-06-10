@@ -52,7 +52,7 @@ export default defineSchema({
       address: v.string(),
       phoneNumber: v.string(),
       educationalBackground: v.string(),
-      courseId: v.id("courses"),
+      courseId: v.optional(v.id("courses")),
     }),
     submittedAt: v.optional(v.string()),
     reviewedAt: v.optional(v.string()),
@@ -176,7 +176,7 @@ export default defineSchema({
 
   reviews: defineTable({
     userId: v.id("users"),
-    courseId: v.id("courses"),
+    courseId: v.optional(v.id("courses")),
     rating: v.number(),
     text: v.string(),
     isApproved: v.boolean(),

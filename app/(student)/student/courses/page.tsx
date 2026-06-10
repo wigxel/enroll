@@ -1,22 +1,16 @@
 "use client";
 
-import { RiCurrencyFill, RiCurrencyLine } from "@remixicon/react";
 import { useQuery } from "convex/react";
 import {
   ArrowRight,
   BookOpen,
   CalendarDays,
-  Check,
   CheckCircle2,
   Clock,
   Clock2Icon,
-  ClockIcon,
-  Currency,
   FileCheck,
   GraduationCap,
-  Hourglass,
   Loader2,
-  LucideImage,
   Receipt,
   XCircle,
 } from "lucide-react";

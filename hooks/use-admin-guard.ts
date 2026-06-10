@@ -16,9 +16,14 @@ export function useAdminGuard(): boolean {
   useEffect(() => {
     if (isLoading) return;
 
-    if (!role || !isAdminRole(role)) {
+    const interval = setTimeout(() => {
       router.replace("/");
-    }
+      if (!role || !isAdminRole(role)) {
+        router.replace("/");
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [isLoading, role, router]);
 
   return isLoading;

@@ -47,7 +47,9 @@ export const list = query({
         const application = await ctx.db.get(enrollment.applicationId);
         if (!application) return null;
 
-        const course = await ctx.db.get(application.data.courseId);
+        const course = application.data.courseId
+          ? await ctx.db.get(application.data.courseId)
+          : null;
         if (!course) return null;
 
         const cohort = enrollment.cohortId

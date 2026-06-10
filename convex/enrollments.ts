@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
+import type { Doc } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
-import { Doc } from "./_generated/dataModel";
 import { now, type Result, requireAuth, requirePrivilege } from "./utils";
 
 /**
@@ -277,7 +277,9 @@ export const listByUserId = query({
         let courseName = "—";
 
         if (application) {
-          const course = await ctx.db.get(application.data.courseId);
+          const course = application.data.courseId
+            ? await ctx.db.get(application.data.courseId)
+            : null;
           if (course) courseName = course.name;
         }
 
@@ -318,7 +320,9 @@ export const getOwnCompletedEnrollments = query({
         let courseName = "—";
 
         if (application) {
-          const course = await ctx.db.get(application.data.courseId);
+          const course = application.data.courseId
+            ? await ctx.db.get(application.data.courseId)
+            : null;
           if (course) courseName = course.name;
         }
 

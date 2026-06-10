@@ -12,7 +12,6 @@ import {
 import {
   createUser as createClerkUser,
   deleteUser as deleteClerkUser,
-  updateUserMetadata,
 } from "./clerk";
 import {
   getCurrentUser as getAuthUser,
@@ -345,7 +344,9 @@ export const listStudents = query({
 
           const application = await ctx.db.get(enrollment.applicationId);
           if (application) {
-            const course = await ctx.db.get(application.data.courseId);
+            const course = application.data.courseId
+              ? await ctx.db.get(application.data.courseId)
+              : null;
             if (course) courseName = course.name;
           }
 
@@ -717,7 +718,7 @@ export const createStudentRecord = internalMutation({
       if (code.startsWith("CMK/")) {
         const numPart = code.slice(4);
         const num = parseInt(numPart, 10);
-        if (!isNaN(num) && num > maxNumber) {
+        if (!Number.isNaN(num) && num > maxNumber) {
           maxNumber = num;
         }
       }

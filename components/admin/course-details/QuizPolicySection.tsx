@@ -1,13 +1,11 @@
 "use client";
 
-import { useMutation, useQuery } from "convex/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "convex/react";
 import { HelpCircle, Loader2, Save } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { toast } from "sonner";
-import { api } from "~/convex/_generated/api";
-import type { Id } from "~/convex/_generated/dataModel";
+import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -18,6 +16,8 @@ import {
   FormLabel,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { api } from "~/convex/_generated/api";
+import type { Id } from "~/convex/_generated/dataModel";
 
 interface QuizPolicySectionProps {
   courseId: Id<"courses">;
@@ -62,7 +62,7 @@ export function QuizPolicySection({ courseId }: QuizPolicySectionProps) {
       } else {
         toast.success("Quiz policy updated");
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to update quiz policy");
     }
   };

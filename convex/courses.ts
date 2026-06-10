@@ -3,6 +3,29 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { now, type Result, requirePrivilege } from "./utils";
 
+export const searchForCombobox = query({
+  args: { search: v.string() },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<Result<Pick<Doc<"courses">, "_id" | "name">[]>> => {
+    const courses = await ctx.db
+      .query("courses")
+      .withIndex("by_isActive", (q) => q.eq("isActive", true))
+      .collect();
+
+    const lower = args.search.toLowerCase();
+    const filtered = courses.filter((c) =>
+      c.name.toLowerCase().includes(lower),
+    );
+
+    return {
+      success: true,
+      data: filtered.map((c) => ({ _id: c._id, name: c.name })),
+    };
+  },
+});
+
 /**
  * Admin: Lists all courses (active and inactive) sorted by order.
  */

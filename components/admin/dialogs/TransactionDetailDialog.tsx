@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "~/components/ui/badge";
 import {
   Activity,
   Calendar,
@@ -13,6 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "~/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter } from "~/components/ui/dialog";
 
 interface Payment {
