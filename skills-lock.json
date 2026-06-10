@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "skills": {
+    "ci-fix-tests": {
+      "source": "codeceptjs/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/codeceptjs/skills/ci-fix-tests/SKILL.md",
+      "computedHash": "a2782a0ccee00145f863e6bdcd2133ba6f1c6d6b4094a779b3a8024e355eeb46"
+    },
+    "codeceptjs-auth": {
+      "source": "codeceptjs/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/codeceptjs/skills/codeceptjs-auth/SKILL.md",
+      "computedHash": "45034052c32402b27e5eba02e37186c6de2ce2ac265c837f0fbd8540505b3d06"
+    },
+    "codeceptjs-exploration": {
+      "source": "codeceptjs/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/codeceptjs/skills/codeceptjs-exploration/SKILL.md",
+      "computedHash": "dac22da60c4501cd96242ff51ae14b40e7264443399258d34b5ade16b2edf078"
+    },
+    "codeceptjs-fundamentals": {
+      "source": "codeceptjs/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/codeceptjs/skills/codeceptjs-fundamentals/SKILL.md",
+      "computedHash": "87cc997b9f07bbf316e8409a330ff1d3376f8c84af86fec9ad0cc603b54b6ba5"
+    },
+    "codeceptjs-run-analysis": {
+      "source": "codeceptjs/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/codeceptjs/skills/codeceptjs-run-analysis/SKILL.md",
+      "computedHash": "6114ad55d7317891cd75dbca4a7cc3b99f80650e249f7cad14a7fd0f7285fb9e"
+    },
+    "debugging-codeceptjs-tests": {
+      "source": "codeceptjs/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/codeceptjs/skills/debugging-codeceptjs-tests/SKILL.md",
+      "computedHash": "48a08ff62f7253e269086865cc5a57e340d8b469a2d523ae30076fe541d255b7"
+    },
+    "refactoring-codeceptjs-tests": {
+      "source": "codeceptjs/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/codeceptjs/skills/refactoring-codeceptjs-tests/SKILL.md",
+      "computedHash": "bf23d349be657829a28e8d49baa100b55c817cb921f74de9002961bc31948d66"
+    },
+    "writing-codeceptjs-tests": {
+      "source": "codeceptjs/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/codeceptjs/skills/writing-codeceptjs-tests/SKILL.md",
+      "computedHash": "e4bc57ce08a0aded4eed2af4acb014d2f24d14bbafc11df2ec7c06e16b9d32b4"
+    }
+  }
+}
