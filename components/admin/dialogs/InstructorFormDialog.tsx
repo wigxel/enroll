@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,6 +15,7 @@ import {
 } from "~/components/ui/sheet";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
+import { useProfileImageUrl } from "~/hooks/use-profile-image-url";
 
 const instructorSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -56,13 +57,9 @@ export function InstructorFormDialog({
 
   const isEditing = !!instructor;
 
-  const photoResult = useQuery(
-    api.storage.getFileUrl,
-    instructor?.photo
-      ? { storageId: instructor.photo as Id<"_storage"> }
-      : "skip",
-  );
-  const existingPhotoUrl = photoResult?.success ? photoResult.data : null;
+  const { url: existingPhotoUrl } = useProfileImageUrl({
+    value: instructor?.photo,
+  });
 
   const form = useForm<InstructorFormValues>({
     resolver: zodResolver(instructorSchema),
