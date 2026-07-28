@@ -1,4 +1,4 @@
-import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { BookOpen, GraduationCap, LogIn } from "lucide-react";
 import Image from "next/image";

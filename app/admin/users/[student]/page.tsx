@@ -9,13 +9,11 @@ import {
   Mail,
   Plus,
   Star,
-  User,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { CreateEnrollmentForm } from "~/components/admin/forms/CreateEnrollmentForm";
 import { AvatarUpload } from "~/components/ui/avatar-upload";
-import { Button } from "~/components/ui/button";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
 import { useProfileImageUrl } from "~/hooks/use-profile-image-url";

@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { api, internal } from "./_generated/api";
-import type { Doc } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { now, type Result, requireAuth, requirePrivilege } from "./utils";
 
@@ -27,7 +27,7 @@ export const create = mutation({
   handler: async (ctx, args): Promise<Result<any>> => {
     // Attempt to identify the user (optional for guests)
     const identity = await ctx.auth.getUserIdentity();
-    let userId;
+    let userId: Id<"users"> | undefined;
 
     if (identity) {
       const user = await ctx.db

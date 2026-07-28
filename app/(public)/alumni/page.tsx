@@ -163,9 +163,9 @@ export default function AlumniPage() {
       <div className="mx-auto max-w-6xl px-6 py-12">
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: 6 }, (_, i) => (
               <div
-                key={i}
+                key={`skeleton-${i}`}
                 className="animate-pulse rounded-2xl bg-white p-6 shadow-sm dark:bg-zinc-900"
               >
                 <div className="flex items-center gap-4">

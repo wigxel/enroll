@@ -2,7 +2,6 @@ import { ArrowRight, GraduationCap } from "lucide-react";
 
 import Link from "next/link";
 import { PartnersMarquee } from "~/components/ui/partners-marquee";
-import { TestimonialsMarquee } from "~/components/ui/testimonials-marquee";
 
 export const metadata = {
   title: "Launch your Culinary career with world-class training | CMK",

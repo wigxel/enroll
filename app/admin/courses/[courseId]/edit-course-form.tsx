@@ -88,7 +88,7 @@ export function EditCourseForm({ courseId }: EditCourseFormProps) {
       } else {
         toast.success("Course updated");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to update course");
     }
   };

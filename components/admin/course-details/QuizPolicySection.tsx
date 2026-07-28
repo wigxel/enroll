@@ -62,7 +62,7 @@ export function QuizPolicySection({ courseId }: QuizPolicySectionProps) {
       } else {
         toast.success("Quiz policy updated");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to update quiz policy");
     }
   };

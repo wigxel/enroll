@@ -99,7 +99,7 @@ export default function FaqsPage() {
         toast.success("FAQ created");
         setShowDialog(false);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to create FAQ");
     }
   };
@@ -120,7 +120,7 @@ export default function FaqsPage() {
         setShowDialog(false);
         setEditingFaq(null);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to update FAQ");
     }
   };
@@ -134,7 +134,7 @@ export default function FaqsPage() {
       } else {
         toast.success("FAQ deleted");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete FAQ");
     }
   };
@@ -147,7 +147,7 @@ export default function FaqsPage() {
       if (!res.success) {
         toast.error(res.error);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to reorder FAQs");
     }
   };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -47,9 +47,8 @@ export function TopNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoaded } = useUser();
-  const { signOut } = useClerk();
 
-  const name = user?.fullName.split(" ")[0] ?? user?.username ?? "User";
+  const name = user?.fullName?.split(" ")[0] ?? user?.username ?? "User";
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const imageUrl = user?.imageUrl;
   const initials = getInitials(name);
@@ -69,7 +68,6 @@ export function TopNav() {
         {/* Left: Logo + Nav */}
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
-            {/* @ts-ignore */}
             <span className="text-xl font-bold tracking-tight text-primary">
               <Image
                 src={"/logo.svg"}

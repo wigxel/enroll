@@ -190,9 +190,9 @@ export default async function CourseApplicationPage({
                 </span>
                 <div>
                   <div className="flex gap-0.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
+                    {Array.from({ length: 5 }, (_, i) => (
                       <Star
-                        key={i}
+                        key={`avg-star-${i}`}
                         className={`h-5 w-5 ${i < Math.round(averageRating) ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
                       />
                     ))}
@@ -239,9 +239,9 @@ export default async function CourseApplicationPage({
                         <Quote className="absolute top-4 right-4 h-8 w-8 text-gray-100 dark:text-zinc-800" />
                         {/* Stars */}
                         <div className="flex gap-0.5 mb-3">
-                          {Array.from({ length: 5 }).map((_, i) => (
+                          {Array.from({ length: 5 }, (_, i) => (
                             <Star
-                              key={i}
+                              key={`review-star-${i}`}
                               className={`h-4 w-4 ${i < review.rating ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
                             />
                           ))}

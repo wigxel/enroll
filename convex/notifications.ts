@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import type { Doc } from "./_generated/dataModel";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { now, type Result, requireAuth, requirePrivilege } from "./utils";
 
@@ -19,7 +20,7 @@ export const list = query({
 
     const filter = args.filter ?? "all";
 
-    let notifications;
+    let notifications: Doc<"notifications">[];
 
     if (filter === "unread") {
       notifications = await ctx.db
@@ -84,7 +85,7 @@ export const listAdmin = query({
 
     const filter = args.filter ?? "all";
 
-    let notifications;
+    let notifications: Doc<"notifications">[];
 
     if (filter === "unread") {
       notifications = await ctx.db

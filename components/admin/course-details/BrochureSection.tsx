@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { FileText, FilePen, Loader2, Trash2, Upload, X } from "lucide-react";
+import { FileText, FilePen, Loader2, Trash2, Upload } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "~/convex/_generated/api";
@@ -77,7 +77,7 @@ export function BrochureSection({ courseId }: BrochureSectionProps) {
       } else {
         toast.success("Brochure uploaded");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to upload brochure");
     } finally {
       setIsUploading(false);
@@ -99,7 +99,7 @@ export function BrochureSection({ courseId }: BrochureSectionProps) {
       } else {
         toast.success("Brochure removed");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to remove brochure");
     }
   };

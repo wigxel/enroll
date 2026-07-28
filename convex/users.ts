@@ -12,7 +12,6 @@ import {
 import {
   createUser as createClerkUser,
   deleteUser as deleteClerkUser,
-  updateUserMetadata,
 } from "./clerk";
 import {
   getCurrentUser as getAuthUser,
@@ -717,7 +716,7 @@ export const createStudentRecord = internalMutation({
       if (code.startsWith("CMK/")) {
         const numPart = code.slice(4);
         const num = parseInt(numPart, 10);
-        if (!isNaN(num) && num > maxNumber) {
+        if (!Number.isNaN(num) && num > maxNumber) {
           maxNumber = num;
         }
       }

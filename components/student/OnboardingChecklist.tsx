@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import { Check, GraduationCap, MinusIcon, X } from "lucide-react";
+import { Check, GraduationCap, MinusIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
