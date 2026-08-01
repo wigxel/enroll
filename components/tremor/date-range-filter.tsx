@@ -128,8 +128,9 @@ const TimeInput = React.forwardRef<HTMLDivElement, TimeInputProps>(
         ref={innerRef}
         className="group/time-input inline-flex w-full gap-x-2"
       >
-        {state.segments.map((segment, i) => (
-          <TimeSegment key={i} segment={segment} state={state} />
+        {state.segments.map((segment) => (
+          // Segment type and position identify this fixed time-input segment without an array index.
+          <TimeSegment key={`${segment.type}-${segment.text}`} segment={segment} state={state} />
         ))}
       </div>
     );

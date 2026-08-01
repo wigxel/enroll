@@ -81,6 +81,8 @@ export default function FastTrackPrompt({ courseId }: FastTrackPromptProps) {
 function Loader2({ className }: { className?: string }) {
   return (
     <svg
+      role="img"
+      aria-label="Loading"
       className={className}
       xmlns="http://www.w3.org/2000/svg"
       width="24"

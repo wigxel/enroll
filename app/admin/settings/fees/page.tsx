@@ -60,10 +60,15 @@ export default function FeesSettingsPage() {
         </p>
 
         <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700">
+          {/* The label now names the fee input instead of being unassociated text. */}
+          <label
+            htmlFor="application-fee"
+            className="block text-sm font-medium text-gray-700"
+          >
             Application Fee (₦)
           </label>
           <input
+            id="application-fee"
             type="number"
             value={applicationFee}
             onChange={(e) => setApplicationFee(e.target.value)}

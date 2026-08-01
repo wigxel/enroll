@@ -202,10 +202,7 @@ export const PersonalInformationForm = React.forwardRef<
               />
 
               {isInitialValidated ? (
-                <div
-                  role="separator"
-                  className="border-gray-200 my-8 border-t"
-                />
+                <hr className="border-gray-200 my-8 border-t" />
               ) : null}
             </div>
           )}

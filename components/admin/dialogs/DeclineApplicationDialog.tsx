@@ -63,10 +63,12 @@ export function DeclineApplicationDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="mt-2">
-          <label className="block text-sm font-medium text-gray-700">
+          {/* htmlFor links the decision reason to its textarea. */}
+          <label htmlFor="decline-reason" className="block text-sm font-medium text-gray-700">
             Reason for declining
           </label>
           <textarea
+            id="decline-reason"
             className="mt-1 w-full rounded-md border border-gray-300 p-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             rows={4}
             placeholder="Enter reason for declining (min 20 characters)..."

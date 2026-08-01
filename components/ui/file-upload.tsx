@@ -230,9 +230,10 @@ export function FileUpload({
   return (
     <div className={cn("relative", className)}>
       {/* Drop zone */}
-      <div
-        role="button"
-        tabIndex={disabled ? -1 : 0}
+      {/* A native button makes the drop zone accessible without manually emulating button behavior. */}
+      <button
+        type="button"
+        disabled={disabled}
         onClick={() => !disabled && inputRef.current?.click()}
         onKeyDown={(e) => {
           if (!disabled && (e.key === "Enter" || e.key === " ")) {
@@ -282,7 +283,7 @@ export function FileUpload({
             {state.message}
           </p>
         )}
-      </div>
+      </button>
 
       <input
         ref={inputRef}

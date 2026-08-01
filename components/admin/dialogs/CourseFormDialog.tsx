@@ -311,9 +311,8 @@ export function CourseFormDialog({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Cover Photo
-                </label>
+                {/* FileUpload owns its input; use plain text rather than an unassociated label. */}
+                <span className="block text-sm font-medium text-gray-700">Cover Photo</span>
                 <FileUpload
                   className="mt-1"
                   onUploadComplete={(storageId) =>

@@ -4,31 +4,42 @@ import { useQuery } from "convex/react";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { Button } from "~/components/ui/button";
 
 interface EnrollmentIncompleteBannerProps {
   courseId: string;
 }
 
+// The endpoint exposes an untyped result; model the checklist fields used to
+// determine completion so the UI cannot rely on an unsafe `any` cast.
+type EnrollmentChecklist = {
+  status: string;
+  quizRequired?: boolean;
+  steps?: { tuitionPaid?: boolean; documentsSigned?: boolean };
+};
+
 export function EnrollmentIncompleteBanner({
   courseId,
 }: EnrollmentIncompleteBannerProps) {
   const enrollmentResult = useQuery(api.enrollments.getByCourseId, {
-    courseId: courseId as any,
-  } as any);
+    courseId: courseId as Id<"courses">,
+  });
 
   if (enrollmentResult === undefined) {
     return null;
   }
 
-  const enrollment = enrollmentResult?.success ? enrollmentResult.data : null;
+  const enrollment = enrollmentResult?.success
+    ? (enrollmentResult.data as EnrollmentChecklist)
+    : null;
 
   const quizRequired = enrollment?.quizRequired ?? false;
   const isCompleted =
     enrollment?.status === "completed" ||
     (!quizRequired &&
-      (enrollment as any)?.steps?.tuitionPaid &&
-      (enrollment as any)?.steps?.documentsSigned);
+      enrollment?.steps?.tuitionPaid &&
+      enrollment?.steps?.documentsSigned);
 
   if (isCompleted) {
     return null;

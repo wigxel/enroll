@@ -192,21 +192,14 @@ export function OnboardingChecklist({ enrollment }: OnboardingChecklistProps) {
               {allTasks.map((task) => {
                 const isCompleted = completedTasks.includes(task.id);
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={task.id}
                     className="group flex items-center gap-3 cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleTaskClick(task);
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        handleTaskClick(task);
-                      }
-                    }}
-                    tabIndex={0}
-                    role="button"
                     aria-pressed={isCompleted}
                   >
                     <div
@@ -229,7 +222,7 @@ export function OnboardingChecklist({ enrollment }: OnboardingChecklistProps) {
                     >
                       {task.label}
                     </span>
-                  </div>
+                  </button>
                 );
               })}
             </div>

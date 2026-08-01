@@ -138,6 +138,7 @@ export function TransactionDetailDialog({
                 </div>
                 {item.copyable && (
                   <button
+                    type="button"
                     onClick={() => handleCopy(item.value)}
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors group"
                     title="Copy to clipboard"

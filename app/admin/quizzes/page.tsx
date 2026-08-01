@@ -187,6 +187,7 @@ export default function AdminQuizzesPage() {
           </div>
           <div className="mt-4 sm:mt-0">
             <button
+              type="button"
               onClick={() => handleOpenDialog("create")}
               className="group inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-95"
             >
@@ -255,7 +256,7 @@ export default function AdminQuizzesPage() {
                             <div className="font-medium">{q.question}</div>
                             <div className="mt-1 text-xs text-gray-500 line-clamp-2">
                               {q.options.map((opt, i) => (
-                                <span key={i} className="mr-2">
+                                <span key={`${q._id}-${opt}`} className="mr-2">
                                   {i + 1}. {opt}
                                 </span>
                               ))}
@@ -365,16 +366,15 @@ export default function AdminQuizzesPage() {
             </div>
 
             <div className="space-y-4">
-              <label className="text-sm font-medium leading-none">
-                Options
-              </label>
+              {/* A span labels this option group without claiming ownership of one input. */}
+              <span className="text-sm font-medium leading-none">Options</span>
               <p className="text-xs text-gray-500 -mt-2 mb-4">
                 Provide between 2 and 5 options. Select the radio button next to
                 the correct answer.
               </p>
 
               {formData.options.map((option, index) => (
-                <div key={index} className="flex items-center gap-3">
+                <div key={option} className="flex items-center gap-3">
                   <input
                     type="radio"
                     name="correctOption"

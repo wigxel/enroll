@@ -16,7 +16,7 @@ import { notFound } from "next/navigation";
 import type React from "react";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { api } from "@/convex/_generated/api";
-import type { Doc } from "@/convex/_generated/dataModel";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Button } from "~/components/ui/button";
 import { DownloadBrochure } from "~/components/ui/download-brochure";
 import { safeArray } from "~/lib/data.helpers";
@@ -26,6 +26,16 @@ import { PrerequisitesSection } from "./prerequisites-section";
 interface CourseApplicationPageProps {
   params: Promise<{ slug: string }>;
 }
+
+// The review query is currently declared with `any`; this boundary type limits
+// the page to the review fields it actually renders.
+type CourseReview = {
+  _id: Id<"reviews">;
+  userId?: string | null;
+  userName?: string | null;
+  rating: number;
+  text: string;
+};
 
 export async function generateMetadata({
   params,
@@ -65,7 +75,7 @@ export default async function CourseApplicationPage({
     courseId: course._id,
   });
   const reviewsData = reviewsResult?.success ? reviewsResult.data : null;
-  const reviews = reviewsData?.reviews || [];
+  const reviews = (reviewsData?.reviews as CourseReview[] | undefined) || [];
   const averageRating = reviewsData?.averageRating || 0;
   const totalReviews = reviewsData?.totalReviews || 0;
 
@@ -190,10 +200,11 @@ export default async function CourseApplicationPage({
                 </span>
                 <div>
                   <div className="flex gap-0.5">
-                    {Array.from({ length: 5 }, (_, i) => (
+                    {/* Rating values themselves are stable keys, unlike array indexes. */}
+                    {[1, 2, 3, 4, 5].map((star) => (
                       <Star
-                        key={`avg-star-${i}`}
-                        className={`h-5 w-5 ${i < Math.round(averageRating) ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
+                        key={`avg-star-${star}`}
+                        className={`h-5 w-5 ${star <= Math.round(averageRating) ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
                       />
                     ))}
                   </div>
@@ -210,7 +221,7 @@ export default async function CourseApplicationPage({
                 </p>
               ) : (
                 <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-5">
-                  {reviews.map((review: any) => {
+                  {reviews.map((review) => {
                     const initials =
                       review.userName
                         ?.split(" ")
@@ -239,10 +250,10 @@ export default async function CourseApplicationPage({
                         <Quote className="absolute top-4 right-4 h-8 w-8 text-gray-100 dark:text-zinc-800" />
                         {/* Stars */}
                         <div className="flex gap-0.5 mb-3">
-                          {Array.from({ length: 5 }, (_, i) => (
+                          {[1, 2, 3, 4, 5].map((star) => (
                             <Star
-                              key={`review-star-${i}`}
-                              className={`h-4 w-4 ${i < review.rating ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
+                              key={`review-star-${star}`}
+                              className={`h-4 w-4 ${star <= review.rating ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
                             />
                           ))}
                         </div>
@@ -361,7 +372,8 @@ export default async function CourseApplicationPage({
                     </a>
                   </DownloadBrochure>
 
-                  <Link href={`/applications/${course.slug}` as any}>
+                  {/* This route is a normal string href; no unsafe type bypass is required. */}
+                  <Link href={`/applications/${course.slug}`}>
                     <Button variant={"default"} size="lg" className="w-full">
                       Apply Now
                     </Button>

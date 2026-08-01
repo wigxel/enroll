@@ -7,10 +7,15 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!**/.next/**/*", "!**/*.css"]
+    "includes": ["**", "!**/.next/**/*"]
   },
   "formatter": {
     "enabled": false
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
   },
   "assist": {
     "actions": {
@@ -22,19 +27,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
-      "suspicious": {
-        "noArrayIndexKey": "warn",
-        "noExplicitAny": "warn"
-      },
-      "a11y": {
-        "noSvgWithoutTitle": "warn",
-        "useButtonType": "warn",
-        "noLabelWithoutControl": "warn",
-        "useSemanticElements": "warn",
-        "useFocusableInteractive": "warn",
-        "useAriaPropsForRole": "warn"
-      }
+      "recommended": true
     }
   }
 }
