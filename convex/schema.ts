@@ -141,6 +141,7 @@ export default defineSchema({
     isActive: v.boolean(),
     instructorIds: v.optional(v.array(v.id("instructors"))),
     faqIds: v.optional(v.array(v.id("faqs"))),
+    jobIds: v.optional(v.array(v.id("jobs"))),
     brochureUrl: v.optional(v.string()),
     quizPolicy: v.optional(
       v.object({
@@ -228,4 +229,17 @@ export default defineSchema({
   })
     .index("by_order", ["order"])
     .index("by_isActive", ["isActive"]),
+
+  jobs: defineTable({
+    title: v.string(),
+    company: v.string(),
+    salaryMin: v.number(),
+    salaryMax: v.number(),
+    image: v.optional(v.string()),
+    description: v.string(),
+    order: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  }).index("by_order", ["order"]),
 });

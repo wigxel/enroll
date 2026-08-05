@@ -199,6 +199,7 @@ export const update = mutation({
     isActive: v.optional(v.boolean()),
     instructorIds: v.optional(v.array(v.id("instructors"))),
     faqIds: v.optional(v.array(v.id("faqs"))),
+    jobIds: v.optional(v.array(v.id("jobs"))),
     brochureUrl: v.optional(v.string()),
     quizPolicy: v.optional(
       v.object({
@@ -241,6 +242,7 @@ export const update = mutation({
         instructorIds: args.instructorIds,
       }),
       ...(args.faqIds !== undefined && { faqIds: args.faqIds }),
+      ...(args.jobIds !== undefined && { jobIds: args.jobIds }),
       ...(args.brochureUrl !== undefined && { brochureUrl: args.brochureUrl }),
       ...(args.quizPolicy !== undefined && { quizPolicy: args.quizPolicy }),
       ...(args.prerequisites !== undefined && {
@@ -346,6 +348,85 @@ export const getCourseFaqs = query({
         question: faq.question,
         answer: faq.answer,
       })),
+    };
+  },
+});
+
+/**
+ * Admin: Links or unlinks job opportunities from a course.
+ */
+export const updateJobs = mutation({
+  args: {
+    courseId: v.id("courses"),
+    jobIds: v.array(v.id("jobs")),
+  },
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const privResult = await requirePrivilege(ctx, "course:manage");
+    if (!privResult.success) return privResult;
+
+    const course = await ctx.db.get(args.courseId);
+    if (!course) {
+      return { success: false, error: "Course not found." };
+    }
+
+    // Reject unknown IDs up front so a bad link cannot be persisted.
+    const jobs = await Promise.all(args.jobIds.map((id) => ctx.db.get(id)));
+    if (jobs.some((job) => !job)) {
+      return { success: false, error: "One or more jobs no longer exist." };
+    }
+
+    await ctx.db.patch(args.courseId, {
+      jobIds: args.jobIds,
+      updatedAt: now(),
+    });
+
+    return { success: true, data: null };
+  },
+});
+
+/**
+ * Public: Returns the active job opportunities linked to a course, in the order
+ * the admin arranged them, with image IDs resolved to URLs.
+ */
+export const getCourseJobs = query({
+  args: { courseId: v.id("courses") },
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const course = await ctx.db.get(args.courseId);
+    if (!course || !course.isActive) {
+      return { success: false, error: "Course not found or inactive." };
+    }
+
+    if (!course.jobIds?.length) {
+      return { success: true, data: [] };
+    }
+
+    const jobs = await Promise.all(course.jobIds.map((id) => ctx.db.get(id)));
+
+    const visibleJobs = jobs.filter(
+      (job): job is NonNullable<typeof job> => !!job && job.isActive,
+    );
+
+    return {
+      success: true,
+      data: await Promise.all(
+        visibleJobs.map(async (job) => {
+          let imageUrl: string | undefined;
+          if (job.image) {
+            const url = await ctx.storage.getUrl(job.image as Id<"_storage">);
+            imageUrl = url ?? undefined;
+          }
+
+          return {
+            _id: job._id,
+            title: job.title,
+            company: job.company,
+            salaryMin: job.salaryMin,
+            salaryMax: job.salaryMax,
+            description: job.description,
+            image: imageUrl,
+          };
+        }),
+      ),
     };
   },
 });

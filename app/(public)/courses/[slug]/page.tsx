@@ -2,6 +2,7 @@ import { fetchQuery } from "convex/nextjs";
 import {
   Award,
   BookOpen,
+  Briefcase,
   Clock,
   Download,
   GraduationCap,
@@ -21,6 +22,7 @@ import { Button } from "~/components/ui/button";
 import { DownloadBrochure } from "~/components/ui/download-brochure";
 import { safeArray } from "~/lib/data.helpers";
 import { FaqSection } from "./faq-section";
+import { JobsSection } from "./jobs-section";
 import { PrerequisitesSection } from "./prerequisites-section";
 
 interface CourseApplicationPageProps {
@@ -184,6 +186,16 @@ export default async function CourseApplicationPage({
                   );
                 })}
               </div>
+            </section>
+
+            {/* Job Opportunities */}
+            <section>
+              <SectionHeading
+                icon={<Briefcase className="h-5 w-5" />}
+                title="Job Opportunities"
+                subtitle="Roles our graduates are hired into"
+              />
+              <JobsSection courseId={course._id as string} />
             </section>
 
             {/* Alumni Reviews */}

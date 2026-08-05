@@ -22,6 +22,7 @@ import type * as faqs from "../faqs.js";
 import type * as http from "../http.js";
 import type * as instructors from "../instructors.js";
 import type * as invitations from "../invitations.js";
+import type * as jobs from "../jobs.js";
 import type * as notifications from "../notifications.js";
 import type * as partners from "../partners.js";
 import type * as payments from "../payments.js";
@@ -57,6 +58,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   instructors: typeof instructors;
   invitations: typeof invitations;
+  jobs: typeof jobs;
   notifications: typeof notifications;
   partners: typeof partners;
   payments: typeof payments;
