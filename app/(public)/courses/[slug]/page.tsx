@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { fetchQuery } from "convex/nextjs";
 import {
   Award,
@@ -5,6 +6,7 @@ import {
   Briefcase,
   Clock,
   Download,
+  Eye,
   GraduationCap,
   Quote,
   Star,
@@ -39,17 +41,35 @@ type CourseReview = {
   text: string;
 };
 
+/**
+ * Convex auth options for the signed-in caller, or undefined when anonymous.
+ *
+ * The course queries use this to decide whether an unpublished course may be
+ * read, which is what powers the admin "Preview" action. Sending it costs
+ * nothing for ordinary visitors: without the privilege the result is identical.
+ */
+async function getConvexAuth() {
+  const { getToken } = await auth();
+  const token = await getToken({ template: "convex" });
+  return token ? { token } : undefined;
+}
+
 export async function generateMetadata({
   params,
 }: CourseApplicationPageProps): Promise<Metadata> {
-  const result = await fetchQuery(api.courses.getBySlug, {
-    slug: (await params).slug,
-  });
+  const result = await fetchQuery(
+    api.courses.getBySlug,
+    { slug: (await params).slug },
+    await getConvexAuth(),
+  );
   const course = result?.success ? result.data : null;
   if (!course) return { title: "Course Not Found" };
   return {
     title: `Apply — ${course.name}`,
     description: course.description,
+    // An unpublished course reaching this point is an admin preview; keep it
+    // out of search indexes even though anonymous crawlers already get a 404.
+    ...(course.isActive ? {} : { robots: { index: false, follow: false } }),
   };
 }
 
@@ -61,7 +81,11 @@ export default async function CourseApplicationPage({
   params,
 }: CourseApplicationPageProps) {
   const [courseResult, appStatusResult] = await Promise.all([
-    fetchQuery(api.courses.getBySlug, { slug: (await params).slug }),
+    fetchQuery(
+      api.courses.getBySlug,
+      { slug: (await params).slug },
+      await getConvexAuth(),
+    ),
     fetchQuery(api.settings.getAppStatus),
   ]);
 
@@ -83,6 +107,10 @@ export default async function CourseApplicationPage({
 
   return (
     <div className="min-h-screen">
+      {/* Reaching this branch means the viewer is privileged: getBySlug hides
+          unpublished courses from everyone else. */}
+      {!course.isActive && <PreviewBanner />}
+
       {/* ── Sticky header ── */}
       <div className="sticky top-0 z-50 bg-background/90 backdrop-blur-sm border-b border-gray-100 dark:border-zinc-800">
         <div className="h-16 flex items-center justify-between mx-auto container">
@@ -403,6 +431,21 @@ export default async function CourseApplicationPage({
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
+
+/**
+ * Shown when an admin previews a course that is not yet active, so an
+ * unpublished page is never mistaken for the live one.
+ */
+function PreviewBanner() {
+  return (
+    <div className="bg-amber-500 px-4 py-2.5 text-center text-sm font-medium text-amber-950">
+      <Eye className="mr-2 inline h-4 w-4 align-text-bottom" />
+      Preview — this course is inactive and is not visible to applicants.
+      Activate it from the admin dashboard to publish.
+    </div>
+  );
+}
+
 function SectionHeading({
   icon,
   title,

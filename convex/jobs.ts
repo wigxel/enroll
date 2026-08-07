@@ -90,6 +90,53 @@ export const list = query({
 });
 
 /**
+ * Admin: Lists every job alongside the courses currently linking to it.
+ *
+ * Deleting a job unlinks it from its courses, so the management screen needs
+ * that impact up front to warn before a destructive action rather than after.
+ */
+export const listWithUsage = query({
+  args: {},
+  handler: async (ctx): Promise<Result<any>> => {
+    const privResult = await requirePrivilege(ctx, "course:read:all");
+    if (!privResult.success) return privResult;
+
+    const [jobs, courses] = await Promise.all([
+      ctx.db.query("jobs").withIndex("by_order").collect(),
+      ctx.db.query("courses").collect(),
+    ]);
+
+    // Invert the course -> jobIds relation once, so usage lookup stays O(1)
+    // per job instead of rescanning every course for each one.
+    const usageByJobId = new Map<Id<"jobs">, string[]>();
+    for (const course of courses) {
+      for (const jobId of course.jobIds ?? []) {
+        const existing = usageByJobId.get(jobId);
+        if (existing) {
+          existing.push(course.name);
+        } else {
+          usageByJobId.set(jobId, [course.name]);
+        }
+      }
+    }
+
+    return {
+      success: true,
+      data: await Promise.all(
+        jobs.map(async (job) => ({
+          ...(await withImageUrl(ctx, job)),
+          // `image` above is a display URL. The edit form has to round-trip the
+          // original storage ID, otherwise saving would persist the URL back
+          // into the field and break later lookups.
+          imageStorageId: job.image,
+          linkedCourses: usageByJobId.get(job._id) ?? [],
+        })),
+      ),
+    };
+  },
+});
+
+/**
  * Admin: Resolves a specific set of job IDs, preserving the given order.
  */
 export const listByIds = query({

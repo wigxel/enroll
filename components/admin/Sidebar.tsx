@@ -5,6 +5,7 @@ import { useQuery } from "convex/react";
 import {
   Bell,
   BookOpen,
+  Briefcase,
   CircleHelp,
   CreditCard,
   FileText,
@@ -37,6 +38,7 @@ const navigation = [
   { name: "Quizzes", href: "/admin/quizzes", icon: BookOpen },
   { name: "Cohorts", href: "/admin/cohorts", icon: Layers },
   { name: "FAQs", href: "/admin/faqs", icon: CircleHelp },
+  { name: "Job Opportunities", href: "/admin/jobs", icon: Briefcase },
   { name: "Payments", href: "/admin/payments", icon: CreditCard },
   { name: "Notifications", href: "/admin/notifications", icon: Bell },
   { name: "Settings", href: "/admin/settings", icon: Settings },

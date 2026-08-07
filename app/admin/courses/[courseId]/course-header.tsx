@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -48,14 +48,39 @@ export function CourseHeader({ courseId }: CourseHeaderProps) {
 
   return (
     <div className="mb-8">
-      <button
-        type="button"
-        onClick={() => router.push("/admin/courses")}
-        className="mb-4 flex items-center text-sm font-medium text-gray-500 hover:text-gray-700"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Courses
-      </button>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => router.push("/admin/courses")}
+          className="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Courses
+        </button>
+
+        <Button variant="outline" size="sm" asChild>
+          {/* Opens the live public page in a new tab so the admin keeps their
+              place here. Unpublished courses render for privileged users only. */}
+          <a
+            href={`/courses/${course.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={
+              course.isActive
+                ? "Open the public course page in a new tab"
+                : "This course is inactive — the preview is visible to admins only"
+            }
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Preview
+            {!course.isActive && (
+              <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                Draft
+              </span>
+            )}
+          </a>
+        </Button>
+      </div>
 
       <div className="flex items-start gap-6">
         <div className="h-32 w-32 shrink-0 overflow-hidden rounded-xl bg-gray-200">

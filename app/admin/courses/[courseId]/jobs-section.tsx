@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery } from "convex/react";
 import { Briefcase, Plus, X } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -94,10 +95,18 @@ export function JobsSection({ courseId }: JobsSectionProps) {
         <h2 className="text-lg font-semibold text-gray-900">
           Job Opportunities
         </h2>
-        <Button size="sm" onClick={() => setShowLinkJobSheet(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Job
-        </Button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/jobs"
+            className="text-sm font-medium text-gray-500 hover:text-gray-700"
+          >
+            Manage library
+          </Link>
+          <Button size="sm" onClick={() => setShowLinkJobSheet(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Job
+          </Button>
+        </div>
       </div>
 
       {linkedJobs.length === 0 ? (

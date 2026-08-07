@@ -245,7 +245,10 @@ export function FileUpload({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 transition-colors",
+          // w-full is explicit because a button shrinks to fit its content even
+          // as a flex container, which left the drop zone narrower than both the
+          // fields above it and the uploaded preview that replaces it.
+          "flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 transition-colors",
           isDragging
             ? "border-primary bg-primary/5"
             : "border-gray-300 hover:border-gray-400",
