@@ -19,11 +19,9 @@ interface RefundDialogProps {
   payment: { _id: string; userName: string; amount: number } | null;
 }
 
-export function RefundDialog({
-  open,
-  onOpenChange,
-  payment,
-}: RefundDialogProps) {
+export function RefundDialog(props: RefundDialogProps) {
+  const { open, onOpenChange, payment } = props;
+
   const [reason, setReason] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const refundPayment = useAction(api.payments.refund);

@@ -4,10 +4,12 @@ export const metadata: Metadata = {
   title: "Manage FAQs | CMK",
 };
 
-export default function FAQsLayout({
-  children,
-}: {
+export type FAQsLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function FAQsLayout(props: FAQsLayoutProps) {
+  const { children } = props;
+
   return children;
 }

@@ -4,10 +4,12 @@ export const metadata: Metadata = {
   title: "Manage Instructors | CMK",
 };
 
-export default function InstructorsLayout({
-  children,
-}: {
+export type InstructorsLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function InstructorsLayout(props: InstructorsLayoutProps) {
+  const { children } = props;
+
   return children;
 }

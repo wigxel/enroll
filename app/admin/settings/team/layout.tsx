@@ -4,10 +4,12 @@ export const metadata: Metadata = {
   title: "Team Settings | CMK",
 };
 
-export default function TeamLayout({
-  children,
-}: {
+export type TeamLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function TeamLayout(props: TeamLayoutProps) {
+  const { children } = props;
+
   return children;
 }

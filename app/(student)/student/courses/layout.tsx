@@ -4,10 +4,12 @@ export const metadata: Metadata = {
   title: "My Courses | CMK",
 };
 
-export default function CoursesLayout({
-  children,
-}: {
+export type CoursesLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function CoursesLayout(props: CoursesLayoutProps) {
+  const { children } = props;
+
   return children;
 }

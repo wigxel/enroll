@@ -25,14 +25,16 @@ interface LinkJobsSheetProps {
   onCreateNew: () => void;
 }
 
-export function LinkJobsSheet({
-  isOpen,
-  onOpenChange,
-  availableJobs,
-  linkedJobs,
-  onLink,
-  onCreateNew,
-}: LinkJobsSheetProps) {
+export function LinkJobsSheet(props: LinkJobsSheetProps) {
+  const {
+    isOpen,
+    onOpenChange,
+    availableJobs,
+    linkedJobs,
+    onLink,
+    onCreateNew,
+  } = props;
+
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Id<"jobs">[]>([]);
 

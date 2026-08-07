@@ -245,7 +245,11 @@ export default function AlumniPage() {
   );
 }
 
-function AlumnusCard({ data: alumnus }: { data: Alumnus }) {
+type AlumnusCardProps = { data: Alumnus };
+
+function AlumnusCard(props: AlumnusCardProps) {
+  const { data: alumnus } = props;
+
   return (
     <div
       key={alumnus.userId}
@@ -305,15 +309,15 @@ function AlumnusCard({ data: alumnus }: { data: Alumnus }) {
   );
 }
 
-function AlumusImage({
-  name,
-  src,
-  size = 56,
-}: {
+type AlumusImageProps = {
   name: string;
   src?: string | null;
   size?: number;
-}) {
+};
+
+function AlumusImage(props: AlumusImageProps) {
+  const { name, src, size = 56 } = props;
+
   const { url: resolvedSrc } = useProfileImageUrl({ value: src });
 
   const initials = name

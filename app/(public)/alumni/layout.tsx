@@ -4,10 +4,12 @@ export const metadata: Metadata = {
   title: "Alumni | CMK",
 };
 
-export default function AlumniLayout({
-  children,
-}: {
+export type AlumniLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function AlumniLayout(props: AlumniLayoutProps) {
+  const { children } = props;
+
   return children;
 }

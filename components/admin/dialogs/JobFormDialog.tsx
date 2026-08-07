@@ -3,11 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import {
-  useForm,
-  type FieldErrors,
-  type Resolver,
-} from "react-hook-form";
+import { useForm, type FieldErrors, type Resolver } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { FileUpload } from "~/components/ui/file-upload";
@@ -88,12 +84,7 @@ const defaultState: JobFormInput = {
   image: undefined,
 };
 
-type JobField =
-  | "title"
-  | "company"
-  | "salaryMin"
-  | "salaryMax"
-  | "description";
+type JobField = "title" | "company" | "salaryMin" | "salaryMax" | "description";
 
 const jobFieldOrder: JobField[] = [
   "title",
@@ -103,18 +94,16 @@ const jobFieldOrder: JobField[] = [
   "description",
 ];
 
-export function JobFormDialog({
-  open,
-  onOpenChange,
-  job,
-  onCreated,
-}: JobFormDialogProps) {
+export function JobFormDialog(props: JobFormDialogProps) {
+  const { open, onOpenChange, job, onCreated } = props;
+
   const createJob = useMutation(api.jobs.create);
   const updateJob = useMutation(api.jobs.update);
 
   const isEditing = !!job;
-  const [highlightedField, setHighlightedField] =
-    useState<JobField | null>(null);
+  const [highlightedField, setHighlightedField] = useState<JobField | null>(
+    null,
+  );
   const [isShaking, setIsShaking] = useState(false);
   const shakeTimeoutRef = useRef<number | null>(null);
 
@@ -236,8 +225,7 @@ export function JobFormDialog({
     void handleSubmit(onSubmit, handleInvalid)(event);
   };
 
-  const titleHasError =
-    highlightedField === "title" && isBlank(titleValue);
+  const titleHasError = highlightedField === "title" && isBlank(titleValue);
   const companyHasError =
     highlightedField === "company" && isBlank(companyValue);
   const salaryMinHasError =
@@ -294,9 +282,7 @@ export function JobFormDialog({
       reset(defaultState);
       onOpenChange(false);
     } catch {
-      toast.error(
-        isEditing ? "Failed to update job" : "Failed to create job",
-      );
+      toast.error(isEditing ? "Failed to update job" : "Failed to create job");
     }
   };
 
@@ -484,9 +470,7 @@ export function JobFormDialog({
                 {...register("description")}
                 aria-invalid={descriptionHasError}
                 aria-describedby={
-                  descriptionErrorMessage
-                    ? "job-description-error"
-                    : undefined
+                  descriptionErrorMessage ? "job-description-error" : undefined
                 }
                 className={getInputClass("description", descriptionHasError)}
                 onAnimationEnd={() => setIsShaking(false)}

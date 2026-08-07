@@ -20,15 +20,17 @@ interface AvatarUploadProps extends Omit<
   asChild?: boolean;
 }
 
-export function AvatarUpload({
-  currentImageUrl,
-  onUploadComplete,
-  size = 80,
-  asChild = false,
-  className,
-  disabled,
-  ...props
-}: AvatarUploadProps) {
+export function AvatarUpload(props: AvatarUploadProps) {
+  const {
+    currentImageUrl,
+    onUploadComplete,
+    size = 80,
+    asChild = false,
+    className,
+    disabled,
+    ...restProps
+  } = props;
+
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
   const [uploading, setUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -141,7 +143,7 @@ export function AvatarUpload({
             fileInputRef.current?.click();
           }
         }}
-        {...props}
+        {...restProps}
       >
         {avatarContent}
       </Slot>

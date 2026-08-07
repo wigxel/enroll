@@ -10,7 +10,11 @@ export const metadata: Metadata = {
     "Browse programs, apply online, and join a community of hospitality",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export type RootLayoutProps = { children: ReactNode };
+
+export function RootLayout(props: RootLayoutProps) {
+  const { children } = props;
+
   return (
     <>
       <Header />

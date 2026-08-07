@@ -4,10 +4,12 @@ export const metadata: Metadata = {
   title: "Fee Settings | CMK",
 };
 
-export default function FeesLayout({
-  children,
-}: {
+export type FeesLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function FeesLayout(props: FeesLayoutProps) {
+  const { children } = props;
+
   return children;
 }

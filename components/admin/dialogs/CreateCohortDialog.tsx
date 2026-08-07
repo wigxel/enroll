@@ -39,12 +39,9 @@ const emptyForm: CohortFormData = {
   capacity: "",
 };
 
-export function CohortFormDialog({
-  open,
-  onOpenChange,
-  cohort,
-  onSuccess,
-}: CohortFormDialogProps) {
+export function CohortFormDialog(props: CohortFormDialogProps) {
+  const { open, onOpenChange, cohort, onSuccess } = props;
+
   const [formData, setFormData] = useState<CohortFormData>(emptyForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

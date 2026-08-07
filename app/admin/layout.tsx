@@ -6,11 +6,13 @@ import { Sidebar } from "@/components/admin/Sidebar";
 import { useAdminGuard } from "@/hooks/use-admin-guard";
 import { useCreateOrGetUser } from "@/hooks/use-create-or-get-user";
 
-export default function AdminLayout({
-  children,
-}: {
+export type AdminLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function AdminLayout(props: AdminLayoutProps) {
+  const { children } = props;
+
   useCreateOrGetUser();
   const isLoading = useAdminGuard();
 

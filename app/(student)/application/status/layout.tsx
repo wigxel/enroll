@@ -4,10 +4,12 @@ export const metadata: Metadata = {
   title: "Application Status | CMK",
 };
 
-export default function StatusLayout({
-  children,
-}: {
+export type StatusLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function StatusLayout(props: StatusLayoutProps) {
+  const { children } = props;
+
   return children;
 }

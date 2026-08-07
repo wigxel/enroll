@@ -27,7 +27,50 @@ interface JobsSectionProps {
 /** Long descriptions are collapsed so one verbose entry can't bury the rest. */
 const DESCRIPTION_CLAMP_CHARS = 280;
 
-function JobCard({ job }: { job: Job }) {
+export function JobsSection({ courseId }: JobsSectionProps) {
+  const jobsResult = useQuery(api.courses.getCourseJobs, {
+    courseId: courseId as Id<"courses">,
+  });
+
+  if (jobsResult === undefined) {
+    return (
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {["a", "b"].map((key) => (
+          <div
+            key={key}
+            className="h-64 animate-pulse rounded-2xl bg-gray-100 dark:bg-zinc-800"
+          />
+        ))}
+      </div>
+    );
+  }
+
+  const jobs = jobsResult?.success ? (jobsResult.data as Job[]) : [];
+
+  if (jobs.length === 0) {
+    return (
+      <div className="mt-6 rounded-2xl border border-gray-100 bg-background p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Job opportunities for this course will be shared soon.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+      {jobs.map((job) => (
+        <JobCard key={job._id} job={job} />
+      ))}
+    </div>
+  );
+}
+
+type JobCardProps = { job: Job };
+
+function JobCard(props: JobCardProps) {
+  const { job } = props;
+
   const [expanded, setExpanded] = useState(false);
   const isLong = job.description.length > DESCRIPTION_CLAMP_CHARS;
 
@@ -84,44 +127,5 @@ function JobCard({ job }: { job: Job }) {
         )}
       </div>
     </article>
-  );
-}
-
-export function JobsSection({ courseId }: JobsSectionProps) {
-  const jobsResult = useQuery(api.courses.getCourseJobs, {
-    courseId: courseId as Id<"courses">,
-  });
-
-  if (jobsResult === undefined) {
-    return (
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {["a", "b"].map((key) => (
-          <div
-            key={key}
-            className="h-64 animate-pulse rounded-2xl bg-gray-100 dark:bg-zinc-800"
-          />
-        ))}
-      </div>
-    );
-  }
-
-  const jobs = jobsResult?.success ? (jobsResult.data as Job[]) : [];
-
-  if (jobs.length === 0) {
-    return (
-      <div className="mt-6 rounded-2xl border border-gray-100 bg-background p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Job opportunities for this course will be shared soon.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-      {jobs.map((job) => (
-        <JobCard key={job._id} job={job} />
-      ))}
-    </div>
   );
 }

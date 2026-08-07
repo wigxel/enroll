@@ -130,7 +130,11 @@ const TimeInput = React.forwardRef<HTMLDivElement, TimeInputProps>(
       >
         {state.segments.map((segment) => (
           // Segment type and position identify this fixed time-input segment without an array index.
-          <TimeSegment key={`${segment.type}-${segment.text}`} segment={segment} state={state} />
+          <TimeSegment
+            key={`${segment.type}-${segment.text}`}
+            segment={segment}
+            state={state}
+          />
         ))}
       </div>
     );

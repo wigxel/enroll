@@ -32,11 +32,9 @@ interface TransactionDetailDialogProps {
   payment: Payment | null;
 }
 
-export function TransactionDetailDialog({
-  open,
-  onOpenChange,
-  payment,
-}: TransactionDetailDialogProps) {
+export function TransactionDetailDialog(props: TransactionDetailDialogProps) {
+  const { open, onOpenChange, payment } = props;
+
   const [copied, setCopied] = useState(false);
 
   if (!payment) return null;

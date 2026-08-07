@@ -26,14 +26,16 @@ interface MultiSelectProps {
   className?: string;
 }
 
-export function MultiSelect({
-  options,
-  selected,
-  onChange,
-  placeholder = "Select options",
-  disabled = false,
-  className,
-}: MultiSelectProps) {
+export function MultiSelect(props: MultiSelectProps) {
+  const {
+    options,
+    selected,
+    onChange,
+    placeholder = "Select options",
+    disabled = false,
+    className,
+  } = props;
+
   const [open, setOpen] = React.useState(false);
 
   const getInitials = (label: string) => {

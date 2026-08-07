@@ -105,7 +105,11 @@ export default function CourseCatalogPage() {
   );
 }
 
-function CourseCard({ data: course }: { data: CatalogCourse }) {
+type CourseCardProps = { data: CatalogCourse };
+
+function CourseCard(props: CourseCardProps) {
+  const { data: course } = props;
+
   return (
     <Link href={`/courses/${course.slug}`} draggable={false}>
       <div className="flex flex-col overflow-hidden p-0 transition-all bg-background select-none rounded-2xl hover:shadow-xl transition-default hover:-translate-y-2 shadow-black/6">

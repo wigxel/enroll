@@ -4,10 +4,12 @@ export const metadata: Metadata = {
   title: "Manage Payments | CMK",
 };
 
-export default function PaymentsLayout({
-  children,
-}: {
+export type PaymentsLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function PaymentsLayout(props: PaymentsLayoutProps) {
+  const { children } = props;
+
   return children;
 }

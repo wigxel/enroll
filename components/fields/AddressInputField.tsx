@@ -15,13 +15,15 @@ export interface AddressInputFieldProps<T extends FieldValues> {
   placeholder?: string;
 }
 
-export function AddressInputField<T extends FieldValues>({
-  control,
-  name,
-  label = "Residential Address",
-  required = true,
-  placeholder = "Your full home street address",
-}: AddressInputFieldProps<T>) {
+export function AddressInputField(props: AddressInputFieldProps<T>) {
+  const {
+    control,
+    name,
+    label = "Residential Address",
+    required = true,
+    placeholder = "Your full home street address",
+  } = props;
+
   return (
     <FormField
       control={control}

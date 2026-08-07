@@ -19,7 +19,11 @@ interface TestimonialsMarqueeProps {
   speed?: number;
 }
 
-function ErrorBoundary({ children }: { children: React.ReactNode }) {
+type ErrorBoundaryProps = { children: React.ReactNode };
+
+function ErrorBoundary(props: ErrorBoundaryProps) {
+  const { children } = props;
+
   const [hasError, setHasError] = useState(false);
 
   if (hasError) {
@@ -34,10 +38,9 @@ function ErrorBoundary({ children }: { children: React.ReactNode }) {
   }
 }
 
-export function TestimonialsMarquee({
-  direction = "left",
-  speed = 30,
-}: TestimonialsMarqueeProps) {
+export function TestimonialsMarquee(props: TestimonialsMarqueeProps) {
+  const { direction = "left", speed = 30 } = props;
+
   return (
     <ErrorBoundary>
       <TestimonialsMarqueeInner direction={direction} speed={speed} />
@@ -45,13 +48,14 @@ export function TestimonialsMarquee({
   );
 }
 
-function TestimonialsMarqueeInner({
-  direction,
-  speed,
-}: {
+type TestimonialsMarqueeInnerProps = {
   direction: "left" | "right";
   speed: number;
-}) {
+};
+
+function TestimonialsMarqueeInner(props: TestimonialsMarqueeInnerProps) {
+  const { direction, speed } = props;
+
   const result = useQuery(api.reviews.getForMarquee);
   const testimonials = result?.success ? result.data : [];
 
@@ -97,7 +101,11 @@ function TestimonialsMarqueeInner({
   );
 }
 
-function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
+type TestimonialCardProps = { testimonial: Testimonial };
+
+function TestimonialCard(props: TestimonialCardProps) {
+  const { testimonial } = props;
+
   const initials = testimonial.userName
     .split(" ")
     .map((n) => n[0])

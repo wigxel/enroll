@@ -29,14 +29,35 @@ interface JobRowProps {
   onDelete: () => void;
 }
 
-function JobRowContent({
-  job,
-  isDraggable,
-  onEdit,
-  onToggleActive,
-  onDelete,
-  dragControls,
-}: JobRowProps & { dragControls?: ReturnType<typeof useDragControls> }) {
+/**
+ * A single row in the job library. Renders inside a Reorder.Item only while the
+ * full, unfiltered list is on screen — reordering a filtered subset would write
+ * back a misleading global order.
+ */
+export function JobRow(props: JobRowProps) {
+  const dragControls = useDragControls();
+
+  if (!props.isDraggable) {
+    return <JobRowContent {...props} />;
+  }
+
+  return (
+    <Reorder.Item
+      value={props.job}
+      dragListener={false}
+      dragControls={dragControls}
+    >
+      <JobRowContent {...props} dragControls={dragControls} />
+    </Reorder.Item>
+  );
+}
+
+function JobRowContent(
+  props: JobRowProps & { dragControls?: ReturnType<typeof useDragControls> },
+) {
+  const { job, isDraggable, onEdit, onToggleActive, onDelete, dragControls } =
+    props;
+
   const linkedCount = job.linkedCourses.length;
 
   return (
@@ -137,28 +158,5 @@ function JobRowContent({
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
-  );
-}
-
-/**
- * A single row in the job library. Renders inside a Reorder.Item only while the
- * full, unfiltered list is on screen — reordering a filtered subset would write
- * back a misleading global order.
- */
-export function JobRow(props: JobRowProps) {
-  const dragControls = useDragControls();
-
-  if (!props.isDraggable) {
-    return <JobRowContent {...props} />;
-  }
-
-  return (
-    <Reorder.Item
-      value={props.job}
-      dragListener={false}
-      dragControls={dragControls}
-    >
-      <JobRowContent {...props} dragControls={dragControls} />
-    </Reorder.Item>
   );
 }

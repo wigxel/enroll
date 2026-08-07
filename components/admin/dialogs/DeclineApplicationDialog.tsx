@@ -22,13 +22,9 @@ interface DeclineApplicationDialogProps {
   onSuccess?: () => void;
 }
 
-export function DeclineApplicationDialog({
-  open,
-  onOpenChange,
-  applicationId,
-  applicantName,
-  onSuccess,
-}: DeclineApplicationDialogProps) {
+export function DeclineApplicationDialog(props: DeclineApplicationDialogProps) {
+  const { open, onOpenChange, applicationId, applicantName, onSuccess } = props;
+
   const [reason, setReason] = useState("");
   const [isPending, setIsPending] = useState(false);
 
@@ -64,7 +60,10 @@ export function DeclineApplicationDialog({
         </DialogHeader>
         <div className="mt-2">
           {/* htmlFor links the decision reason to its textarea. */}
-          <label htmlFor="decline-reason" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="decline-reason"
+            className="block text-sm font-medium text-gray-700"
+          >
             Reason for declining
           </label>
           <textarea

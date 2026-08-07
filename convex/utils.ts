@@ -7,8 +7,7 @@ import {
 } from "./_generated/server";
 
 export type Result<T> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+  { success: true; data: T } | { success: false; error: string };
 
 /**
  * Retrieves the currently authenticated user from the database

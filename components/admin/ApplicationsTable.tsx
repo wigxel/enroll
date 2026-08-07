@@ -5,12 +5,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export type ApplicationStatus =
-  | "draft"
-  | "submitted"
-  | "under_review"
-  | "approved"
-  | "declined"
-  | "enrolled";
+  "draft" | "submitted" | "under_review" | "approved" | "declined" | "enrolled";
 
 export interface DashboardApplication {
   id: string;

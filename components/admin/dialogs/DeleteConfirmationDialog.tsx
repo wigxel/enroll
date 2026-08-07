@@ -21,15 +21,17 @@ interface DeleteConfirmationDialogProps {
   isDeleting?: boolean;
 }
 
-export function DeleteConfirmationDialog({
-  open,
-  onOpenChange,
-  title,
-  itemName,
-  warningMessage,
-  onConfirm,
-  isDeleting = false,
-}: DeleteConfirmationDialogProps) {
+export function DeleteConfirmationDialog(props: DeleteConfirmationDialogProps) {
+  const {
+    open,
+    onOpenChange,
+    title,
+    itemName,
+    warningMessage,
+    onConfirm,
+    isDeleting = false,
+  } = props;
+
   const handleConfirm = async () => {
     await onConfirm();
   };

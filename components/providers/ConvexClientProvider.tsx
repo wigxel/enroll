@@ -17,7 +17,11 @@ function UserSync() {
   return null;
 }
 
-export function ConvexClientProvider({ children }: { children: ReactNode }) {
+export type ConvexClientProviderProps = { children: ReactNode };
+
+export function ConvexClientProvider(props: ConvexClientProviderProps) {
+  const { children } = props;
+
   return (
     <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
       <UserSync />

@@ -4,7 +4,9 @@ interface SectionHeadingProps {
   subtitle: string;
 }
 
-export function SectionHeading({ icon, title, subtitle }: SectionHeadingProps) {
+export function SectionHeading(props: SectionHeadingProps) {
+  const { icon, title, subtitle } = props;
+
   return (
     <div className="flex items-start gap-3">
       <div className="mt-0.5 flex bg-primary/16 text-primary h-9 w-9 shrink-0 items-center justify-center rounded-xl">

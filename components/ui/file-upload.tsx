@@ -46,17 +46,18 @@ const formatFileSize = (bytes: number) => {
 const isImageType = (type: string) => type.startsWith("image/");
 
 // ─── Component ───────────────────────────────────────────────────────────────
+export function FileUpload(props: FileUploadProps) {
+  const {
+    onUploadComplete,
+    onRemove,
+    accept = "image/*",
+    maxSize = 5 * 1024 * 1024,
+    previewUrl = null,
+    className,
+    disabled = false,
+    removed = false,
+  } = props;
 
-export function FileUpload({
-  onUploadComplete,
-  onRemove,
-  accept = "image/*",
-  maxSize = 5 * 1024 * 1024,
-  previewUrl = null,
-  className,
-  disabled = false,
-  removed = false,
-}: FileUploadProps) {
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
   const inputRef = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<UploadState>(

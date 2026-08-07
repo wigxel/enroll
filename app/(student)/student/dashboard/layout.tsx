@@ -4,10 +4,12 @@ export const metadata: Metadata = {
   title: "Student Dashboard | CMK",
 };
 
-export default function StudentDashboardLayout({
-  children,
-}: {
+export type StudentDashboardLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function StudentDashboardLayout(props: StudentDashboardLayoutProps) {
+  const { children } = props;
+
   return children;
 }

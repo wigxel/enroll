@@ -4,10 +4,12 @@ export const metadata: Metadata = {
   title: "My Notifications | CMK",
 };
 
-export default function NotificationsLayout({
-  children,
-}: {
+export type NotificationsLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function NotificationsLayout(props: NotificationsLayoutProps) {
+  const { children } = props;
+
   return children;
 }

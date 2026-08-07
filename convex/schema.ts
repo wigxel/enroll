@@ -177,7 +177,7 @@ export default defineSchema({
 
   reviews: defineTable({
     userId: v.id("users"),
-    courseId: v.id("courses"),
+    courseId: v.optional(v.id("courses")),
     rating: v.number(),
     text: v.string(),
     isApproved: v.boolean(),

@@ -66,12 +66,9 @@ const emptyForm: CourseFormData = {
   instructorIds: [],
 };
 
-export function CourseFormDialog({
-  open,
-  onOpenChange,
-  course,
-  onSuccess,
-}: CourseFormDialogProps) {
+export function CourseFormDialog(props: CourseFormDialogProps) {
+  const { open, onOpenChange, course, onSuccess } = props;
+
   const [formData, setFormData] = useState<CourseFormData>(emptyForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -312,7 +309,9 @@ export function CourseFormDialog({
 
               <div>
                 {/* FileUpload owns its input; use plain text rather than an unassociated label. */}
-                <span className="block text-sm font-medium text-gray-700">Cover Photo</span>
+                <span className="block text-sm font-medium text-gray-700">
+                  Cover Photo
+                </span>
                 <FileUpload
                   className="mt-1"
                   onUploadComplete={(storageId) =>
