@@ -11,7 +11,7 @@
     "lint": "biome lint . && tsc --noEmit && echo 'Lint complete.'",
     "lint:convex": "bunx tsc --project ./convex/tsconfig.json",
     "lint:fix": "eslint --fix . && biome lint --write .",
-    "format": "npm run format:prettier && npm run format:biome",
+    "format": "nurm && npm run format:prettier && npm run format:biome",
     "format:prettier": "prettier --write .",
     "format:biome": "biome format --no-errors-on-unmatched --write .",
     "test": "vitest --watch=false",
