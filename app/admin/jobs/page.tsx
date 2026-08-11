@@ -2,8 +2,7 @@
 
 import { useMutation, useQuery } from "convex/react";
 import { Briefcase, Loader2, Plus } from "lucide-react";
-import { Reorder } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { DeleteConfirmationDialog } from "~/components/admin/dialogs/DeleteConfirmationDialog";
 import { JobFormDialog } from "~/components/admin/dialogs/JobFormDialog";
@@ -18,7 +17,6 @@ export default function JobsPage() {
   const jobsResult = useQuery(api.jobs.listWithUsage);
   const updateJob = useMutation(api.jobs.update);
   const deleteJob = useMutation(api.jobs.deleteJob);
-  const reorderJobs = useMutation(api.jobs.reorder);
 
   const [search, setSearch] = useState("");
   const [showFormDialog, setShowFormDialog] = useState(false);
@@ -26,10 +24,6 @@ export default function JobsPage() {
   const [jobPendingDeletion, setJobPendingDeletion] =
     useState<JobLibraryItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // Reordering is optimistic: the drag must paint immediately, so the list is
-  // mirrored locally and re-synced whenever the server view changes.
-  const [orderedJobs, setOrderedJobs] = useState<JobLibraryItem[]>([]);
 
   const isLoading = jobsResult === undefined;
   const jobs = useMemo(
@@ -41,23 +35,15 @@ export default function JobsPage() {
   );
   const loadError = jobsResult && !jobsResult.success ? jobsResult.error : null;
 
-  useEffect(() => {
-    setOrderedJobs(jobs);
-  }, [jobs]);
-
   const query = search.trim().toLowerCase();
   const visibleJobs = query
-    ? orderedJobs.filter(
+    ? jobs.filter(
         (job) =>
           job.title.toLowerCase().includes(query) ||
           job.company.toLowerCase().includes(query) ||
           job.description.toLowerCase().includes(query),
       )
-    : orderedJobs;
-
-  // Dragging a filtered subset would persist an order derived from partial
-  // data, so it is only enabled while every job is on screen.
-  const isReorderable = !query && orderedJobs.length > 1;
+    : jobs;
 
   const openCreateDialog = () => {
     setEditingJob(null);
@@ -90,22 +76,6 @@ export default function JobsPage() {
       );
     } catch {
       toast.error("Failed to update job visibility");
-    }
-  };
-
-  const handleReorder = async (next: JobLibraryItem[]) => {
-    const previous = orderedJobs;
-    setOrderedJobs(next);
-
-    try {
-      const res = await reorderJobs({ orderedIds: next.map((job) => job._id) });
-      if (!res.success) {
-        setOrderedJobs(previous);
-        toast.error(res.error);
-      }
-    } catch {
-      setOrderedJobs(previous);
-      toast.error("Failed to save the new order");
     }
   };
 
@@ -149,19 +119,14 @@ export default function JobsPage() {
           </Button>
         </div>
 
-        {!isLoading && orderedJobs.length > 0 && (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        {!isLoading && jobs.length > 0 && (
+          <div className="mb-4">
             <Input
               placeholder="Search by title, company, or description..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               className="max-w-sm"
             />
-            <p className="text-xs text-gray-400">
-              {isReorderable
-                ? "Drag to set the order shown on course pages."
-                : "Clear the search to reorder."}
-            </p>
           </div>
         )}
 
@@ -173,7 +138,7 @@ export default function JobsPage() {
           <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
             <p className="text-sm font-medium text-red-800">{loadError}</p>
           </div>
-        ) : orderedJobs.length === 0 ? (
+        ) : jobs.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
             <Briefcase className="mx-auto h-12 w-12 text-gray-300" />
             <h3 className="mt-4 text-sm font-medium text-gray-900">
@@ -194,31 +159,12 @@ export default function JobsPage() {
               No jobs match "{search.trim()}".
             </p>
           </div>
-        ) : isReorderable ? (
-          <Reorder.Group
-            axis="y"
-            values={orderedJobs}
-            onReorder={handleReorder}
-            className="space-y-2"
-          >
-            {visibleJobs.map((job) => (
-              <JobRow
-                key={job._id}
-                job={job}
-                isDraggable
-                onEdit={() => openEditDialog(job)}
-                onToggleActive={() => handleToggleActive(job)}
-                onDelete={() => setJobPendingDeletion(job)}
-              />
-            ))}
-          </Reorder.Group>
         ) : (
           <div className="space-y-2">
             {visibleJobs.map((job) => (
               <JobRow
                 key={job._id}
                 job={job}
-                isDraggable={false}
                 onEdit={() => openEditDialog(job)}
                 onToggleActive={() => handleToggleActive(job)}
                 onDelete={() => setJobPendingDeletion(job)}

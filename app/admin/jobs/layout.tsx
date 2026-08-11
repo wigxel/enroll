@@ -13,3 +13,4 @@ export function JobsLayout(props: JobsLayoutProps) {
 
   return children;
 }
+export default JobsLayout;

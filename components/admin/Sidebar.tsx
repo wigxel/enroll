@@ -10,6 +10,7 @@ import {
   CreditCard,
   FileText,
   GraduationCap,
+  Handshake,
   Layers,
   LayoutDashboard,
   LogOut,
@@ -39,6 +40,7 @@ const navigation = [
   { name: "Cohorts", href: "/admin/cohorts", icon: Layers },
   { name: "FAQs", href: "/admin/faqs", icon: CircleHelp },
   { name: "Job Opportunities", href: "/admin/jobs", icon: Briefcase },
+  { name: "Talent Requests", href: "/admin/talent-requests", icon: Handshake },
   { name: "Payments", href: "/admin/payments", icon: CreditCard },
   { name: "Notifications", href: "/admin/notifications", icon: Bell },
   { name: "Settings", href: "/admin/settings", icon: Settings },
@@ -73,6 +75,7 @@ export function Sidebar() {
   const pendingAppsCount = counts?.pendingApplications ?? 0;
   const pendingReviewsCount = counts?.pendingReviews ?? 0;
   const unreadNotificationsCount = counts?.unreadNotifications ?? 0;
+  const newTalentRequestsCount = counts?.newTalentRequests ?? 0;
 
   const getBadge = (name: string) => {
     if (name === "Applications" && pendingAppsCount > 0) {
@@ -94,6 +97,13 @@ export function Sidebar() {
       return (
         <span className="ml-auto rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
           {unreadNotificationsCount}
+        </span>
+      );
+    }
+    if (name === "Talent Requests" && newTalentRequestsCount > 0) {
+      return (
+        <span className="ml-auto rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+          {newTalentRequestsCount}
         </span>
       );
     }

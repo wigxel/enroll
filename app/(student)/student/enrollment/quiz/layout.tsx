@@ -13,3 +13,4 @@ export function QuizLayout(props: QuizLayoutProps) {
 
   return children;
 }
+export default QuizLayout;

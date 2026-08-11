@@ -15,6 +15,8 @@ interface FileUploadProps {
   onUploadComplete: (storageId: Id<"_storage">) => void;
   /** Called when the user removes the uploaded file */
   onRemove?: () => void;
+  /** Called whenever an upload starts or finishes, so parents can block submit */
+  onUploadingChange?: (isUploading: boolean) => void;
   /** Accepted MIME types — defaults to images */
   accept?: string;
   /** Max file size in bytes — defaults to 5 MB */
@@ -50,6 +52,7 @@ export function FileUpload(props: FileUploadProps) {
   const {
     onUploadComplete,
     onRemove,
+    onUploadingChange,
     accept = "image/*",
     maxSize = 5 * 1024 * 1024,
     previewUrl = null,
@@ -79,6 +82,28 @@ export function FileUpload(props: FileUploadProps) {
       });
     }
   }, [previewUrl, state.status, isRemoved]);
+
+  // Held in a ref so an inline callback from the parent does not re-fire the
+  // notify effect on every render — only a real status change should notify.
+  const onUploadingChangeRef = useRef(onUploadingChange);
+  useEffect(() => {
+    onUploadingChangeRef.current = onUploadingChange;
+  });
+
+  const isUploading = state.status === "uploading";
+
+  useEffect(() => {
+    onUploadingChangeRef.current?.(isUploading);
+  }, [isUploading]);
+
+  // A form can unmount mid-upload (dialog closed), which would otherwise leave
+  // the parent stuck believing an upload is still running.
+  useEffect(
+    () => () => {
+      onUploadingChangeRef.current?.(false);
+    },
+    [],
+  );
 
   // ── Upload logic ──────────────────────────────────────────────────────
 

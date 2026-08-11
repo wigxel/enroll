@@ -13,3 +13,4 @@ export function CohortsLayout(props: CohortsLayoutProps) {
 
   return children;
 }
+export default CohortsLayout;

@@ -13,3 +13,4 @@ export function FAQsLayout(props: FAQsLayoutProps) {
 
   return children;
 }
+export default FAQsLayout;

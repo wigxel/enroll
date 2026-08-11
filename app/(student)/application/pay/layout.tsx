@@ -11,3 +11,4 @@ export function PayLayout(props: PayLayoutProps) {
 
   return children;
 }
+export default PayLayout;

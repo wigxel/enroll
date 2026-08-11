@@ -13,3 +13,4 @@ export function InstructorsLayout(props: InstructorsLayoutProps) {
 
   return children;
 }
+export default InstructorsLayout;

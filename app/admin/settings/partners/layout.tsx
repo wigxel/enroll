@@ -13,3 +13,4 @@ export function PartnersLayout(props: PartnersLayoutProps) {
 
   return children;
 }
+export default PartnersLayout;

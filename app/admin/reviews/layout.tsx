@@ -13,3 +13,4 @@ export function ReviewsLayout(props: ReviewsLayoutProps) {
 
   return children;
 }
+export default ReviewsLayout;

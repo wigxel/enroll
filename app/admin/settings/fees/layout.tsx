@@ -13,3 +13,4 @@ export function FeesLayout(props: FeesLayoutProps) {
 
   return children;
 }
+export default FeesLayout;

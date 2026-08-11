@@ -10,6 +10,7 @@ export const getDashboardCounts = query({
       pendingApplications: number;
       pendingReviews: number;
       unreadNotifications: number;
+      newTalentRequests: number;
     }>
   > => {
     const privResult = await requirePrivilege(ctx, "application:read:all");
@@ -44,12 +45,26 @@ export const getDashboardCounts = query({
 
     const unreadNotifications = unread.filter((n) => !n.isArchived).length;
 
+    // Placement access is a separate privilege, so a role without it simply
+    // sees zero rather than the query failing for everyone.
+    const canReadPlacements = (await requirePrivilege(ctx, "placement:read"))
+      .success;
+    const newTalentRequests = canReadPlacements
+      ? (
+          await ctx.db
+            .query("talentRequests")
+            .withIndex("by_status", (q) => q.eq("status", "new"))
+            .collect()
+        ).length
+      : 0;
+
     return {
       success: true,
       data: {
         pendingApplications: submitted + underReview,
         pendingReviews,
         unreadNotifications,
+        newTalentRequests,
       },
     };
   },

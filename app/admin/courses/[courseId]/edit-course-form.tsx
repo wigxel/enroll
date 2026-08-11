@@ -26,17 +26,28 @@ const courseSchema = z.object({
   description: z.string().min(1, "Description is required"),
   duration: z.string().min(1, "Duration is required"),
   certification: z.string().min(1, "Certification is required"),
-  tuitionFee: z.coerce.number().min(0, "Tuition fee must be a positive number"),
+  tuitionFee: z
+    // A number input hands back a string once edited, but the saved course
+    // arrives as a number. Accept both and normalise to a number — a bare
+    // z.coerce.number() types its input as `unknown`, which cannot be bound
+    // to the field.
+    .union([z.string(), z.number()])
+    .transform((value) => Number(value))
+    .refine(
+      (value) => Number.isFinite(value) && value >= 0,
+      "Tuition fee must be a positive number",
+    ),
   coverPhoto: z.string().optional(),
 });
 
-type CourseFormValues = z.infer<typeof courseSchema>;
+type CourseFormInput = z.input<typeof courseSchema>;
+type CourseFormValues = z.output<typeof courseSchema>;
 
 interface EditCourseFormProps {
   courseId: Id<"courses">;
 }
 
-const defaultState: CourseFormValues = {
+const defaultState: CourseFormInput = {
   name: "",
   slug: "",
   description: "",
@@ -53,7 +64,7 @@ export function EditCourseForm({ courseId }: EditCourseFormProps) {
 
   const course = courseResult?.success ? courseResult.data : null;
 
-  const form = useForm<CourseFormValues>({
+  const form = useForm<CourseFormInput, unknown, CourseFormValues>({
     resolver: zodResolver(courseSchema),
     defaultValues: course
       ? {

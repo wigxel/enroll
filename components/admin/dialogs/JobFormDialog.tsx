@@ -105,6 +105,7 @@ export function JobFormDialog(props: JobFormDialogProps) {
     null,
   );
   const [isShaking, setIsShaking] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const shakeTimeoutRef = useRef<number | null>(null);
 
   // The list query resolves images to URLs already; only fall back to a storage
@@ -214,6 +215,13 @@ export function JobFormDialog(props: JobFormDialogProps) {
   };
 
   const handleFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    // Submitting mid-upload would save the job without the image the admin is
+    // clearly waiting on. The button is disabled too; this covers Enter-to-submit.
+    if (isUploadingImage) {
+      event.preventDefault();
+      return;
+    }
+
     const firstEmptyField = findFirstEmptyField();
 
     if (firstEmptyField) {
@@ -495,6 +503,7 @@ export function JobFormDialog(props: JobFormDialogProps) {
                   setValue("image", storageId, { shouldValidate: true })
                 }
                 onRemove={() => setValue("image", undefined)}
+                onUploadingChange={setIsUploadingImage}
                 previewUrl={existingImageUrl}
                 disabled={isSubmitting}
               />
@@ -511,16 +520,18 @@ export function JobFormDialog(props: JobFormDialogProps) {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || isOverLimit}
+              disabled={isSubmitting || isOverLimit || isUploadingImage}
               className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSubmitting
-                ? isEditing
-                  ? "Saving..."
-                  : "Creating..."
-                : isEditing
-                  ? "Save Changes"
-                  : "Create Job"}
+              {isUploadingImage
+                ? "Uploading image..."
+                : isSubmitting
+                  ? isEditing
+                    ? "Saving..."
+                    : "Creating..."
+                  : isEditing
+                    ? "Save Changes"
+                    : "Create Job"}
             </button>
           </SheetFooter>
         </form>

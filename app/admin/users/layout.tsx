@@ -13,3 +13,4 @@ export function UsersLayout(props: UsersLayoutProps) {
 
   return children;
 }
+export default UsersLayout;

@@ -13,3 +13,4 @@ export function TeamLayout(props: TeamLayoutProps) {
 
   return children;
 }
+export default TeamLayout;

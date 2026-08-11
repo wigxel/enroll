@@ -13,3 +13,4 @@ export function StudentDashboardLayout(props: StudentDashboardLayoutProps) {
 
   return children;
 }
+export default StudentDashboardLayout;

@@ -13,3 +13,4 @@ export function CoursesLayout(props: CoursesLayoutProps) {
 
   return children;
 }
+export default CoursesLayout;

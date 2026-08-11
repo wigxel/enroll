@@ -179,7 +179,11 @@ export const listPending = query({
     const reviewsWithUsers = await Promise.all(
       pendingReviews.map(async (review) => {
         const user = await ctx.db.get(review.userId);
-        const course = await ctx.db.get(review.courseId);
+        // `courseId` is optional on reviews, so only look the course up when
+        // one is actually attached.
+        const course = review.courseId
+          ? await ctx.db.get(review.courseId)
+          : null;
         return {
           ...review,
           userName: user?.name ?? "Unknown",

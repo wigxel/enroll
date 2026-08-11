@@ -13,6 +13,9 @@ const isPublicRoute = createRouteMatcher([
   "/applications(.*)",
   "/courses(.*)",
   "/alumni(.*)",
+  // Businesses submitting a hiring request have no account and never will —
+  // requiring a login here would lose the leads this page exists to capture.
+  "/hire(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

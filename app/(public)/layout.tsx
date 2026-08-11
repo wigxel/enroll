@@ -24,3 +24,4 @@ export function RootLayout(props: RootLayoutProps) {
     </>
   );
 }
+export default RootLayout;

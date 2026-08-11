@@ -17,3 +17,4 @@ export function ApplicationLayout(props: ApplicationLayoutProps) {
     </main>
   );
 }
+export default ApplicationLayout;

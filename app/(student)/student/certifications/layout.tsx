@@ -13,3 +13,4 @@ export function CertificationsLayout(props: CertificationsLayoutProps) {
 
   return children;
 }
+export default CertificationsLayout;

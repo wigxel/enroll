@@ -13,3 +13,4 @@ export function StatusLayout(props: StatusLayoutProps) {
 
   return children;
 }
+export default StatusLayout;

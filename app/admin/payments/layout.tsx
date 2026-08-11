@@ -13,3 +13,4 @@ export function PaymentsLayout(props: PaymentsLayoutProps) {
 
   return children;
 }
+export default PaymentsLayout;

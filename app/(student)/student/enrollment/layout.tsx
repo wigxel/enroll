@@ -13,3 +13,4 @@ export function EnrollmentLayout(props: EnrollmentLayoutProps) {
 
   return children;
 }
+export default EnrollmentLayout;

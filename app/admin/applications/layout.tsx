@@ -13,3 +13,4 @@ export function ApplicationsLayout(props: ApplicationsLayoutProps) {
 
   return children;
 }
+export default ApplicationsLayout;

@@ -5,11 +5,9 @@ import {
   Edit,
   Eye,
   EyeOff,
-  GripVertical,
   MoreHorizontal,
   Trash2,
 } from "lucide-react";
-import { Reorder, useDragControls } from "motion/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,59 +20,22 @@ import type { JobLibraryItem } from "./types";
 
 interface JobRowProps {
   job: JobLibraryItem;
-  /** Dragging is suppressed while a search filter hides part of the list. */
-  isDraggable: boolean;
   onEdit: () => void;
   onToggleActive: () => void;
   onDelete: () => void;
 }
 
 /**
- * A single row in the job library. Renders inside a Reorder.Item only while the
- * full, unfiltered list is on screen — reordering a filtered subset would write
- * back a misleading global order.
+ * A single row in the job library. The library lists every job in one shared
+ * pool; the order roles appear in is set per course, on the course detail page.
  */
 export function JobRow(props: JobRowProps) {
-  const dragControls = useDragControls();
-
-  if (!props.isDraggable) {
-    return <JobRowContent {...props} />;
-  }
-
-  return (
-    <Reorder.Item
-      value={props.job}
-      dragListener={false}
-      dragControls={dragControls}
-    >
-      <JobRowContent {...props} dragControls={dragControls} />
-    </Reorder.Item>
-  );
-}
-
-function JobRowContent(
-  props: JobRowProps & { dragControls?: ReturnType<typeof useDragControls> },
-) {
-  const { job, isDraggable, onEdit, onToggleActive, onDelete, dragControls } =
-    props;
+  const { job, onEdit, onToggleActive, onDelete } = props;
 
   const linkedCount = job.linkedCourses.length;
 
   return (
     <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-      {isDraggable ? (
-        <button
-          type="button"
-          aria-label={`Reorder ${job.title}`}
-          onPointerDown={(event) => dragControls?.start(event)}
-          className="mt-1 cursor-grab touch-none text-gray-400 hover:text-gray-600 active:cursor-grabbing"
-        >
-          <GripVertical className="h-5 w-5" />
-        </button>
-      ) : (
-        <div className="mt-1 h-5 w-5 shrink-0" aria-hidden="true" />
-      )}
-
       {job.image ? (
         // Convex hands back an opaque, rotating storage URL, so routing it
         // through next/image only adds a proxy hop. This matches how the course

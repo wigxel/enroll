@@ -13,3 +13,4 @@ export function DashboardLayout(props: DashboardLayoutProps) {
 
   return children;
 }
+export default DashboardLayout;

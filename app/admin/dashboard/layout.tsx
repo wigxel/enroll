@@ -13,3 +13,4 @@ export function AdminDashboardLayout(props: AdminDashboardLayoutProps) {
 
   return children;
 }
+export default AdminDashboardLayout;

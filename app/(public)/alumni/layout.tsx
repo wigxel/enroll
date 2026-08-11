@@ -13,3 +13,4 @@ export function AlumniLayout(props: AlumniLayoutProps) {
 
   return children;
 }
+export default AlumniLayout;

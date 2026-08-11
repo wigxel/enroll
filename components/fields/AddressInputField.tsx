@@ -15,7 +15,9 @@ export interface AddressInputFieldProps<T extends FieldValues> {
   placeholder?: string;
 }
 
-export function AddressInputField(props: AddressInputFieldProps<T>) {
+export function AddressInputField<T extends FieldValues>(
+  props: AddressInputFieldProps<T>,
+) {
   const {
     control,
     name,

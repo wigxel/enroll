@@ -13,3 +13,4 @@ export function UnderReviewLayout(props: UnderReviewLayoutProps) {
 
   return children;
 }
+export default UnderReviewLayout;

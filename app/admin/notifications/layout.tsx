@@ -13,3 +13,4 @@ export function NotificationsLayout(props: NotificationsLayoutProps) {
 
   return children;
 }
+export default NotificationsLayout;

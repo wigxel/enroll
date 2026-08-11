@@ -297,24 +297,3 @@ export const deleteJob = mutation({
     return { success: true, data: null };
   },
 });
-
-/**
- * Admin: Rewrites the display order of the job library.
- */
-export const reorder = mutation({
-  args: { orderedIds: v.array(v.id("jobs")) },
-  handler: async (ctx, args): Promise<Result<null>> => {
-    const privResult = await requirePrivilege(ctx, "course:manage");
-    if (!privResult.success) return privResult;
-
-    const timestamp = now();
-
-    await Promise.all(
-      args.orderedIds.map((id, index) =>
-        ctx.db.patch(id, { order: index, updatedAt: timestamp }),
-      ),
-    );
-
-    return { success: true, data: null };
-  },
-});

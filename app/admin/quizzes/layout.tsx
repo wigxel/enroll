@@ -13,3 +13,4 @@ export function QuizzesLayout(props: QuizzesLayoutProps) {
 
   return children;
 }
+export default QuizzesLayout;

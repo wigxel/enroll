@@ -27,3 +27,4 @@ export function StudentLayout(props: StudentLayoutProps) {
     </div>
   );
 }
+export default StudentLayout;

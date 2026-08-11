@@ -71,3 +71,4 @@ export function SettingsLayout(props: SettingsLayoutProps) {
     </div>
   );
 }
+export default SettingsLayout;

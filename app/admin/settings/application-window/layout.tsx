@@ -13,3 +13,4 @@ export function ApplicationWindowLayout(props: ApplicationWindowLayoutProps) {
 
   return children;
 }
+export default ApplicationWindowLayout;

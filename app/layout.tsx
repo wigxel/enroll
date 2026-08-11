@@ -33,3 +33,4 @@ export function RootLayout(props: RootLayoutProps) {
     </ClerkProvider>
   );
 }
+export default RootLayout;

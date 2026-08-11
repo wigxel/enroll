@@ -33,3 +33,4 @@ export function AdminLayout(props: AdminLayoutProps) {
     </div>
   );
 }
+export default AdminLayout;

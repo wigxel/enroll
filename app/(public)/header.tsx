@@ -1,6 +1,6 @@
 import { SignInButton, UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
-import { BookOpen, GraduationCap, LogIn } from "lucide-react";
+import { BookOpen, Briefcase, GraduationCap, LogIn } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
@@ -36,6 +36,13 @@ export async function Header() {
           >
             <GraduationCap className="h-4 w-4" />
             Alumni
+          </Link>
+          <Link
+            href="/hire"
+            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-800 dark:hover:text-white"
+          >
+            <Briefcase className="h-4 w-4" />
+            Hire talent
           </Link>
 
           {isSignedIn ? (
