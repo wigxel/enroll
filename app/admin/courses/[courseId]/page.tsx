@@ -13,6 +13,7 @@ import { StudentsTable } from "./students-table";
 import { PrerequisitesSection } from "./prerequisites-section";
 import { InstructorsSection } from "./instructors-section";
 import { FAQsSection } from "./faqs-section";
+import { JobsSection } from "./jobs-section";
 import { EditCourseForm } from "./edit-course-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
@@ -113,6 +114,10 @@ export default function CourseDetailsPage() {
 
               <div className="rounded-xl border border-gray-200 bg-white p-6">
                 <FAQsSection courseId={courseId} />
+              </div>
+
+              <div className="rounded-xl border border-gray-200 bg-white p-6 lg:col-span-2">
+                <JobsSection courseId={courseId} />
               </div>
             </div>
           </TabsContent>

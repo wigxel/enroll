@@ -4,10 +4,13 @@ export const metadata: Metadata = {
   title: "Application Window | CMK",
 };
 
-export default function ApplicationWindowLayout({
-  children,
-}: {
+export type ApplicationWindowLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function ApplicationWindowLayout(props: ApplicationWindowLayoutProps) {
+  const { children } = props;
+
   return children;
 }
+export default ApplicationWindowLayout;

@@ -10,12 +10,6 @@ import { LinkFaqsSheet } from "~/components/admin/dialogs/LinkFaqsSheet";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
 
-interface Faq {
-  _id: Id<"faqs">;
-  question: string;
-  answer: string;
-}
-
 interface FAQsSectionProps {
   courseId: Id<"courses">;
 }
@@ -45,7 +39,7 @@ export function FAQsSection({ courseId }: FAQsSectionProps) {
     // ensure no duplicates
     const currentFaqIds = course.faqIds ?? [];
     const newFaqsToAdd = faqIds.filter((id) => !currentFaqIds.includes(id));
-    
+
     if (newFaqsToAdd.length === 0) {
       setShowLinkFaqSheet(false);
       return;
@@ -60,7 +54,7 @@ export function FAQsSection({ courseId }: FAQsSectionProps) {
         toast.success(newFaqsToAdd.length > 1 ? "FAQs linked" : "FAQ linked");
         setShowLinkFaqSheet(false);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to link FAQs");
     }
   };
@@ -75,7 +69,7 @@ export function FAQsSection({ courseId }: FAQsSectionProps) {
       } else {
         toast.success("FAQ unlinked");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to unlink FAQ");
     }
   };
@@ -97,7 +91,7 @@ export function FAQsSection({ courseId }: FAQsSectionProps) {
         await updateCourseFaqs({ courseId, faqIds: newFaqIds });
         setShowFaqDialog(false);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to create FAQ");
     }
   };

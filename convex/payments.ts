@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { safeStr } from "../lib/data.helpers";
 import { internal } from "./_generated/api";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import {
   action,
   internalMutation,
@@ -247,7 +247,7 @@ export const list = query({
     const privResult = await requirePrivilege(ctx, "payment:read:all");
     if (!privResult.success) return privResult;
 
-    let payments;
+    let payments: Doc<"payments">[];
 
     if (args.status) {
       payments = await ctx.db

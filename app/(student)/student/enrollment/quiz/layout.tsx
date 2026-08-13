@@ -4,10 +4,13 @@ export const metadata: Metadata = {
   title: "Quiz | CMK",
 };
 
-export default function QuizLayout({
-  children,
-}: {
+export type QuizLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function QuizLayout(props: QuizLayoutProps) {
+  const { children } = props;
+
   return children;
 }
+export default QuizLayout;

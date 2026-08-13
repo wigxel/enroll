@@ -4,10 +4,13 @@ export const metadata: Metadata = {
   title: "Enrollment | CMK",
 };
 
-export default function EnrollmentLayout({
-  children,
-}: {
+export type EnrollmentLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function EnrollmentLayout(props: EnrollmentLayoutProps) {
+  const { children } = props;
+
   return children;
 }
+export default EnrollmentLayout;

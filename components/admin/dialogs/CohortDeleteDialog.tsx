@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
@@ -18,11 +18,9 @@ interface CohortDeleteDialogProps {
 
 const defaultCohort = { _id: "" as Id<"cohorts">, name: "" };
 
-export function CohortDeleteDialog({
-  cohort,
-  onOpenChange,
-  onDeleted,
-}: CohortDeleteDialogProps) {
+export function CohortDeleteDialog(props: CohortDeleteDialogProps) {
+  const { cohort, onOpenChange, onDeleted } = props;
+
   const deleteMutation = useMutation(api.cohorts.remove);
   const [isDeleting, setIsDeleting] = useState(false);
 

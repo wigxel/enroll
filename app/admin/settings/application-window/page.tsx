@@ -108,10 +108,15 @@ export default function ApplicationWindowSettingsPage() {
           {/* Time-based Settings */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              {/* htmlFor associates the label with its date input for screen readers. */}
+              <label
+                htmlFor="application-open-date"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Open Date
               </label>
               <input
+                id="application-open-date"
                 type="datetime-local"
                 value={openDate}
                 onChange={(e) => setOpenDate(e.target.value)}
@@ -119,10 +124,15 @@ export default function ApplicationWindowSettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              {/* htmlFor associates the label with its date input for screen readers. */}
+              <label
+                htmlFor="application-close-date"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Close Date
               </label>
               <input
+                id="application-close-date"
                 type="datetime-local"
                 value={closeDate}
                 onChange={(e) => setCloseDate(e.target.value)}

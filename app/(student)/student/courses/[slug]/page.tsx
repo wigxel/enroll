@@ -67,13 +67,14 @@ export default function StudentCoursePage() {
   );
 }
 
-function CourseReviewSection({
-  courseId,
-  courseName,
-}: {
+type CourseReviewSectionProps = {
   courseId: string;
   courseName: string;
-}) {
+};
+
+function CourseReviewSection(props: CourseReviewSectionProps) {
+  const { courseId, courseName } = props;
+
   return (
     <section>
       <SectionHeading

@@ -4,10 +4,13 @@ export const metadata: Metadata = {
   title: "Manage Users | CMK",
 };
 
-export default function UsersLayout({
-  children,
-}: {
+export type UsersLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function UsersLayout(props: UsersLayoutProps) {
+  const { children } = props;
+
   return children;
 }
+export default UsersLayout;

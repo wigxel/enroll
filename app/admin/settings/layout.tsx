@@ -19,11 +19,13 @@ const settingsTabs = [
   { name: "Roles & Privileges", href: "/admin/settings/roles", icon: Shield },
 ];
 
-export default function SettingsLayout({
-  children,
-}: {
+export type SettingsLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function SettingsLayout(props: SettingsLayoutProps) {
+  const { children } = props;
+
   const pathname = usePathname();
   const userResult = useQuery(api.users.getCurrentUser);
   const isAdmin = userResult?.success && userResult.data?.role === "Admin";
@@ -69,3 +71,4 @@ export default function SettingsLayout({
     </div>
   );
 }
+export default SettingsLayout;

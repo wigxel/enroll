@@ -78,9 +78,15 @@ export default function FastTrackPrompt({ courseId }: FastTrackPromptProps) {
 }
 
 // Helper component for loader since I didn't import it
-function Loader2({ className }: { className?: string }) {
+type Loader2Props = { className?: string };
+
+function Loader2(props: Loader2Props) {
+  const { className } = props;
+
   return (
     <svg
+      role="img"
+      aria-label="Loading"
       className={className}
       xmlns="http://www.w3.org/2000/svg"
       width="24"

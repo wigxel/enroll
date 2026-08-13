@@ -31,7 +31,7 @@ export default function ApplicationDetailPage() {
 
   const [showDeclineDialog, setShowDeclineDialog] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
-  const [copiedText, copy] = useCopyToClipboard();
+  const [, copy] = useCopyToClipboard();
 
   const statusColors: Record<string, string> = {
     draft: "bg-gray-100 text-gray-800",

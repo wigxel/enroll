@@ -4,10 +4,13 @@ export const metadata: Metadata = {
   title: "Manage Cohorts | CMK",
 };
 
-export default function CohortsLayout({
-  children,
-}: {
+export type CohortsLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function CohortsLayout(props: CohortsLayoutProps) {
+  const { children } = props;
+
   return children;
 }
+export default CohortsLayout;

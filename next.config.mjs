@@ -7,6 +7,18 @@ const nextConfig = {
         hostname: "*.convex.cloud",
       },
       {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "3210",
+        pathname: "/api/storage/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3210",
+        pathname: "/api/storage/**",
+      },
+      {
         protocol: "https",
         hostname: "api.dicebear.com",
       },

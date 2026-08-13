@@ -91,6 +91,16 @@ export const PRIVILEGES_CONFIG: PrivilegeGroup[] = [
     ],
   },
   {
+    label: "Placement Management",
+    items: [
+      { key: "placement:read", label: "View talent requests from businesses" },
+      {
+        key: "placement:manage",
+        label: "Move talent requests through the hiring pipeline",
+      },
+    ],
+  },
+  {
     label: "Content Management",
     items: [
       {

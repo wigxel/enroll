@@ -3,7 +3,6 @@
 import { Slot } from "@radix-ui/react-slot";
 import { useMutation } from "convex/react";
 import { Camera, Loader2, User } from "lucide-react";
-import Image from "next/image";
 import * as React from "react";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
@@ -21,15 +20,17 @@ interface AvatarUploadProps extends Omit<
   asChild?: boolean;
 }
 
-export function AvatarUpload({
-  currentImageUrl,
-  onUploadComplete,
-  size = 80,
-  asChild = false,
-  className,
-  disabled,
-  ...props
-}: AvatarUploadProps) {
+export function AvatarUpload(props: AvatarUploadProps) {
+  const {
+    currentImageUrl,
+    onUploadComplete,
+    size = 80,
+    asChild = false,
+    className,
+    disabled,
+    ...restProps
+  } = props;
+
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
   const [uploading, setUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -142,7 +143,7 @@ export function AvatarUpload({
             fileInputRef.current?.click();
           }
         }}
-        {...props}
+        {...restProps}
       >
         {avatarContent}
       </Slot>

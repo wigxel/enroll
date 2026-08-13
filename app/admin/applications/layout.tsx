@@ -4,10 +4,13 @@ export const metadata: Metadata = {
   title: "Manage Applications | CMK",
 };
 
-export default function ApplicationsLayout({
-  children,
-}: {
+export type ApplicationsLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function ApplicationsLayout(props: ApplicationsLayoutProps) {
+  const { children } = props;
+
   return children;
 }
+export default ApplicationsLayout;

@@ -42,12 +42,9 @@ const defaultState: RoleFormValues = {
   privileges: [],
 };
 
-export function RoleFormDialog({
-  open,
-  onOpenChange,
-  role,
-  onSuccess,
-}: RoleFormDialogProps) {
+export function RoleFormDialog(props: RoleFormDialogProps) {
+  const { open, onOpenChange, role, onSuccess } = props;
+
   const createRole = useMutation(api.roles.createRole);
   const updateRole = useMutation(api.roles.updateRole);
 

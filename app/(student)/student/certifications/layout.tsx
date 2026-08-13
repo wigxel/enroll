@@ -4,10 +4,13 @@ export const metadata: Metadata = {
   title: "Certifications | CMK",
 };
 
-export default function CertificationsLayout({
-  children,
-}: {
+export type CertificationsLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function CertificationsLayout(props: CertificationsLayoutProps) {
+  const { children } = props;
+
   return children;
 }
+export default CertificationsLayout;

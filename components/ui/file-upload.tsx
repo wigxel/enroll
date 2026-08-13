@@ -15,6 +15,8 @@ interface FileUploadProps {
   onUploadComplete: (storageId: Id<"_storage">) => void;
   /** Called when the user removes the uploaded file */
   onRemove?: () => void;
+  /** Called whenever an upload starts or finishes, so parents can block submit */
+  onUploadingChange?: (isUploading: boolean) => void;
   /** Accepted MIME types — defaults to images */
   accept?: string;
   /** Max file size in bytes — defaults to 5 MB */
@@ -46,17 +48,19 @@ const formatFileSize = (bytes: number) => {
 const isImageType = (type: string) => type.startsWith("image/");
 
 // ─── Component ───────────────────────────────────────────────────────────────
+export function FileUpload(props: FileUploadProps) {
+  const {
+    onUploadComplete,
+    onRemove,
+    onUploadingChange,
+    accept = "image/*",
+    maxSize = 5 * 1024 * 1024,
+    previewUrl = null,
+    className,
+    disabled = false,
+    removed = false,
+  } = props;
 
-export function FileUpload({
-  onUploadComplete,
-  onRemove,
-  accept = "image/*",
-  maxSize = 5 * 1024 * 1024,
-  previewUrl = null,
-  className,
-  disabled = false,
-  removed = false,
-}: FileUploadProps) {
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
   const inputRef = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<UploadState>(
@@ -78,6 +82,28 @@ export function FileUpload({
       });
     }
   }, [previewUrl, state.status, isRemoved]);
+
+  // Held in a ref so an inline callback from the parent does not re-fire the
+  // notify effect on every render — only a real status change should notify.
+  const onUploadingChangeRef = useRef(onUploadingChange);
+  useEffect(() => {
+    onUploadingChangeRef.current = onUploadingChange;
+  });
+
+  const isUploading = state.status === "uploading";
+
+  useEffect(() => {
+    onUploadingChangeRef.current?.(isUploading);
+  }, [isUploading]);
+
+  // A form can unmount mid-upload (dialog closed), which would otherwise leave
+  // the parent stuck believing an upload is still running.
+  useEffect(
+    () => () => {
+      onUploadingChangeRef.current?.(false);
+    },
+    [],
+  );
 
   // ── Upload logic ──────────────────────────────────────────────────────
 
@@ -230,9 +256,10 @@ export function FileUpload({
   return (
     <div className={cn("relative", className)}>
       {/* Drop zone */}
-      <div
-        role="button"
-        tabIndex={disabled ? -1 : 0}
+      {/* A native button makes the drop zone accessible without manually emulating button behavior. */}
+      <button
+        type="button"
+        disabled={disabled}
         onClick={() => !disabled && inputRef.current?.click()}
         onKeyDown={(e) => {
           if (!disabled && (e.key === "Enter" || e.key === " ")) {
@@ -244,7 +271,10 @@ export function FileUpload({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 transition-colors",
+          // w-full is explicit because a button shrinks to fit its content even
+          // as a flex container, which left the drop zone narrower than both the
+          // fields above it and the uploaded preview that replaces it.
+          "flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 transition-colors",
           isDragging
             ? "border-primary bg-primary/5"
             : "border-gray-300 hover:border-gray-400",
@@ -282,7 +312,7 @@ export function FileUpload({
             {state.message}
           </p>
         )}
-      </div>
+      </button>
 
       <input
         ref={inputRef}

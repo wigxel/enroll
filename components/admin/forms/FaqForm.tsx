@@ -36,11 +36,9 @@ interface FaqFormProps {
   onSubmit: (data: FaqFormValues) => void;
 }
 
-export function FaqForm({
-  initialFormData,
-  isLoading = false,
-  onSubmit,
-}: FaqFormProps) {
+export function FaqForm(props: FaqFormProps) {
+  const { initialFormData, isLoading = false, onSubmit } = props;
+
   const form = useForm<FaqFormValues>({
     resolver: zodResolver(faqSchema),
     defaultValues: {

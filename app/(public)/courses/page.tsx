@@ -6,13 +6,22 @@ import { Loader2, LucideUsers } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { api } from "@/convex/_generated/api";
+import type { Doc } from "@/convex/_generated/dataModel";
 import { formatCurrency } from "@/lib/utils";
+
+// `listActive` resolves storage IDs to URLs, so this extends the database course
+// shape with the string URL used by the card instead of allowing an unsafe `any`.
+type CatalogCourse = Omit<Doc<"courses">, "coverPhoto"> & {
+  coverPhoto?: string;
+};
 
 export default function CourseCatalogPage() {
   const coursesResult = useQuery(api.courses.listActive);
   const appStatusResult = useQuery(api.settings.getAppStatus);
 
-  const courses = coursesResult?.success ? (coursesResult.data as any[]) : [];
+  const courses = coursesResult?.success
+    ? (coursesResult.data as CatalogCourse[])
+    : [];
   const appStatus = appStatusResult?.success
     ? appStatusResult.data
     : { isOpen: false, message: "" };
@@ -69,7 +78,10 @@ export default function CourseCatalogPage() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 className="h-8 w-8 text-gray-400"
+                role="img"
+                aria-label="Course catalog"
               >
+                {/* The explicit role and label give this informative icon an accessible name. */}
                 <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
               </svg>
             </div>
@@ -93,7 +105,11 @@ export default function CourseCatalogPage() {
   );
 }
 
-function CourseCard({ data: course }: { data: any }) {
+type CourseCardProps = { data: CatalogCourse };
+
+function CourseCard(props: CourseCardProps) {
+  const { data: course } = props;
+
   return (
     <Link href={`/courses/${course.slug}`} draggable={false}>
       <div className="flex flex-col overflow-hidden p-0 transition-all bg-background select-none rounded-2xl hover:shadow-xl transition-default hover:-translate-y-2 shadow-black/6">

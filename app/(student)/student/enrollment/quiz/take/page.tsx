@@ -58,7 +58,9 @@ export default function ActiveQuizPage() {
             ? activeQuestionsResult.error
             : "There are currently no active orientation questions. Please contact support or check back later."}
         </p>
+        {/* Explicitly non-submitting because this navigation control can be rendered near form content. */}
         <button
+          type="button"
           onClick={() => router.push("/student/enrollment")}
           className="mt-6 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
         >
@@ -137,7 +139,9 @@ export default function ActiveQuizPage() {
                 </span>
                 . Excellent work completing the orientation.
               </p>
+              {/* This is navigation, not form submission. */}
               <button
+                type="button"
                 onClick={() => router.push("/student/enrollment")}
                 className="mt-8 w-full rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 transition-colors"
               >
@@ -160,13 +164,17 @@ export default function ActiveQuizPage() {
                 . A score of 80% is required to pass.
               </p>
               <div className="mt-8 space-y-3">
+                {/* Retrying changes local state only, so it must not submit a parent form. */}
                 <button
+                  type="button"
                   onClick={handleRetry}
                   className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
                 >
                   Retake Quiz
                 </button>
+                {/* This link-like action should not submit a parent form. */}
                 <button
+                  type="button"
                   onClick={() => router.push("/student/enrollment/quiz")}
                   className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none transition-colors"
                 >
@@ -218,7 +226,7 @@ export default function ActiveQuizPage() {
                 const isSelected = answers[q._id] === optIdx;
                 return (
                   <label
-                    key={optIdx}
+                    key={`${q._id}-${option}`}
                     className={`relative flex cursor-pointer items-start rounded-xl border p-4 transition-all focus:outline-none ${
                       isSelected
                         ? "border-primary bg-primary/5 ring-1 ring-primary"
@@ -259,7 +267,9 @@ export default function ActiveQuizPage() {
           </p>
         )}
 
+        {/* Quiz submission is handled by this click handler rather than implicit form submission. */}
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={!allAnswered || isSubmitting}
           className="group flex w-full max-w-sm items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98]"

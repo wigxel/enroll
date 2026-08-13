@@ -15,12 +15,11 @@ export interface DateOfBirthInputFieldProps<T extends FieldValues> {
   required?: boolean;
 }
 
-export function DateOfBirthInputField<T extends FieldValues>({
-  control,
-  name,
-  label = "Date of Birth",
-  required = true,
-}: DateOfBirthInputFieldProps<T>) {
+export function DateOfBirthInputField<T extends FieldValues>(
+  props: DateOfBirthInputFieldProps<T>,
+) {
+  const { control, name, label = "Date of Birth", required = true } = props;
+
   return (
     <FormField
       control={control}

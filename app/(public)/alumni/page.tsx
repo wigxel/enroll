@@ -17,6 +17,24 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useProfileImageUrl } from "~/hooks/use-profile-image-url";
 
+// The query handlers currently return `any`; these contracts keep rendering type-safe
+// by describing only the fields this page reads from their successful responses.
+type Alumnus = {
+  id: string;
+  userId: string;
+  name: string;
+  profileImage?: string | null;
+  courses: {
+    courseId: string;
+    courseName: string;
+    cohortYear: string;
+    cohortName?: string | null;
+    certification: string;
+  }[];
+};
+type CourseFilterOption = { _id: Id<"courses">; name: string };
+type CohortFilterOption = { _id: Id<"cohorts">; name: string };
+
 export default function AlumniPage() {
   const [courseFilter, setCourseFilter] = useState<Id<"courses"> | "">("");
   const [cohortFilter, setCohortFilter] = useState<Id<"cohorts"> | "">("");
@@ -32,11 +50,13 @@ export default function AlumniPage() {
   const coursesResult = useQuery(api.courses.listActive);
   const cohortsResult = useQuery(api.cohorts.list, {});
 
-  const alumni = alumniResult?.success ? (alumniResult.data as any[]) : [];
+  const alumni = alumniResult?.success ? (alumniResult.data as Alumnus[]) : [];
   const stats = statsResult?.success ? statsResult.data : null;
-  const courses = coursesResult?.success ? (coursesResult.data as any[]) : [];
+  const courses = coursesResult?.success
+    ? (coursesResult.data as CourseFilterOption[])
+    : [];
   const cohorts = cohortsResult?.success
-    ? (cohortsResult.data.cohorts as any[])
+    ? (cohortsResult.data.cohorts as CohortFilterOption[])
     : [];
 
   const isLoading = alumniResult === undefined;
@@ -130,7 +150,7 @@ export default function AlumniPage() {
             className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-200"
           >
             <option value="">All Cohorts</option>
-            {cohorts.map((c: any) => (
+            {cohorts.map((c) => (
               <option key={c._id} value={c._id}>
                 {c.name}
               </option>
@@ -163,9 +183,10 @@ export default function AlumniPage() {
       <div className="mx-auto max-w-6xl px-6 py-12">
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
+            {/* Fixed labels give static skeletons stable keys without using an array index. */}
+            {["one", "two", "three", "four", "five", "six"].map((key) => (
               <div
-                key={i}
+                key={`skeleton-${key}`}
                 className="animate-pulse rounded-2xl bg-white p-6 shadow-sm dark:bg-zinc-900"
               >
                 <div className="flex items-center gap-4">
@@ -224,7 +245,11 @@ export default function AlumniPage() {
   );
 }
 
-function AlumnusCard({ data: alumnus }: { data: any }) {
+type AlumnusCardProps = { data: Alumnus };
+
+function AlumnusCard(props: AlumnusCardProps) {
+  const { data: alumnus } = props;
+
   return (
     <div
       key={alumnus.userId}
@@ -284,15 +309,15 @@ function AlumnusCard({ data: alumnus }: { data: any }) {
   );
 }
 
-function AlumusImage({
-  name,
-  src,
-  size = 56,
-}: {
+type AlumusImageProps = {
   name: string;
   src?: string | null;
   size?: number;
-}) {
+};
+
+function AlumusImage(props: AlumusImageProps) {
+  const { name, src, size = 56 } = props;
+
   const { url: resolvedSrc } = useProfileImageUrl({ value: src });
 
   const initials = name

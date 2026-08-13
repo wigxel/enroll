@@ -1,9 +1,12 @@
+import { auth } from "@clerk/nextjs/server";
 import { fetchQuery } from "convex/nextjs";
 import {
   Award,
   BookOpen,
+  Briefcase,
   Clock,
   Download,
+  Eye,
   GraduationCap,
   Quote,
   Star,
@@ -16,28 +19,57 @@ import { notFound } from "next/navigation";
 import type React from "react";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { api } from "@/convex/_generated/api";
-import type { Doc } from "@/convex/_generated/dataModel";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Button } from "~/components/ui/button";
 import { DownloadBrochure } from "~/components/ui/download-brochure";
 import { safeArray } from "~/lib/data.helpers";
 import { FaqSection } from "./faq-section";
+import { JobsSection } from "./jobs-section";
 import { PrerequisitesSection } from "./prerequisites-section";
 
 interface CourseApplicationPageProps {
   params: Promise<{ slug: string }>;
 }
 
+// The review query is currently declared with `any`; this boundary type limits
+// the page to the review fields it actually renders.
+type CourseReview = {
+  _id: Id<"reviews">;
+  userId?: string | null;
+  userName?: string | null;
+  rating: number;
+  text: string;
+};
+
+/**
+ * Convex auth options for the signed-in caller, or undefined when anonymous.
+ *
+ * The course queries use this to decide whether an unpublished course may be
+ * read, which is what powers the admin "Preview" action. Sending it costs
+ * nothing for ordinary visitors: without the privilege the result is identical.
+ */
+async function getConvexAuth() {
+  const { getToken } = await auth();
+  const token = await getToken({ template: "convex" });
+  return token ? { token } : undefined;
+}
+
 export async function generateMetadata({
   params,
 }: CourseApplicationPageProps): Promise<Metadata> {
-  const result = await fetchQuery(api.courses.getBySlug, {
-    slug: (await params).slug,
-  });
+  const result = await fetchQuery(
+    api.courses.getBySlug,
+    { slug: (await params).slug },
+    await getConvexAuth(),
+  );
   const course = result?.success ? result.data : null;
   if (!course) return { title: "Course Not Found" };
   return {
     title: `Apply — ${course.name}`,
     description: course.description,
+    // An unpublished course reaching this point is an admin preview; keep it
+    // out of search indexes even though anonymous crawlers already get a 404.
+    ...(course.isActive ? {} : { robots: { index: false, follow: false } }),
   };
 }
 
@@ -49,7 +81,11 @@ export default async function CourseApplicationPage({
   params,
 }: CourseApplicationPageProps) {
   const [courseResult, appStatusResult] = await Promise.all([
-    fetchQuery(api.courses.getBySlug, { slug: (await params).slug }),
+    fetchQuery(
+      api.courses.getBySlug,
+      { slug: (await params).slug },
+      await getConvexAuth(),
+    ),
     fetchQuery(api.settings.getAppStatus),
   ]);
 
@@ -65,12 +101,16 @@ export default async function CourseApplicationPage({
     courseId: course._id,
   });
   const reviewsData = reviewsResult?.success ? reviewsResult.data : null;
-  const reviews = reviewsData?.reviews || [];
+  const reviews = (reviewsData?.reviews as CourseReview[] | undefined) || [];
   const averageRating = reviewsData?.averageRating || 0;
   const totalReviews = reviewsData?.totalReviews || 0;
 
   return (
     <div className="min-h-screen">
+      {/* Reaching this branch means the viewer is privileged: getBySlug hides
+          unpublished courses from everyone else. */}
+      {!course.isActive && <PreviewBanner />}
+
       {/* ── Sticky header ── */}
       <div className="sticky top-0 z-50 bg-background/90 backdrop-blur-sm border-b border-gray-100 dark:border-zinc-800">
         <div className="h-16 flex items-center justify-between mx-auto container">
@@ -176,6 +216,16 @@ export default async function CourseApplicationPage({
               </div>
             </section>
 
+            {/* Job Opportunities */}
+            <section>
+              <SectionHeading
+                icon={<Briefcase className="h-5 w-5" />}
+                title="Job Opportunities"
+                subtitle="Roles our graduates are hired into"
+              />
+              <JobsSection courseId={course._id as string} />
+            </section>
+
             {/* Alumni Reviews */}
             <section>
               <SectionHeading
@@ -190,10 +240,11 @@ export default async function CourseApplicationPage({
                 </span>
                 <div>
                   <div className="flex gap-0.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
+                    {/* Rating values themselves are stable keys, unlike array indexes. */}
+                    {[1, 2, 3, 4, 5].map((star) => (
                       <Star
-                        key={i}
-                        className={`h-5 w-5 ${i < Math.round(averageRating) ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
+                        key={`avg-star-${star}`}
+                        className={`h-5 w-5 ${star <= Math.round(averageRating) ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
                       />
                     ))}
                   </div>
@@ -210,7 +261,7 @@ export default async function CourseApplicationPage({
                 </p>
               ) : (
                 <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-5">
-                  {reviews.map((review: any) => {
+                  {reviews.map((review) => {
                     const initials =
                       review.userName
                         ?.split(" ")
@@ -239,10 +290,10 @@ export default async function CourseApplicationPage({
                         <Quote className="absolute top-4 right-4 h-8 w-8 text-gray-100 dark:text-zinc-800" />
                         {/* Stars */}
                         <div className="flex gap-0.5 mb-3">
-                          {Array.from({ length: 5 }).map((_, i) => (
+                          {[1, 2, 3, 4, 5].map((star) => (
                             <Star
-                              key={i}
-                              className={`h-4 w-4 ${i < review.rating ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
+                              key={`review-star-${star}`}
+                              className={`h-4 w-4 ${star <= review.rating ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}`}
                             />
                           ))}
                         </div>
@@ -361,7 +412,8 @@ export default async function CourseApplicationPage({
                     </a>
                   </DownloadBrochure>
 
-                  <Link href={`/applications/${course.slug}` as any}>
+                  {/* This route is a normal string href; no unsafe type bypass is required. */}
+                  <Link href={`/applications/${course.slug}`}>
                     <Button variant={"default"} size="lg" className="w-full">
                       Apply Now
                     </Button>
@@ -379,15 +431,30 @@ export default async function CourseApplicationPage({
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
-function SectionHeading({
-  icon,
-  title,
-  subtitle,
-}: {
+
+/**
+ * Shown when an admin previews a course that is not yet active, so an
+ * unpublished page is never mistaken for the live one.
+ */
+function PreviewBanner() {
+  return (
+    <div className="bg-amber-500 px-4 py-2.5 text-center text-sm font-medium text-amber-950">
+      <Eye className="mr-2 inline h-4 w-4 align-text-bottom" />
+      Preview — this course is inactive and is not visible to applicants.
+      Activate it from the admin dashboard to publish.
+    </div>
+  );
+}
+
+type SectionHeadingProps = {
   icon: React.ReactNode;
   title: string;
   subtitle: string;
-}) {
+};
+
+function SectionHeading(props: SectionHeadingProps) {
+  const { icon, title, subtitle } = props;
+
   return (
     <div className="flex items-start gap-3">
       <div className="mt-0.5 flex bg-primary/16 text-primary h-9 w-9 shrink-0 items-center justify-center rounded-xl">

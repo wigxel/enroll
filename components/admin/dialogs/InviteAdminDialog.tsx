@@ -20,11 +20,9 @@ interface InviteAdminDialogProps {
   onSuccess?: () => void;
 }
 
-export function InviteAdminDialog({
-  open,
-  onOpenChange,
-  onSuccess,
-}: InviteAdminDialogProps) {
+export function InviteAdminDialog(props: InviteAdminDialogProps) {
+  const { open, onOpenChange, onSuccess } = props;
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");

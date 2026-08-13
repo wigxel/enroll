@@ -265,7 +265,8 @@ const Calendar = ({
           const { selected, today, disabled, range_middle } = activeModifiers;
 
           if (isHidden) {
-            return <></>;
+            // Returning null avoids creating a redundant empty fragment for hidden days.
+            return null;
           }
 
           if (!isButton) {

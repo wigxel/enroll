@@ -1,7 +1,29 @@
 import { v } from "convex/values";
-import type { Doc, Id } from "./_generated/dataModel";
-import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import { mutation, type QueryCtx, query } from "./_generated/server";
 import { now, type Result, requirePrivilege } from "./utils";
+
+/**
+ * Decides whether the caller may read a course through a public-facing query.
+ *
+ * Published courses are visible to everyone. An unpublished course is visible
+ * only to a caller holding "course:read:all", which is what lets an admin
+ * preview a course on the live page before activating it. Anonymous visitors
+ * and students still get the same "not found" result as before, so preview
+ * access is never granted by the URL alone.
+ */
+const canViewCourse = async (
+  ctx: QueryCtx,
+  course: { isActive: boolean } | null,
+): Promise<boolean> => {
+  if (!course) return false;
+  if (course.isActive) return true;
+
+  const privResult = await requirePrivilege(ctx, "course:read:all");
+  return privResult.success;
+};
+
+const COURSE_NOT_FOUND = "Course not found or inactive." as const;
 
 /**
  * Admin: Lists all courses (active and inactive) sorted by order.
@@ -77,7 +99,10 @@ export const listActive = query({
 });
 
 /**
- * Public: Gets a single active course by its URL slug.
+ * Public: Gets a single course by its URL slug.
+ *
+ * Unpublished courses resolve only for callers allowed to preview them; see
+ * `canViewCourse`.
  */
 export const getBySlug = query({
   args: { slug: v.string() },
@@ -87,8 +112,8 @@ export const getBySlug = query({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
 
-    if (!course || !course.isActive) {
-      return { success: false, error: "Course not found or inactive." };
+    if (!(await canViewCourse(ctx, course)) || !course) {
+      return { success: false, error: COURSE_NOT_FOUND };
     }
 
     let coverPhotoUrl: string | undefined;
@@ -199,6 +224,7 @@ export const update = mutation({
     isActive: v.optional(v.boolean()),
     instructorIds: v.optional(v.array(v.id("instructors"))),
     faqIds: v.optional(v.array(v.id("faqs"))),
+    jobIds: v.optional(v.array(v.id("jobs"))),
     brochureUrl: v.optional(v.string()),
     quizPolicy: v.optional(
       v.object({
@@ -241,6 +267,7 @@ export const update = mutation({
         instructorIds: args.instructorIds,
       }),
       ...(args.faqIds !== undefined && { faqIds: args.faqIds }),
+      ...(args.jobIds !== undefined && { jobIds: args.jobIds }),
       ...(args.brochureUrl !== undefined && { brochureUrl: args.brochureUrl }),
       ...(args.quizPolicy !== undefined && { quizPolicy: args.quizPolicy }),
       ...(args.prerequisites !== undefined && {
@@ -327,8 +354,8 @@ export const getCourseFaqs = query({
   args: { courseId: v.id("courses") },
   handler: async (ctx, args): Promise<Result<any>> => {
     const course = await ctx.db.get(args.courseId);
-    if (!course || !course.isActive) {
-      return { success: false, error: "Course not found or inactive." };
+    if (!(await canViewCourse(ctx, course)) || !course) {
+      return { success: false, error: COURSE_NOT_FOUND };
     }
 
     if (!course.faqIds?.length) {
@@ -346,6 +373,85 @@ export const getCourseFaqs = query({
         question: faq.question,
         answer: faq.answer,
       })),
+    };
+  },
+});
+
+/**
+ * Admin: Links or unlinks job opportunities from a course.
+ */
+export const updateJobs = mutation({
+  args: {
+    courseId: v.id("courses"),
+    jobIds: v.array(v.id("jobs")),
+  },
+  handler: async (ctx, args): Promise<Result<null>> => {
+    const privResult = await requirePrivilege(ctx, "course:manage");
+    if (!privResult.success) return privResult;
+
+    const course = await ctx.db.get(args.courseId);
+    if (!course) {
+      return { success: false, error: "Course not found." };
+    }
+
+    // Reject unknown IDs up front so a bad link cannot be persisted.
+    const jobs = await Promise.all(args.jobIds.map((id) => ctx.db.get(id)));
+    if (jobs.some((job) => !job)) {
+      return { success: false, error: "One or more jobs no longer exist." };
+    }
+
+    await ctx.db.patch(args.courseId, {
+      jobIds: args.jobIds,
+      updatedAt: now(),
+    });
+
+    return { success: true, data: null };
+  },
+});
+
+/**
+ * Public: Returns the active job opportunities linked to a course, in the order
+ * the admin arranged them, with image IDs resolved to URLs.
+ */
+export const getCourseJobs = query({
+  args: { courseId: v.id("courses") },
+  handler: async (ctx, args): Promise<Result<any>> => {
+    const course = await ctx.db.get(args.courseId);
+    if (!(await canViewCourse(ctx, course)) || !course) {
+      return { success: false, error: COURSE_NOT_FOUND };
+    }
+
+    if (!course.jobIds?.length) {
+      return { success: true, data: [] };
+    }
+
+    const jobs = await Promise.all(course.jobIds.map((id) => ctx.db.get(id)));
+
+    const visibleJobs = jobs.filter(
+      (job): job is NonNullable<typeof job> => !!job && job.isActive,
+    );
+
+    return {
+      success: true,
+      data: await Promise.all(
+        visibleJobs.map(async (job) => {
+          let imageUrl: string | undefined;
+          if (job.image) {
+            const url = await ctx.storage.getUrl(job.image as Id<"_storage">);
+            imageUrl = url ?? undefined;
+          }
+
+          return {
+            _id: job._id,
+            title: job.title,
+            company: job.company,
+            salaryMin: job.salaryMin,
+            salaryMax: job.salaryMax,
+            description: job.description,
+            image: imageUrl,
+          };
+        }),
+      ),
     };
   },
 });

@@ -22,12 +22,9 @@ interface ChangeRoleDialogProps {
   onSuccess?: () => void;
 }
 
-export function ChangeRoleDialog({
-  open,
-  onOpenChange,
-  user,
-  onSuccess,
-}: ChangeRoleDialogProps) {
+export function ChangeRoleDialog(props: ChangeRoleDialogProps) {
+  const { open, onOpenChange, user, onSuccess } = props;
+
   const [selectedRoleId, setSelectedRoleId] = useState<Id<"roles">>(
     user.roleId,
   );

@@ -41,12 +41,9 @@ interface CreateEnrollmentFormProps {
   onCancel: () => void;
 }
 
-export function CreateEnrollmentForm({
-  cohorts,
-  courses,
-  onSubmit,
-  onCancel,
-}: CreateEnrollmentFormProps) {
+export function CreateEnrollmentForm(props: CreateEnrollmentFormProps) {
+  const { cohorts, courses, onSubmit, onCancel } = props;
+
   const form = useForm<CreateEnrollmentValues>({
     resolver: zodResolver(createEnrollmentSchema),
     defaultValues: defaultCreateEnrollmentState,

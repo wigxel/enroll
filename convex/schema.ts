@@ -141,6 +141,7 @@ export default defineSchema({
     isActive: v.boolean(),
     instructorIds: v.optional(v.array(v.id("instructors"))),
     faqIds: v.optional(v.array(v.id("faqs"))),
+    jobIds: v.optional(v.array(v.id("jobs"))),
     brochureUrl: v.optional(v.string()),
     quizPolicy: v.optional(
       v.object({
@@ -176,7 +177,7 @@ export default defineSchema({
 
   reviews: defineTable({
     userId: v.id("users"),
-    courseId: v.id("courses"),
+    courseId: v.optional(v.id("courses")),
     rating: v.number(),
     text: v.string(),
     isApproved: v.boolean(),
@@ -228,4 +229,66 @@ export default defineSchema({
   })
     .index("by_order", ["order"])
     .index("by_isActive", ["isActive"]),
+
+  jobs: defineTable({
+    title: v.string(),
+    company: v.string(),
+    salaryMin: v.number(),
+    salaryMax: v.number(),
+    image: v.optional(v.string()),
+    description: v.string(),
+    order: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  }).index("by_order", ["order"]),
+
+  /**
+   * Inbound requests from businesses that want to hire our graduates.
+   *
+   * Deliberately separate from `jobs`: that table is admin-authored marketing
+   * shown on course pages, while these are real leads with a contact and an
+   * expectation of a reply. Mixing them would leave course pages advertising
+   * roles that were filled months ago.
+   *
+   * `specialties` stores catalogue keys as plain strings rather than a literal
+   * union so the catalogue in `lib/talent.helpers.ts` can grow without a schema
+   * migration. Membership is enforced in the mutation instead.
+   */
+  talentRequests: defineTable({
+    companyName: v.string(),
+    companyEmail: v.string(),
+    contactPhone: v.string(),
+    specialties: v.array(v.string()),
+    description: v.string(),
+    hirePeriod: v.union(v.literal("short_term"), v.literal("long_term")),
+    jobDuration: v.union(
+      v.literal("full_time"),
+      v.literal("part_time"),
+      v.literal("one_off"),
+    ),
+    status: v.union(
+      v.literal("new"),
+      v.literal("in_review"),
+      v.literal("shortlisted"),
+      v.literal("placed"),
+      v.literal("closed"),
+    ),
+    /** Free-text note explaining a `closed` or `placed` outcome. */
+    outcomeNote: v.optional(v.string()),
+    /** Last staff member to move the request along. */
+    reviewedBy: v.optional(v.id("users")),
+    reviewedAt: v.optional(v.string()),
+    /**
+     * Stamped once, when the request first leaves `new`. Time-to-first-response
+     * is the metric that decides whether this pipeline beats a WhatsApp thread,
+     * so it needs to survive later status changes.
+     */
+    firstRespondedAt: v.optional(v.string()),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_status", ["status"])
+    .index("by_companyEmail", ["companyEmail"])
+    .index("by_createdAt", ["createdAt"]),
 });

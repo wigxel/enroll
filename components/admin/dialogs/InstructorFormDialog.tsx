@@ -45,12 +45,9 @@ const defaultState: InstructorFormValues = {
   photo: undefined,
 };
 
-export function InstructorFormDialog({
-  open,
-  onOpenChange,
-  instructor,
-  onSuccess,
-}: InstructorFormDialogProps) {
+export function InstructorFormDialog(props: InstructorFormDialogProps) {
+  const { open, onOpenChange, instructor, onSuccess } = props;
+
   const createInstructor = useMutation(api.instructors.create);
   const updateInstructor = useMutation(api.instructors.update);
 

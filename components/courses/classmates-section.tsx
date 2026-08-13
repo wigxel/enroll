@@ -15,15 +15,15 @@ interface Classmate {
   profileImage: string | null;
 }
 
-function ClassmateAvatar({
-  profileImage,
-  name,
-  className,
-}: {
+type ClassmateAvatarProps = {
   profileImage: string | null;
   name: string;
   className?: string;
-}) {
+};
+
+function ClassmateAvatar(props: ClassmateAvatarProps) {
+  const { profileImage, name, className } = props;
+
   const { url } = useProfileImageUrl({ value: profileImage });
 
   return (
@@ -50,7 +50,11 @@ function ClassmateAvatar({
   );
 }
 
-export function ClassmatesSection({ courseId }: { courseId: string }) {
+export type ClassmatesSectionProps = { courseId: string };
+
+export function ClassmatesSection(props: ClassmatesSectionProps) {
+  const { courseId } = props;
+
   const [isExpanded, setIsExpanded] = useState(false);
   const result = useQuery(api.enrollments.getClassmates, {
     courseId: courseId as any,

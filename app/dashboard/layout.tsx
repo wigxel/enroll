@@ -4,10 +4,13 @@ export const metadata: Metadata = {
   title: "Dashboard | CMK",
 };
 
-export default function DashboardLayout({
-  children,
-}: {
+export type DashboardLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function DashboardLayout(props: DashboardLayoutProps) {
+  const { children } = props;
+
   return children;
 }
+export default DashboardLayout;

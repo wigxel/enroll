@@ -6,7 +6,7 @@ import { differenceInYears } from "date-fns";
 import { AlertCircle, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useImperativeHandle } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import * as z from "zod";
 import { api } from "@/convex/_generated/api";
 import { Button } from "~/components/ui/button";
@@ -92,9 +92,14 @@ export const PersonalInformationForm = React.forwardRef<
   });
 
   const form = useForm<PersonalInformationValues>({
+    // Step 1 deliberately validates only email + phone, so the schema — and the
+    // type the resolver infers from it — narrows to those two fields mid-form.
+    // The form's values stay the full shape throughout, so the resolver is
+    // widened back to match; the narrow schema is a validation scope, not a
+    // different value type.
     resolver: zodResolver(
       isInitialValidated ? personalInformationSchema : initialSchema,
-    ),
+    ) as unknown as Resolver<PersonalInformationValues>,
     defaultValues: { ...defaultPersonalInformationState, ...initialFormData },
     mode: "onChange",
   });
@@ -202,10 +207,7 @@ export const PersonalInformationForm = React.forwardRef<
               />
 
               {isInitialValidated ? (
-                <div
-                  role="separator"
-                  className="border-gray-200 my-8 border-t"
-                />
+                <hr className="border-gray-200 my-8 border-t" />
               ) : null}
             </div>
           )}

@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
-import { Doc } from "./_generated/dataModel";
+import type { Doc } from "./_generated/dataModel";
 import { now, type Result, requireAuth, requirePrivilege } from "./utils";
 
 /**

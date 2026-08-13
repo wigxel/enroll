@@ -12,11 +12,9 @@ interface DownloadBrochureProps {
   asChild?: boolean;
 }
 
-export function DownloadBrochure({
-  courseId,
-  children,
-  asChild = true,
-}: DownloadBrochureProps) {
+export function DownloadBrochure(props: DownloadBrochureProps) {
+  const { courseId, children, asChild = true } = props;
+
   const courseResult = useQuery(api.courses.getById, { courseId });
   const brochureStorageId = courseResult?.success
     ? courseResult.data?.brochureUrl

@@ -32,11 +32,9 @@ interface TransactionDetailDialogProps {
   payment: Payment | null;
 }
 
-export function TransactionDetailDialog({
-  open,
-  onOpenChange,
-  payment,
-}: TransactionDetailDialogProps) {
+export function TransactionDetailDialog(props: TransactionDetailDialogProps) {
+  const { open, onOpenChange, payment } = props;
+
   const [copied, setCopied] = useState(false);
 
   if (!payment) return null;
@@ -138,6 +136,7 @@ export function TransactionDetailDialog({
                 </div>
                 {item.copyable && (
                   <button
+                    type="button"
                     onClick={() => handleCopy(item.value)}
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors group"
                     title="Copy to clipboard"

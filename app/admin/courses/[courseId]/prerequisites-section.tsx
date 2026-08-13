@@ -10,6 +10,7 @@ import { Input } from "~/components/ui/input";
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
 import { useDebounceCallback } from "~/hooks/use-debounce-callback";
+import { safeArray } from "~/lib/data.helpers";
 
 interface PrerequisiteItem {
   key: string;
@@ -28,7 +29,10 @@ export function PrerequisitesSection({ courseId }: PrerequisitesSectionProps) {
   const [localPrereqs, setLocalPrereqs] = useState<PrerequisiteItem[]>([]);
 
   const course = courseResult?.success ? courseResult.data : null;
-  const prerequisites: PrerequisiteItem[] = course?.prerequisites ?? [];
+  // safeArray returns a shared frozen array for the empty case. A `?? []`
+  // literal here would be a fresh reference every render, so the effect below
+  // would re-run forever.
+  const prerequisites: PrerequisiteItem[] = safeArray(course?.prerequisites);
 
   useEffect(() => {
     setLocalPrereqs(prerequisites);
@@ -46,7 +50,7 @@ export function PrerequisitesSection({ courseId }: PrerequisitesSectionProps) {
         } else {
           toast.success("Order updated");
         }
-      } catch (error) {
+      } catch {
         toast.error("Failed to reorder prerequisites");
       }
     },
@@ -75,7 +79,7 @@ export function PrerequisitesSection({ courseId }: PrerequisitesSectionProps) {
         setNewPrerequisite("");
         toast.success("Prerequisite added");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to add prerequisite");
     }
   };
@@ -92,7 +96,7 @@ export function PrerequisitesSection({ courseId }: PrerequisitesSectionProps) {
       } else {
         toast.success("Prerequisite removed");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to remove prerequisite");
     }
   };

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { usePaystackPayment } from "react-paystack";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { formatCurrency } from "~/lib/utils";
 
 export default function PaymentComponent() {
@@ -19,7 +20,10 @@ export default function PaymentComponent() {
   // Fetch application using the ID given in the reference
   const applicationResult = useQuery(
     api.applications.getApplicationForPayment,
-    explicitAppId ? { applicationId: explicitAppId as any } : "skip",
+    // URL parameters are strings; the explicit Convex ID type preserves the query contract.
+    explicitAppId
+      ? { applicationId: explicitAppId as Id<"applications"> }
+      : "skip",
   );
 
   // Fetch application fee from settings
@@ -42,7 +46,9 @@ export default function PaymentComponent() {
     amount: application_fee * 100,
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "",
   };
-  const initializePayment = usePaystackPayment(config as any);
+  // The object already satisfies Paystack's hook contract, so passing it directly
+  // retains validation of required payment fields instead of disabling checks.
+  const initializePayment = usePaystackPayment(config);
 
   // Loading states
   const isLoading = explicitAppId

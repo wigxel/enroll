@@ -42,6 +42,27 @@ const resolveCourseByName = async (
   return course._id;
 };
 
+const resolveInstructorByName = async (
+  ctx: MutationCtx,
+  name: string,
+): Promise<Id<"instructors">> => {
+  const instructors = await ctx.db.query("instructors").collect();
+  const instructor = instructors.find((i) => i.name === name);
+  if (!instructor)
+    throw new Error(`Seed error: instructor "${name}" not found.`);
+  return instructor._id;
+};
+
+const resolveFaqByQuestion = async (
+  ctx: MutationCtx,
+  question: string,
+): Promise<Id<"faqs">> => {
+  const faqs = await ctx.db.query("faqs").collect();
+  const faq = faqs.find((f) => f.question === question);
+  if (!faq) throw new Error(`Seed error: faq "${question}" not found.`);
+  return faq._id;
+};
+
 const resolveApplicationByUser = async (
   ctx: MutationCtx,
   email: string,
@@ -99,6 +120,8 @@ const seedRoles = async (ctx: MutationCtx, args: { dryRun?: boolean }) => {
         "payment:read:all",
         "payment:refund",
         "notification:read:admin",
+        "placement:read",
+        "placement:manage",
         "report:view:dashboard",
         "report:generate",
         "settings:update",
@@ -119,6 +142,8 @@ const seedRoles = async (ctx: MutationCtx, args: { dryRun?: boolean }) => {
         "cohort:manage",
         "cohort:read:all",
         "notification:read:admin",
+        "placement:read",
+        "placement:manage",
       ],
     },
     {
@@ -133,6 +158,7 @@ const seedRoles = async (ctx: MutationCtx, args: { dryRun?: boolean }) => {
         "cohort:read:all",
         "payment:read:all",
         "notification:read:admin",
+        "placement:read",
         "report:view:dashboard",
         "report:generate",
       ],
@@ -174,6 +200,85 @@ const seedRoles = async (ctx: MutationCtx, args: { dryRun?: boolean }) => {
   return { status: "success", count: rolesData.length };
 };
 
+const seedInstructors = async (
+  ctx: MutationCtx,
+  args: { dryRun?: boolean },
+) => {
+  const dryRun = args.dryRun ?? false;
+  const existing = await ctx.db.query("instructors").collect();
+  if (existing.length > 0) return { status: "skipped", count: existing.length };
+
+  const timestamp = now();
+  const instructorsData = [
+    {
+      name: "Dr. Alice Smith",
+      title: "Lead Web Developer",
+      photo: "https://api.dicebear.com/9.x/avataaars/svg?seed=Alice",
+      bio: "10+ years experience in full-stack development and cloud architecture.",
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    },
+    {
+      name: "Bob Jones",
+      title: "Senior Data Scientist",
+      photo: "https://api.dicebear.com/9.x/avataaars/svg?seed=Bob",
+      bio: "Former AI researcher with a passion for teaching machine learning.",
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    },
+    {
+      name: "Carol White",
+      title: "UX/UI Expert",
+      photo: "https://api.dicebear.com/9.x/avataaars/svg?seed=Carol",
+      bio: "Award-winning designer focusing on accessible and intuitive interfaces.",
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    },
+  ];
+
+  if (!dryRun) {
+    for (const instructor of instructorsData) {
+      await ctx.db.insert("instructors", instructor);
+    }
+  }
+  return { status: "success", count: instructorsData.length };
+};
+
+const seedFaqs = async (ctx: MutationCtx, args: { dryRun?: boolean }) => {
+  const dryRun = args.dryRun ?? false;
+  const existing = await ctx.db.query("faqs").collect();
+  if (existing.length > 0) return { status: "skipped", count: existing.length };
+
+  const timestamp = now();
+  const faqsData = [
+    {
+      question: "What is the format of the courses?",
+      answer:
+        "All courses are hybrid, featuring live online sessions and recorded materials.",
+      order: 1,
+      isActive: true,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    },
+    {
+      question: "Are there any prerequisites?",
+      answer:
+        "Prerequisites vary by course. Check the specific course details for more information.",
+      order: 2,
+      isActive: true,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    },
+  ];
+
+  if (!dryRun) {
+    for (const faq of faqsData) {
+      await ctx.db.insert("faqs", faq);
+    }
+  }
+  return { status: "success", count: faqsData.length };
+};
+
 const seedCourses = async (ctx: MutationCtx, args: { dryRun?: boolean }) => {
   const dryRun = args.dryRun ?? false;
   const existing = await ctx.db.query("courses").collect();
@@ -187,10 +292,26 @@ const seedCourses = async (ctx: MutationCtx, args: { dryRun?: boolean }) => {
         "A comprehensive 12-week bootcamp covering React, Node.js, databases, and deployment.",
       duration: "12 Weeks",
       certification: "Full-Stack Developer Certificate",
+      coverPhoto:
+        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80",
       tuitionFee: 450000,
       order: 1,
       slug: "full-stack-web-development",
       isActive: true,
+      _instructorNames: ["Dr. Alice Smith"],
+      _faqQuestions: [
+        "What is the format of the courses?",
+        "Are there any prerequisites?",
+      ],
+      quizPolicy: {
+        enabled: true,
+        passScore: 70,
+        allowRetake: true,
+        maxAttempts: 3,
+      },
+      prerequisites: [
+        { key: "Experience", value: "Basic understanding of HTML and CSS" },
+      ],
       createdAt: timestamp,
       updatedAt: timestamp,
     },
@@ -200,10 +321,23 @@ const seedCourses = async (ctx: MutationCtx, args: { dryRun?: boolean }) => {
         "Master Python, statistical analysis, machine learning algorithms, and data visualization.",
       duration: "16 Weeks",
       certification: "Data Science Professional Certificate",
+      coverPhoto:
+        "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80",
       tuitionFee: 550000,
       order: 2,
       slug: "data-science-machine-learning",
       isActive: true,
+      _instructorNames: ["Bob Jones"],
+      _faqQuestions: ["What is the format of the courses?"],
+      quizPolicy: {
+        enabled: true,
+        passScore: 80,
+        allowRetake: false,
+        maxAttempts: 1,
+      },
+      prerequisites: [
+        { key: "Mathematics", value: "High school level statistics" },
+      ],
       createdAt: timestamp,
       updatedAt: timestamp,
     },
@@ -213,10 +347,21 @@ const seedCourses = async (ctx: MutationCtx, args: { dryRun?: boolean }) => {
         "Learn user research, wireframing, prototyping, and visual design with Figma.",
       duration: "8 Weeks",
       certification: "UI/UX Designer Certificate",
+      coverPhoto:
+        "https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=800&q=80",
       tuitionFee: 350000,
       order: 3,
       slug: "ui-ux-design",
       isActive: true,
+      _instructorNames: ["Carol White"],
+      _faqQuestions: ["What is the format of the courses?"],
+      quizPolicy: {
+        enabled: false,
+        passScore: 0,
+        allowRetake: false,
+        maxAttempts: 0,
+      },
+      prerequisites: [],
       createdAt: timestamp,
       updatedAt: timestamp,
     },
@@ -225,18 +370,45 @@ const seedCourses = async (ctx: MutationCtx, args: { dryRun?: boolean }) => {
       description: "Build cross-platform mobile apps with React Native.",
       duration: "10 Weeks",
       certification: "Mobile Developer Certificate",
+      coverPhoto:
+        "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=800&q=80",
       tuitionFee: 400000,
       order: 4,
       slug: "mobile-app-development",
       isActive: false,
+      _instructorNames: ["Dr. Alice Smith"],
+      _faqQuestions: [],
+      quizPolicy: {
+        enabled: true,
+        passScore: 75,
+        allowRetake: true,
+        maxAttempts: 2,
+      },
+      prerequisites: [
+        { key: "Experience", value: "Basic JavaScript knowledge" },
+      ],
       createdAt: timestamp,
       updatedAt: timestamp,
     },
   ];
 
   if (!dryRun) {
-    for (const course of coursesData) {
-      await ctx.db.insert("courses", course);
+    for (const { _instructorNames, _faqQuestions, ...course } of coursesData) {
+      const instructorIds: Id<"instructors">[] = [];
+      for (const name of _instructorNames || []) {
+        instructorIds.push(await resolveInstructorByName(ctx, name));
+      }
+
+      const faqIds: Id<"faqs">[] = [];
+      for (const q of _faqQuestions || []) {
+        faqIds.push(await resolveFaqByQuestion(ctx, q));
+      }
+
+      await ctx.db.insert("courses", {
+        ...course,
+        instructorIds,
+        faqIds,
+      });
     }
   }
   return { status: "success", count: coursesData.length };
@@ -772,6 +944,14 @@ const seedSettings = async (ctx: MutationCtx, args: { dryRun?: boolean }) => {
 
 // ── Internal Mutations (for CLI access) ─────────────────────
 
+export const instructors = internalMutation({
+  args: { dryRun: v.optional(v.boolean()) },
+  handler: seedInstructors,
+});
+export const faqs = internalMutation({
+  args: { dryRun: v.optional(v.boolean()) },
+  handler: seedFaqs,
+});
 export const roles = internalMutation({
   args: { dryRun: v.optional(v.boolean()) },
   handler: seedRoles,
@@ -914,6 +1094,8 @@ export const run = internalMutation({
     const results: Record<string, any> = {};
 
     results.roles = await seedRoles(ctx, { dryRun });
+    results.instructors = await seedInstructors(ctx, { dryRun });
+    results.faqs = await seedFaqs(ctx, { dryRun });
     results.courses = await seedCourses(ctx, { dryRun });
     results.users = await seedUsers(ctx, { dryRun });
     results.applications = await seedApplications(ctx, { dryRun });
@@ -939,6 +1121,8 @@ export const clearAll = internalMutation({
     const tables = [
       "users",
       "roles",
+      "instructors",
+      "faqs",
       "applications",
       "payments",
       "enrollments",

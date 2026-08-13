@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { GraduationCap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";

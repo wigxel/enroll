@@ -4,10 +4,13 @@ export const metadata: Metadata = {
   title: "Under Review | CMK",
 };
 
-export default function UnderReviewLayout({
-  children,
-}: {
+export type UnderReviewLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function UnderReviewLayout(props: UnderReviewLayoutProps) {
+  const { children } = props;
+
   return children;
 }
+export default UnderReviewLayout;

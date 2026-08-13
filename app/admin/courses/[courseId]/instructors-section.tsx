@@ -15,14 +15,6 @@ import { InstructorFormDialog } from "~/components/admin/dialogs/InstructorFormD
 import { api } from "~/convex/_generated/api";
 import type { Id } from "~/convex/_generated/dataModel";
 
-interface Instructor {
-  _id: Id<"instructors">;
-  name: string;
-  title: string;
-  bio: string;
-  photo?: string;
-}
-
 interface InstructorsSectionProps {
   courseId: Id<"courses">;
 }
@@ -60,7 +52,7 @@ export function InstructorsSection({ courseId }: InstructorsSectionProps) {
       } else {
         toast.success("Instructor linked");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to link instructor");
     }
   };
@@ -77,7 +69,7 @@ export function InstructorsSection({ courseId }: InstructorsSectionProps) {
       } else {
         toast.success("Instructor unlinked");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to unlink instructor");
     }
   };

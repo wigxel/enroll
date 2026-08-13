@@ -4,10 +4,13 @@ export const metadata: Metadata = {
   title: "Take Quiz | CMK",
 };
 
-export default function TakeQuizLayout({
-  children,
-}: {
+export type TakeQuizLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function TakeQuizLayout(props: TakeQuizLayoutProps) {
+  const { children } = props;
+
   return children;
 }
+export default TakeQuizLayout;

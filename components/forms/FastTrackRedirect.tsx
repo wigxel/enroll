@@ -1,34 +1,10 @@
 "use client";
 
-import { useMutation } from "convex/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { api } from "@/convex/_generated/api";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
-interface FastTrackRedirectProps {
-  courseId: string;
-}
-
+// TODO: implement fast-track redirect with courseId prop
+// Will need: useMutation(api.applications.createFastTrack), useRouter, courseId prop
 export default function FastTrackRedirect() {
-  const router = useRouter();
-  const createFastTrack = useMutation(api.applications.createFastTrack);
-
-  useEffect(() => {
-    async function handleFastTrack() {
-      try {
-        const result = await createFastTrack({
-          courseId: "courseId_placeholder" as any,
-        });
-        // Note: courseId will be passed via props in the final version
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    // handleFastTrack();
-  }, []);
-
   return (
     <div className="flex flex-1 items-center justify-center p-12">
       <div className="flex flex-col items-center gap-4 text-center">

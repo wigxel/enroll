@@ -10,7 +10,9 @@ interface StatCardProps {
   };
 }
 
-export function StatCard({ name, value, icon: Icon, trend }: StatCardProps) {
+export function StatCard(props: StatCardProps) {
+  const { name, value, icon: Icon, trend } = props;
+
   return (
     <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
       <div className="flex items-center">

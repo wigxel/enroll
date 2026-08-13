@@ -12,11 +12,9 @@ interface CourseReviewFormProps {
   onSuccess?: () => void;
 }
 
-export function CourseReviewForm({
-  courseId,
-  courseName,
-  onSuccess,
-}: CourseReviewFormProps) {
+export function CourseReviewForm(props: CourseReviewFormProps) {
+  const { courseId, courseName, onSuccess } = props;
+
   const [rating, setRating] = useState(0);
   const [text, setText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

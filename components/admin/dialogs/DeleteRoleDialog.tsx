@@ -18,12 +18,9 @@ interface DeleteRoleDialogProps {
   roleName: string | null;
 }
 
-export function DeleteRoleDialog({
-  open,
-  onOpenChange,
-  roleId,
-  roleName,
-}: DeleteRoleDialogProps) {
+export function DeleteRoleDialog(props: DeleteRoleDialogProps) {
+  const { open, onOpenChange, roleId, roleName } = props;
+
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteRole = useMutation(api.roles.deleteRole);
 

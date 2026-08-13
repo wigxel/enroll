@@ -7,11 +7,7 @@ import { useState } from "react";
 import { api } from "~/convex/_generated/api";
 
 type ApplicationStatus =
-  | "draft"
-  | "submitted"
-  | "under_review"
-  | "approved"
-  | "declined";
+  "draft" | "submitted" | "under_review" | "approved" | "declined";
 type StatusFilter = "all" | ApplicationStatus;
 
 const statusBadge: Record<ApplicationStatus, { bg: string; label: string }> = {

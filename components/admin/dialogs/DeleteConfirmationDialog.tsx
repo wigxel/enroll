@@ -10,7 +10,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type * as React from "react";
 
 interface DeleteConfirmationDialogProps {
   open: boolean;
@@ -22,15 +21,17 @@ interface DeleteConfirmationDialogProps {
   isDeleting?: boolean;
 }
 
-export function DeleteConfirmationDialog({
-  open,
-  onOpenChange,
-  title,
-  itemName,
-  warningMessage,
-  onConfirm,
-  isDeleting = false,
-}: DeleteConfirmationDialogProps) {
+export function DeleteConfirmationDialog(props: DeleteConfirmationDialogProps) {
+  const {
+    open,
+    onOpenChange,
+    title,
+    itemName,
+    warningMessage,
+    onConfirm,
+    isDeleting = false,
+  } = props;
+
   const handleConfirm = async () => {
     await onConfirm();
   };

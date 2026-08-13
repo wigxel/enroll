@@ -14,12 +14,11 @@ export interface GenderSelectFieldProps<T extends FieldValues> {
   required?: boolean;
 }
 
-export function GenderSelectField<T extends FieldValues>({
-  control,
-  name,
-  label = "Gender",
-  required = true,
-}: GenderSelectFieldProps<T>) {
+export function GenderSelectField<T extends FieldValues>(
+  props: GenderSelectFieldProps<T>,
+) {
+  const { control, name, label = "Gender", required = true } = props;
+
   return (
     <FormField
       control={control}

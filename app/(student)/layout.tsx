@@ -3,11 +3,13 @@
 import { TopNav } from "@/components/student/TopNav";
 import { useStudentGuard } from "@/hooks/use-student-guard";
 
-export default function StudentLayout({
-  children,
-}: {
+export type StudentLayoutProps = {
   children: React.ReactNode;
-}) {
+};
+
+export function StudentLayout(props: StudentLayoutProps) {
+  const { children } = props;
+
   const isLoading = useStudentGuard();
 
   if (isLoading) {
@@ -25,3 +27,4 @@ export default function StudentLayout({
     </div>
   );
 }
+export default StudentLayout;

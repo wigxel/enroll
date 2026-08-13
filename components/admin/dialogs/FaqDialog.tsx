@@ -23,14 +23,16 @@ interface FaqDialogProps {
   children?: React.ReactNode;
 }
 
-export function FaqDialog({
-  isOpen,
-  onOpenChange,
-  onSubmit,
-  initialFormData,
-  isEdit = false,
-  children,
-}: FaqDialogProps) {
+export function FaqDialog(props: FaqDialogProps) {
+  const {
+    isOpen,
+    onOpenChange,
+    onSubmit,
+    initialFormData,
+    isEdit = false,
+    children,
+  } = props;
+
   const [internalOpen, setInternalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

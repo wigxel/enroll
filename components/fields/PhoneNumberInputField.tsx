@@ -15,12 +15,11 @@ export interface PhoneNumberInputFieldProps<T extends FieldValues> {
   required?: boolean;
 }
 
-export function PhoneNumberInputField<T extends FieldValues>({
-  control,
-  name,
-  label = "Phone Number",
-  required = true,
-}: PhoneNumberInputFieldProps<T>) {
+export function PhoneNumberInputField<T extends FieldValues>(
+  props: PhoneNumberInputFieldProps<T>,
+) {
+  const { control, name, label = "Phone Number", required = true } = props;
+
   return (
     <FormField
       control={control}

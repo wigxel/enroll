@@ -218,3 +218,22 @@ h6 {
 .image-gradient {
   @apply bg-gradient-to-br from-red-500 to-orange-200;
 }
+
+@keyframes job-field-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  35% {
+    transform: translateX(-3px);
+  }
+
+  70% {
+    transform: translateX(3px);
+  }
+}
+
+.job-field-shake {
+  animation: job-field-shake 260ms ease-in-out;
+}

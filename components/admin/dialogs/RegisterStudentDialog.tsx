@@ -46,11 +46,9 @@ interface RegisterStudentDialogProps {
   onSuccess?: () => void;
 }
 
-export function RegisterStudentDialog({
-  open,
-  onOpenChange,
-  onSuccess,
-}: RegisterStudentDialogProps) {
+export function RegisterStudentDialog(props: RegisterStudentDialogProps) {
+  const { open, onOpenChange, onSuccess } = props;
+
   const createStudent = useAction(api.users.createStudent);
 
   const form = useForm<RegisterStudentValues>({
