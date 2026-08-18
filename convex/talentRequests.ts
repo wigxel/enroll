@@ -6,17 +6,28 @@ import {
   TALENT_LIMITS,
   validateTalentRequest,
 } from "../lib/talent.helpers";
+import {
+  turnstileErrorMessage,
+  verifyTurnstileToken,
+} from "../lib/turnstile.helpers";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
-import { mutation, type QueryCtx, query } from "./_generated/server";
+import {
+  action,
+  internalMutation,
+  mutation,
+  type QueryCtx,
+  query,
+} from "./_generated/server";
 import { now, type Result, requirePrivilege } from "./utils";
 
 /**
  * Hard limits on the public intake endpoint.
  *
  * `submit` is callable without authentication, which makes it the only write
- * path in the app a stranger can reach. These two rules keep a scripted flood
- * from filling the table and burying real leads in the admin inbox.
+ * path in the app a stranger can reach. A captcha stops the casual scripted
+ * flood; these two rules catch what gets past it, so a solved challenge cannot
+ * be reused to fill the table and bury real leads in the admin inbox.
  */
 const MAX_REQUESTS_PER_EMAIL_PER_WINDOW = 3;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
@@ -44,22 +55,55 @@ const statusValidator = v.union(
 );
 
 /**
+ * Public: Hands the browser the Turnstile site key.
+ *
+ * The key is public by design — it ships inside the widget markup regardless.
+ * It lives in the Convex deployment env next to its secret so the pair is
+ * configured in exactly one place, which is why the form asks for it here rather
+ * than reading a build-time `NEXT_PUBLIC_` variable that would need a redeploy
+ * to change.
+ */
+export const turnstileSiteKey = query({
+  args: {},
+  handler: async (): Promise<Result<string | null>> => ({
+    success: true,
+    data: process.env.TURNSTILE_SITE_KEY ?? null,
+  }),
+});
+
+/**
+ * The request itself, minus the anti-abuse fields. Shared by the public action
+ * and the internal mutation so the two cannot drift apart.
+ */
+const submissionArgs = {
+  companyName: v.string(),
+  companyEmail: v.string(),
+  contactPhone: v.string(),
+  specialties: v.array(v.string()),
+  description: v.string(),
+  hirePeriod: hirePeriodValidator,
+  jobDuration: jobDurationValidator,
+};
+
+/**
  * Public: Records a hiring request from a business.
  *
  * Intentionally unauthenticated — requiring a login here would lose most of the
- * leads this feature exists to capture. Everything the caller sends is treated
- * as hostile: validated against the shared rules, capped in length, and checked
- * against the specialty catalogue before it reaches the database.
+ * leads this feature exists to capture. It is therefore the one write path a
+ * stranger can reach, and it is guarded in three layers: a honeypot field, a
+ * Cloudflare Turnstile token redeemed here on the server, and a per-email rate
+ * limit inside `record`.
+ *
+ * An action rather than a mutation because redeeming the token means calling
+ * Cloudflare, and Convex mutations cannot make network requests. The database
+ * work lives in `record`, which is internal — so the captcha cannot be skipped
+ * by calling the insert directly.
  */
-export const submit = mutation({
+export const submit = action({
   args: {
-    companyName: v.string(),
-    companyEmail: v.string(),
-    contactPhone: v.string(),
-    specialties: v.array(v.string()),
-    description: v.string(),
-    hirePeriod: hirePeriodValidator,
-    jobDuration: jobDurationValidator,
+    ...submissionArgs,
+    /** Single-use token from the Turnstile widget, valid for 300 seconds. */
+    turnstileToken: v.string(),
     /**
      * Honeypot. Hidden from real users by CSS, so anything here means a bot
      * filled every field it could find.
@@ -67,11 +111,57 @@ export const submit = mutation({
     contactPreference: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<Result<{ id: Id<"talentRequests"> }>> => {
-    if (args.contactPreference) {
-      // Report success so a bot gets no signal about why it failed.
+    const { turnstileToken, contactPreference, ...submission } = args;
+
+    if (contactPreference) {
+      // Report success so a bot gets no signal about why it failed. Checked
+      // before the captcha so an obvious bot costs us no siteverify call.
       return { success: true, data: { id: "" as Id<"talentRequests"> } };
     }
 
+    const secret = process.env.TURNSTILE_SECRET_KEY;
+    if (!secret) {
+      // Fail closed. A missing secret is our misconfiguration, and accepting
+      // submissions anyway would silently leave this endpoint unprotected.
+      console.error(
+        "TURNSTILE_SECRET_KEY is not set — rejecting talent request submission.",
+      );
+      return {
+        success: false,
+        error:
+          "Verification is unavailable right now. Please try again shortly.",
+      };
+    }
+
+    const verification = await verifyTurnstileToken({
+      token: turnstileToken,
+      secret,
+    });
+    if (!verification.success) {
+      console.warn(
+        `Turnstile verification failed: ${verification.errorCodes.join(", ")}`,
+      );
+      return {
+        success: false,
+        error: turnstileErrorMessage(verification.errorCodes),
+      };
+    }
+
+    return await ctx.runMutation(internal.talentRequests.record, submission);
+  },
+});
+
+/**
+ * Internal: validates and stores a request whose captcha already passed.
+ *
+ * Internal on purpose — the browser reaches this only through `submit`, which is
+ * where the captcha lives. Everything the caller sends is still treated as
+ * hostile: validated against the shared rules, capped in length, and checked
+ * against the specialty catalogue before it reaches the database.
+ */
+export const record = internalMutation({
+  args: submissionArgs,
+  handler: async (ctx, args): Promise<Result<{ id: Id<"talentRequests"> }>> => {
     const validationError = validateTalentRequest(args);
     if (validationError) {
       return { success: false, error: validationError.message };

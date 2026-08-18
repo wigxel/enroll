@@ -1,14 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "~/components/ui/button";
+import { Turnstile, type TurnstileHandle } from "~/components/ui/turnstile";
 import { api } from "~/convex/_generated/api";
 import {
   countWords,
@@ -78,7 +79,13 @@ const formSchema = z.object({
   jobDuration: z.enum(["full_time", "part_time", "one_off"], {
     message: "Choose a job duration",
   }),
-  /** Honeypot — see the mutation. Real users never see or fill this. */
+  /**
+   * Cloudflare Turnstile token. Required here only so the visitor gets an inline
+   * message instead of a rejection from the server — the token is meaningless
+   * until the action redeems it with Cloudflare.
+   */
+  turnstileToken: z.string().min(1, "Please complete the verification below"),
+  /** Honeypot — see the submit action. Real users never see or fill this. */
   contactPreference: z.string().optional(),
 });
 
@@ -90,8 +97,17 @@ const fieldInput =
 const errorText = "mt-1 text-xs text-red-600";
 
 export default function HireTalentPage() {
-  const submitRequest = useMutation(api.talentRequests.submit);
+  const submitRequest = useAction(api.talentRequests.submit);
+  /**
+   * The site key comes from the Convex deployment env, not a `NEXT_PUBLIC_`
+   * build-time variable, so it can be rotated without rebuilding the site.
+   * `undefined` means the query is still in flight — distinct from a configured
+   * absence, which is a broken deployment worth saying out loud.
+   */
+  const siteKeyResult = useQuery(api.talentRequests.turnstileSiteKey);
+  const siteKey = siteKeyResult?.success ? siteKeyResult.data : null;
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const turnstileRef = useRef<TurnstileHandle>(null);
 
   const {
     register,
@@ -99,6 +115,7 @@ export default function HireTalentPage() {
     control,
     watch,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -110,12 +127,19 @@ export default function HireTalentPage() {
       description: "",
       hirePeriod: undefined,
       jobDuration: undefined,
+      turnstileToken: "",
       contactPreference: "",
     },
   });
 
   const description = watch("description") ?? "";
   const wordCount = countWords(description);
+
+  /** Drops the held token and shows a fresh challenge. */
+  const resetVerification = () => {
+    setValue("turnstileToken", "");
+    turnstileRef.current?.reset();
+  };
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -128,6 +152,11 @@ export default function HireTalentPage() {
       setIsSubmitted(true);
     } catch {
       toast.error("Could not send your request. Please try again.");
+    } finally {
+      // A token is spent once the server redeems it — including when it comes
+      // back rejected. Reusing it would fail forever as `timeout-or-duplicate`,
+      // so every outcome ends with a fresh challenge.
+      resetVerification();
     }
   };
 
@@ -399,6 +428,37 @@ export default function HireTalentPage() {
             autoComplete="off"
             {...register("contactPreference")}
           />
+        </div>
+
+        <div>
+          {siteKeyResult === undefined ? (
+            // Reserve the widget's own height so the submit row does not jump
+            // once the key arrives.
+            <div className="h-[65px] w-[300px] animate-pulse rounded-md bg-gray-100" />
+          ) : siteKey ? (
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={siteKey}
+              action="hire"
+              onVerify={(token) =>
+                setValue("turnstileToken", token, { shouldValidate: true })
+              }
+              // A token that has expired or errored is worthless, so drop it and
+              // let the schema ask for a new one on the next submit.
+              onExpire={() => setValue("turnstileToken", "")}
+              onError={() => setValue("turnstileToken", "")}
+            />
+          ) : (
+            <p className={errorText}>
+              Verification is unavailable, so this form cannot be submitted.
+              (TURNSTILE_SITE_KEY is not set on the Convex deployment.)
+            </p>
+          )}
+          {errors.turnstileToken && (
+            <p id="turnstileToken-error" className={errorText}>
+              {errors.turnstileToken.message}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center justify-between gap-4 border-t border-gray-100 pt-4">
