@@ -191,9 +191,9 @@ export default function HireTalentPage() {
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">
           Hire from our kitchen
         </h1>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-sm text-gray-600 text-balance max-w-sm">
           Tell us the talent you need and our placement team will match you with
-          graduates trained for the role. No account required.
+          graduates trained for this role
         </p>
       </div>
 
@@ -434,7 +434,7 @@ export default function HireTalentPage() {
           {siteKeyResult === undefined ? (
             // Reserve the widget's own height so the submit row does not jump
             // once the key arrives.
-            <div className="h-[65px] w-[300px] animate-pulse rounded-md bg-gray-100" />
+            <div className="h-16.25 w-75 animate-pulse rounded-md bg-gray-100" />
           ) : siteKey ? (
             <Turnstile
               ref={turnstileRef}
@@ -454,6 +454,7 @@ export default function HireTalentPage() {
               (TURNSTILE_SITE_KEY is not set on the Convex deployment.)
             </p>
           )}
+
           {errors.turnstileToken && (
             <p id="turnstileToken-error" className={errorText}>
               {errors.turnstileToken.message}
@@ -465,6 +466,7 @@ export default function HireTalentPage() {
           <p className="text-xs text-gray-500">
             We use your details only to respond to this request.
           </p>
+
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isSubmitting ? "Sending..." : "Send request"}

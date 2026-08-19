@@ -36,7 +36,6 @@ declare global {
   }
 }
 
-/** Cloudflare requires this exact URL — proxying or self-hosting it breaks on their updates. */
 const SCRIPT_SRC =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
@@ -123,6 +122,7 @@ export function Turnstile(props: TurnstileProps) {
    * would throw away a solved challenge on every keystroke in the form.
    */
   const handlers = useRef({ onVerify, onExpire, onError });
+
   useEffect(() => {
     handlers.current = { onVerify, onExpire, onError };
   }, [onVerify, onExpire, onError]);
@@ -159,7 +159,6 @@ export function Turnstile(props: TurnstileProps) {
       })
       .catch((error: unknown) => {
         if (cancelled) return;
-        console.error(error);
         // Surface it as a widget error so the form can explain itself instead of
         // leaving a blank space where the challenge should be.
         handlers.current.onError?.("script-load-failed");
